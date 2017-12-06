@@ -47,23 +47,21 @@ void Pilot::setAngle(byte angle) {
 setze Ausgangssignale fuer einen Motor
 *****************************************************/
 void Pilot::steerMotor(byte id, int power) {
-  if(DEBUG){
-    Serial.println("Motor: " + (String) id + " -> " + (String) power);
-  }
   
-  if(id < 0 || id > 3) {
+  if(id < 0 || id > 3) {      // ungueltige Eingabe
     return;
   }
 
   power = min(255,power);
   power = max(-255,power);
 
-  digitalWrite(_fwd[id], power>=0);
+  digitalWrite(_fwd[id], power>0);
   digitalWrite(_bwd[id], power<=0);
   if(power==0) {  //brake
     power = 255;
   }
   analogWrite(_pwm[id], abs(power));
+  Serial.print((String)power + ",");
 }
 
 /*****************************************************
@@ -76,7 +74,7 @@ void Pilot::drive() {
 
 /*****************************************************
 steuere die Motoren an
-- mit dem Zwischenspeicher
+- nutze Berechnungen des Zwischenspeichers
 *****************************************************/
 void Pilot::drive(int values[]) {
   for(int i=0; i<4; i++) {
@@ -112,30 +110,37 @@ void Pilot::calculate(int angle, int power) {
 
 /*****************************************************
 berechne den Zwischenspeicher
-- aus Winkel, Stärke und Rotation
+angle = Zielwinkel
+-> gegen den Uhrzeigersinn
+-> vorne: 0°
+-> -180 bis 180
+power = Geschwindigkeit
+-> 0 bis 255
+rotation = Korrekturdrehung, um wieder zum Gegnertor ausgerichtet zu sein
 *****************************************************/
 void Pilot::calculate(int angle, int power, int rotation) {
   if(power<0) {
-    power = -power;
-    angle += 180;
+    power = -power;                       // power absolut machen
+    angle += 180;                         // hinten sind 180°
   }
 
-  while(angle<0) {
+  while(angle<0) {                        // zu kleine Eingabe korrigieren
     angle += 360;
   }
-  angle %= 360;
+  angle %= 360;                           // zu große Eingabe korrigieren
 
-  if(power + abs(rotation) > 255) {
+  if(power + abs(rotation) > 255) {       // zu große Gesamtgeschwindigkeit korrigieren
     power -= (power + abs(rotation))-255;
   }
   
-  int sinA13 = sinus[(((_angle/2)-angle)+360)%360];
-  int sinA24 = sinus[(((_angle/2)+angle)+360)%360];
+  int sinA13 = sinus[(((_angle/2)-angle)+360)%360]; // Achse für Motoren 1 und 3
+  int sinA24 = sinus[(((_angle/2)+angle)+360)%360]; // Achse für Motoren 2 und 4
   
-  int axis13 = power * (float)sinA13/10000;
-  int axis24 = power * (float)sinA24/10000;
+  int axis13 = power * (double)sinA13/10000;
+  int axis24 = power * (double)sinA24/10000;
+
   
-  _values[0] = /*Motor 1*/ axis13 - rotation;
+  _values[0] = /*Motor 1*/ axis13 - rotation;       // speichere die Werte
   _values[1] = /*Motor 2*/ axis24 - rotation;
   _values[2] = /*Motor 3*/ axis13 + rotation;
   _values[3] = /*Motor 4*/ axis24 + rotation;

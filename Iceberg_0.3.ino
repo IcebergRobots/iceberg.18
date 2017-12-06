@@ -6,6 +6,7 @@ int dire = 0;
 
 void setup() {
   Serial.begin(9600);
+  pinMode(A5,INPUT_PULLUP);
   
   m.setAngle(70);
   
@@ -13,21 +14,14 @@ void setup() {
   m.setPins(1, FWD2, BWD2, PWM2);
   m.setPins(2, FWD3, BWD3, PWM3);
   m.setPins(3, FWD4, BWD4, PWM4);
-  while(!digitalRead(A5)){
+  while(digitalRead(A5)){
     
   }
-  m.drive(0,255);
 }
 
-void loop() {
-  
-  
-  /*for(int i = -255; i< 255; i++) {
-    m.steerMotor(0,i);
-    delay(10);
-  }
-  for(int i = 255; i> -255; i--) {
-    m.steerMotor(0,i);
-    delay(10);
-  }*/
+void loop(){
+  m.drive(dire % 360, 50);
+  dire ++;
+  delay(10);
+  Serial.println();
 }
