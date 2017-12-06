@@ -18,9 +18,12 @@
 #define PWM4  12
 
 #define BUZZER 9
+#define KICK 5
 
 #define BATT_VOLTAGE A15
 
 #define BIG_BUTTON A5
+#define BUTTON_1 25
+#define BUTTON_KICK 8
 
 #endif
