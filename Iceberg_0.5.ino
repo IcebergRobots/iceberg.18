@@ -23,7 +23,9 @@ void setup() {
   m.steerMotor(1,30);
   m.steerMotor(2,30);
   m.steerMotor(3,30);
-  while(1){}
+  while(1){
+    Serial.println(analogRead(A15) * 0.01220703);
+  }
 }
 
 void loop(){
