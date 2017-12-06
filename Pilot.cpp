@@ -57,10 +57,9 @@ void Pilot::steerMotor(byte id, int power) {
 
   digitalWrite(_fwd[id], power>0);
   digitalWrite(_bwd[id], power<=0);
-  if(power==0) {  //brake
-    power = 255;
-  }
   analogWrite(_pwm[id], abs(power));
+  
+  Serial.println((String)id + " -> "+(String)power);
 }
 
 /*****************************************************
@@ -138,7 +137,6 @@ void Pilot::calculate(int angle, int power, int rotation) {
   int axis13 = power * (double)sinA13/10000;
   int axis24 = power * (double)sinA24/10000;
 
-  Serial.println((String) axis13 + "," + (String) axis24);
   
   _values[0] = /*Motor 1*/ axis13 - rotation;       // speichere die Werte
   _values[1] = /*Motor 2*/ axis24 - rotation;

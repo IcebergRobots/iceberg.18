@@ -14,14 +14,23 @@ void setup() {
   m.setPins(1, FWD2, BWD2, PWM2);
   m.setPins(2, FWD3, BWD3, PWM3);
   m.setPins(3, FWD4, BWD4, PWM4);
+
+  
   while(digitalRead(A5)){
     
   }
+  m.steerMotor(0,30);
+  m.steerMotor(1,30);
+  m.steerMotor(2,30);
+  m.steerMotor(3,30);
+  while(1){}
 }
 
 void loop(){
   m.drive(dire % 360, 50);
-  dire ++;
+  if(!digitalRead(A5)){
+    dire += 45;
+    while(!digitalRead(A5)){;}
+  }
   delay(10);
-  Serial.println();
 }
