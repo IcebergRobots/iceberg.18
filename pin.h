@@ -17,4 +17,10 @@
 #define BWD4  40
 #define PWM4  12
 
+#define BUZZER 9
+
+#define BATT_VOLTAGE A15
+
+#define BIG_BUTTON A5
+
 #endif
