@@ -1,4 +1,4 @@
-#include "pin.h"
+#include "Pin.h"
 #include "Pilot.h"
 
 Pilot motors;
@@ -16,10 +16,8 @@ void setup() {
 }
 
 void loop() {
-  Serial.println("Direction: "+(String) dire+"°");
-  motors.drive(dire, 255);
-  Serial.println();
+  motors.drive(dire, 50);
   dire += 5;
   dire %= 360;
   delay(1000);
-} 
+}
