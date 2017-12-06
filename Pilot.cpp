@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "Pilot.h"
 
 // array auslesen ist schneller als berechnen

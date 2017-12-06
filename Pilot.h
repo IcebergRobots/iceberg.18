@@ -1,6 +1,10 @@
-#include "Arduino.h"
 #ifndef Pilot_h
 #define Pilot_h
+
+#include "Arduino.h"
+#include "Config.h"
+#include "Utility.h"
+#include "Pin.h"
 
 class Pilot
 {
