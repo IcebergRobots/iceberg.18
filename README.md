@@ -6,7 +6,7 @@
 [![Youtube](YoutubeIcon)](https://www.youtube.com/channel/UCmyW6OYBXdUCqKvd90pjqyw)
 [![Pinterest](PinterestIcon)](https://de.pinterest.com/icebergrobots/pins/)
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=zeHY6BJ-jss" target="_blank">
+<a href="https://www.youtube.com/channel/UCmyW6OYBXdUCqKvd90pjqyw" target="_blank">
 <img src="http://img.youtube.com/vi/zeHY6BJ-jss/0.jpg" alt="Trailer Saison 2017 - RoboCup - Iceberg Robots" width="240" height="180" border="10" /></a>
 
 * Arduino Mega 2560
