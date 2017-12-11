@@ -133,17 +133,18 @@ void Pilot::calculate(int angle, int power, int rotation) {
     power -= (power + abs(rotation))-255;   //wird die Geschwindigkeit ausreichend reduziert
   }
   
-  int sinA13 = sinus[(((_angle/2)-angle)+360)%360]; //berechne Zwischenwert für Achse der Motoren 1 und 3
-  int sinA24 = sinus[(((_angle/2)+angle)+360)%360]; //berechne Zwischenwert für Achse der Motoren 2 und 4
-  
-  int axis13 = power * (double)sinA13/10000;  //berechne Motorstärken für Achse 1&3
-  int axis24 = power * (double)sinA24/10000;  //berechne Motorstärken für Achse 2&4
+                                                    //                                                      IDs:  .--.
+  int sinA02 = sinus[(((_angle/2)-angle)+360)%360]; //berechne Zwischenwert für Achse der Motoren 1 und 3      3 /    \ 0
+  int sinA13 = sinus[(((_angle/2)+angle)+360)%360]; //berechne Zwischenwert für Achse der Motoren 2 und 4      2 \    / 1
+                                                    //                                                            '--'
+  int axis02 = power * (double)sinA02/10000;  //berechne Motorstärken für Achse 1&3
+  int axis13 = power * (double)sinA13/10000;  //berechne Motorstärken für Achse 2&4
 
   
-  _values[0] = /*Motor 1*/ axis13 - rotation;       //erstelle Zwischenspeicher für alle Motorstärken
-  _values[1] = /*Motor 2*/ axis24 - rotation;
-  _values[2] = /*Motor 3*/ axis13 + rotation;
-  _values[3] = /*Motor 4*/ axis24 + rotation;
+  _values[0] = axis02 - rotation;       //erstelle Zwischenspeicher für alle Motorstärken
+  _values[1] = axis13 - rotation;
+  _values[2] = axis02 + rotation;
+  _values[3] = axis13 + rotation;
 }
 
 /*****************************************************
