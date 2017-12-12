@@ -45,8 +45,8 @@ void Pilot::setAngle(byte angle) {
 setze Ausgangssignale fuer einen Motor
 IDs:     
     .--.
- 3 /    \ 0
- 2 \    / 1
+ 0 /    \ 3
+ 1 \    / 2
     '--'
 *****************************************************/
 void Pilot::steerMotor(byte id, int power) {
