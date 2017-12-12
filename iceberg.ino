@@ -14,6 +14,11 @@ HMC6352 myCompass;
 float heading;
 
 void setup() {
+  for(int i = 10; i<2000; i += 10){
+    tone(BUZZER, i);
+    delay(1);
+  }
+  
   Serial.begin(9600);
   Wire.begin();
   pinModes();
