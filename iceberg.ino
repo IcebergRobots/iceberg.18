@@ -11,7 +11,9 @@
 Pilot m;
 HMC6352 myCompass;
 
-float heading;
+int heading;
+int startHeading;
+int rotation;
 
 void setup() {
   for(int i = 10; i<2000; i += 10){
@@ -24,11 +26,15 @@ void setup() {
   pinModes();
   motorConfig();
   myCompass.setOutputMode(0);
+
+  startHeading = myCompass.getHeading();
 }
 
 void loop(){
-  heading = map(myCompass.getHeading()-180,-180,180,-PWR,PWR);
-  m.drive(0, PWR-abs(heading),heading);
+  heading = ((int)((myCompass.getHeading()-startHeading)+360) % 360)-180;
+  rotation = map(heading,-180,180,-PWR,PWR);
+  
+  m.drive(0, PWR-abs(rotation),rotation);
 }
 
 void motorConfig(){
