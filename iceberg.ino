@@ -3,21 +3,27 @@
 #include "Pilot.h"
 #include "Utility.h"
 
+#include <Wire.h>
+#include "HMC6352.h"
+
+#define PWR 50
+
 Pilot m;
+HMC6352 myCompass;
+
+float heading;
 
 void setup() {
   Serial.begin(9600);
+  Wire.begin();
   pinModes();
   motorConfig();
+  myCompass.setOutputMode(0);
 }
 
 void loop(){
-  m.steerMotor(1,30);
-  if(battLow()){
-    tone(9, 900);
-  }else{
-    noTone(9);
-  }
+  heading = map(myCompass.getHeading()-180,-180,180,-PWR,PWR);
+  m.drive(0, PWR-abs(heading),heading);
 }
 
 void motorConfig(){
