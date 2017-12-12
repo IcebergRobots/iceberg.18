@@ -12,8 +12,5 @@
 #define debugln(_str_); if(DEBUG){Serial.println(_str_);}
 
 void pinModes();
-void motorConfig();
-
-Pilot m;
 
 #endif
