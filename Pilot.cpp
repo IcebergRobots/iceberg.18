@@ -61,8 +61,6 @@ void Pilot::steerMotor(byte id, int power) {
   digitalWrite(_fwd[id], power>0);    //drehe Motor vorwarts
   digitalWrite(_bwd[id], power<=0);   //drehe Motor rueckwaerts
   analogWrite(_pwm[id], abs(power));  //drehe Motor mit Geschwindigkeit
-  
-  Serial.println((String)id + " -> "+(String)power);
 }
 
 /*****************************************************
