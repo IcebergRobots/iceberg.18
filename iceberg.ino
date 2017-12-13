@@ -13,7 +13,7 @@
   
 Pilot m;            //Motorobjekt
 HMC6352 c;          //Kompassobjekt
-Adafruit_SSD1306 display(PIN_4); //Display-Objekt
+Adafruit_SSD1306 d(PIN_4); //Display-Objekt
 
 int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
@@ -30,18 +30,18 @@ void setup() {
   
   Serial.begin(9600);   //Start der Seriellen Kommunikation
   Wire.begin();         //Start der I2C-Kommunikation
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  d.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   
   pinModes();           //setzt die PinModes
   motorConfig();        //konfiguriert das Pilot-Objekt
   c.setOutputMode(0);   //keine Ahnung
 
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.println("Iceberg Robots");
-  display.display();
+  d.clearDisplay();
+  d.setTextSize(2);
+  d.setTextColor(WHITE);
+  d.setCursor(0,0);
+  d.println("Iceberg Robots");
+  d.display();
 
   startHeading = c.getHeading()-180;  //merkt sich den Startwert des Kompass
 }
@@ -55,15 +55,15 @@ void loop(){
   
   m.drive(0, PWR-abs(rotation),rotation);                           //steuert die Motoren an
   
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(0,0);
-  display.println("Iceberg");
-  display.println("Robots");
-  display.setTextSize(4);
-  display.println(rotation);
-  display.display();
+  d.clearDisplay();
+  d.setTextSize(2);
+  d.setTextColor(WHITE);
+  d.setCursor(0,0);
+  d.println("Iceberg");
+  d.println("Robots");
+  d.setTextSize(4);
+  d.println(rotation);
+  d.display();
   
   delay(1);
   
