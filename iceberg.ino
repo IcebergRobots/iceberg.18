@@ -47,6 +47,12 @@ void setup() {
 }
 
 void loop(){
+  if(battLow()){
+    tone(BUZZER, 900);
+  }else{
+    noTone(BUZZER);
+  }
+
   
   heading = ((int)((c.getHeading()-startHeading)+360) % 360)-180;   //Misst die Kompassabweichung vom Startwert
   rotation = max(min(map(heading,-220,220,-PWR,PWR),PWR),-PWR);   //Berechnet die Rotation zu Kompasskorrektur
