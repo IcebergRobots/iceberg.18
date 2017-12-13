@@ -36,12 +36,12 @@ void setup() {
   motorConfig();        //konfiguriert das Pilot-Objekt
   c.setOutputMode(0);   //keine Ahnung
 
-  d.clearDisplay();
-  d.setTextSize(2);
-  d.setTextColor(WHITE);
-  d.setCursor(0,0);
-  d.println("Iceberg Robots");
-  d.display();
+  d.clearDisplay();     //leert das Display
+  d.setTextSize(2);     //setzt Textgroesse
+  d.setTextColor(WHITE);//setzt Textfarbe
+  d.setCursor(0,0);     //positioniert Cursor
+  d.println("Iceberg Robots");  //schreibt Text auf das Display
+  d.display();          //wendet Aenderungen an
 
   startHeading = c.getHeading()-180;  //merkt sich den Startwert des Kompass
 }
