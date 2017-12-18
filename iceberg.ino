@@ -9,7 +9,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define PWR 255      //
+#define PWR 255     //maximale Motorstärke
   
 Pilot m;            //Motorobjekt
 HMC6352 c;          //Kompassobjekt
@@ -21,45 +21,38 @@ int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
 
 void setup() {
-  //Start-fiep
-  for(int i = 10; i<2000; i += 10){
-    tone(BUZZER, i);
-    delay(1);
-  }
-  noTone(BUZZER);
-  
+  startSound();     // Fiepen, welches Programstart signalisiert
+
+  //Initialisierungen
   Serial.begin(9600);   //Start der Seriellen Kommunikation
   Wire.begin();         //Start der I2C-Kommunikation
-  d.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  
   pinModes();           //setzt die PinModes
-  motorConfig();        //konfiguriert das Pilot-Objekt
-  c.setOutputMode(0);   //keine Ahnung
+  setupMotor();         //setzt Pins und Winkel des Pilot Objekts
+  c.setOutputMode(0);   //Kompass initialisieren
+  setupDisplay();       //initialisiere Display mit Iceberg Schriftzug
 
-  d.clearDisplay();     //leert das Display
-  d.setTextSize(2);     //setzt Textgroesse
-  d.setTextColor(WHITE);//setzt Textfarbe
-  d.setCursor(0,0);     //positioniert Cursor
-  d.println("Iceberg Robots");  //schreibt Text auf das Display
-  d.display();          //wendet Aenderungen an
-
-  startHeading = c.getHeading()-180;  //merkt sich den Startwert des Kompass
+  //Torrichtung [-180 bis 179] merken
+  startHeading = c.getHeading()-180;  //merkt sich Startwert des Kompass
 }
 
 void loop(){
+  //Batteriestand prüfen
   if(battLow()){
     tone(BUZZER, 900);
   }else{
     noTone(BUZZER);
   }
 
+  //Winkel [-180 bis 179] zum Tor berechnen
+  heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-180 bis 180]*/)+360) % 360)/*[0 bis 359]*/-180; //Misst die Kompassabweichung vom Tor
   
-  heading = ((int)((c.getHeading()-startHeading)+360) % 360)-180;   //Misst die Kompassabweichung vom Startwert
-  rotation = max(min(map(heading,-220,220,-PWR,PWR),PWR),-PWR);   //Berechnet die Rotation zu Kompasskorrektur
+  //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
+  rotation = max(min(map(heading,-220,220,-PWR,PWR),PWR),-PWR);   //Je größer der Torwinkel, desto groeßer die Rotation
   
   delay(1);  
-  
-  m.drive(0, PWR-abs(rotation),rotation);                           //steuert die Motoren an
+
+  //fahre geradeaus (zum Tor)
+  m.drive(0, PWR-abs(rotation),rotation);
   
   d.clearDisplay();
   d.setTextSize(2);
@@ -75,7 +68,7 @@ void loop(){
   
 }
 
-void motorConfig(){
+void setupMotor(){
   m.setAngle(70);
   
   m.setPins(0, FWD0, BWD0, PWM0);
@@ -83,3 +76,14 @@ void motorConfig(){
   m.setPins(2, FWD2, BWD2, PWM2);
   m.setPins(3, FWD3, BWD3, PWM3);
 }
+
+void setupDisplay() {
+  d.begin(SSD1306_SWITCHCAPVCC, 0x3C);  //Initialisieren des Displays
+  d.clearDisplay();     //leert das Display
+  d.setTextSize(2);     //setzt Textgroesse
+  d.setTextColor(WHITE);//setzt Textfarbe
+  d.setCursor(0,0);     //positioniert Cursor
+  d.println("Iceberg Robots");  //schreibt Text auf das Display
+  d.display();          //wendet Aenderungen an
+}
+

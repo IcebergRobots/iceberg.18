@@ -7,5 +7,6 @@
 #include "Pin.h"
 
 boolean battLow();
+void startSound();
 
 #endif
