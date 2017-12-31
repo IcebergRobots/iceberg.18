@@ -9,7 +9,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define PWR 255     //maximale Motorstärke
+#define PWR 60     //maximale Motorstärke
+#define ROT_MULTI 0.4
+#define ROT_MAX 0.2
   
 Pilot m;            //Motorobjekt
 HMC6352 c;          //Kompassobjekt
@@ -19,6 +21,7 @@ int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
 int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
+
 
 void setup() {
   startSound();     // Fiepen, welches Programstart signalisiert
@@ -35,6 +38,7 @@ void setup() {
   startHeading = c.getHeading()-180;  //merkt sich Startwert des Kompass
 }
 
+
 void loop(){
   //Batteriestand prüfen
   if(battLow()){
@@ -47,19 +51,26 @@ void loop(){
   heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-180 bis 180]*/)+360) % 360)/*[0 bis 359]*/-180; //Misst die Kompassabweichung vom Tor
   
   //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
-  rotation = max(min(map(heading,-220,220,-PWR,PWR),PWR),-PWR);   //Je größer der Torwinkel, desto groeßer die Rotation
+  rotation = map(heading, -30, 30, -PWR*ROT_MULTI, PWR*ROT_MULTI);   //Je größer der Torwinkel, desto groeßer die Rotation
+  rotation = constrain(rotation,-PWR*ROT_MAX,PWR*ROT_MAX);
+  
+  if(abs(heading)<30){
+    m.drive(0, PWR-abs(rotation),rotation);
+  }else{
+    m.brake(true);
+  }
   
   delay(1);  
 
   //fahre geradeaus (zum Tor)
-  m.drive(0, PWR-abs(rotation),rotation);
+  
   
   d.clearDisplay();
   d.setTextSize(2);
   d.setTextColor(WHITE);
   d.setCursor(0,0);
-  d.println("Iceberg");
-  d.println("Robots");
+  d.println("Kompass");
+  d.println(heading);
   d.setTextSize(4);
   d.println(rotation);
   d.display();
