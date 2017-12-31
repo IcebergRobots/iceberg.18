@@ -10,12 +10,14 @@
 #include <Adafruit_SSD1306.h>
 
 #define PWR 60     //maximale Motorstärke
-#define ROT_MULTI 0.4
-#define ROT_MAX 0.2
+//#define ROT_MULTI 0.4
+#define ROT_MAX 0.5
   
 Pilot m;            //Motorobjekt
 HMC6352 c;          //Kompassobjekt
 Adafruit_SSD1306 d(PIN_4); //Display-Objekt
+
+float ROT_MULTI;
 
 int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
@@ -24,7 +26,7 @@ unsigned long turningTimer = 0;
 
 
 void setup() {
-  startSound();     // Fiepen, welches Programstart signalisiert
+  //startSound();     // Fiepen, welches Programstart signalisiert
 
   //Initialisierungen
   Serial.begin(9600);   //Start der Seriellen Kommunikation
@@ -41,11 +43,13 @@ void setup() {
 
 void loop(){
   //Batteriestand prüfen
-  if(battLow()){
+  /*if(battLow()){
     tone(BUZZER, 900);
   }else{
     noTone(BUZZER);
-  }
+  }*/
+
+  ROT_MULTI = analogRead(POTI)/ 512.0;
 
   //Winkel [-180 bis 179] zum Tor berechnen
   heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-180 bis 180]*/)+360) % 360)/*[0 bis 359]*/-180; //Misst die Kompassabweichung vom Tor
@@ -54,7 +58,7 @@ void loop(){
   rotation = map(heading, -30, 30, -PWR*ROT_MULTI, PWR*ROT_MULTI);   //Je größer der Torwinkel, desto groeßer die Rotation
   rotation = constrain(rotation,-PWR*ROT_MAX,PWR*ROT_MAX);
   
-  if(abs(heading)<30){
+  if(abs(heading)<40 && digitalRead(SWITCH_MOTOR)){
     m.drive(0, PWR-abs(rotation),rotation);
   }else{
     m.brake(true);
@@ -69,10 +73,10 @@ void loop(){
   d.setTextSize(2);
   d.setTextColor(WHITE);
   d.setCursor(0,0);
-  d.println("Kompass");
-  d.println(heading);
-  d.setTextSize(4);
-  d.println(rotation);
+  d.println("Komp: "+ String(heading));
+  d.println("Mult: "+ String(ROT_MULTI));
+  d.println("Rota: "+ String(rotation));
+  d.println("MotE: "+ String(digitalRead(SWITCH_MOTOR)));
   d.display();
   
   delay(1);

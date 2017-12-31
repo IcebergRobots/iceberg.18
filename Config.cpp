@@ -5,4 +5,6 @@ void pinModes(){
   pinMode(BIG_BUTTON, INPUT_PULLUP);
 
   pinMode(BATT_VOLTAGE, INPUT);
+
+  pinMode(SWITCH_MOTOR, INPUT_PULLUP);
 }
