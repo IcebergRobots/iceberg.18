@@ -12,6 +12,12 @@ void pinModes(){
   pinMode(BUTTON_2,			INPUT_PULLUP);
   pinMode(BUTTON_3,			INPUT_PULLUP);
 
+  pinMode(BATT_VOLTAGE, INPUT);
+}
+
+  pinMode(SWITCH_MOTOR, INPUT_PULLUP);
+}
+
   pinMode(SWITCH_SCHUSS,	INPUT_PULLUP);
   pinMode(SWITCH_KEEPER,	INPUT_PULLUP);
   pinMode(SWITCH_BODENS,	INPUT_PULLUP);
