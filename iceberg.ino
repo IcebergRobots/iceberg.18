@@ -4,7 +4,7 @@
 #include "Utility.h"
 
 #include <Wire.h>
-#include "HMC6352.h"
+#include <HMC6352.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
