@@ -24,7 +24,7 @@
 
 #define SWITCH_SCHUSS   31  //  Hier wird ausgelesen, ob der Schuss eingeschaltet ist.
 #define SWITCH_KEEPER   33  //  Hier wird ausgelesen, ob der Roboter Keeper oder Angreifer ist.
-#define SWITCH_BODENSENSOR 35  //  Hier wird ausgelesen, ob die Bodensensoren eingeschaltet sind.
+#define SWITCH_BODENS 35  //  Hier wird ausgelesen, ob die Bodensensoren eingeschaltet sind.
 #define SWITCH_DEBUG    37  //  Hier wird ausgelesen, ob die Debug-LEDs eingeschaltet sind.
 #define SWITCH_MOTOR    39  //  Hier wird ausgelesen, ob die Motoren eingeschaltet sind.
 #define SWITCH_B        27  //  Dieser Schalter ist vorerst unbelegt.
