@@ -71,7 +71,7 @@ void loop(){
   if(abs(heading)<40){
     m.drive(0, PWR-abs(rotation),rotation);
   }else{
-    m.brake(true);
+    ausrichten();
   }
   
   delay(1);  
@@ -108,5 +108,22 @@ void setupDisplay() {
   d.setCursor(0,0);     //positioniert Cursor
   d.println("ICEBERG ROBOTS");  //schreibt Text auf das Display
   d.display();          //wendet Aenderungen an
+}
+
+void ausrichten() {
+  //Winkel [-180 bis 179] zum Tor berechnen
+  heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
+  
+  //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
+  rotation = map(heading, -180, 180, -PWR, PWR) *2;   //Je größer der Torwinkel, desto groeßer die Rotation
+  rotation = constrain(rotation, -PWR, PWR);
+  
+
+  if(abs(heading) <= 5){
+    m.brake(true);
+  }else{
+    m.drive(0, 0, rotation);
+  }
+
 }
 
