@@ -10,14 +10,13 @@
 #include <Adafruit_SSD1306.h>
 
 #define PWR 60      //maximale Motorstärke
-//#define ROT_MULTI 0.4
+#define ROT_MULTI 0.35
 #define ROT_MAX 0.5 //der maximale Wert der Rotation
   
 Pilot m;            //Motorobjekt
 HMC6352 c;          //Kompassobjekt
 Adafruit_SSD1306 d(PIN_4); //Display-Objekt
 
-float ROT_MULTI;
 
 int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
@@ -61,7 +60,6 @@ void loop(){
   }*/
 
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
-  ROT_MULTI = analogRead(POTI)/ 512.0;
 
   //Winkel [-180 bis 179] zum Tor berechnen
   heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
@@ -86,9 +84,7 @@ void loop(){
   d.setTextColor(WHITE);
   d.setCursor(0,0);
   d.println("Komp: "+ String(heading));
-  d.println("Mult: "+ String(ROT_MULTI));
-  d.println("Rota: "+ String(rotation));
-  d.println("MotE: "+ String(digitalRead(SWITCH_MOTOR)));
+  d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
   d.display();
   
   delay(1);
