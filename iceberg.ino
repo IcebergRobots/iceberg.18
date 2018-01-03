@@ -41,6 +41,8 @@ void setup() {
 
   //Torrichtung [-180 bis 179] merken
   startHeading = c.getHeading()-180;  //merkt sich Startwert des Kompass
+
+  m.setMotEn(true);
 }
 
 
@@ -52,6 +54,7 @@ void loop(){
     noTone(BUZZER);
   }*/
 
+  m.setMotEn(!digitalRead(SWITCH_MOTOR));
   ROT_MULTI = analogRead(POTI)/ 512.0;
 
   //Winkel [-180 bis 179] zum Tor berechnen
@@ -61,10 +64,8 @@ void loop(){
   rotation = map(heading, -30, 30, -PWR*ROT_MULTI, PWR*ROT_MULTI);   //Je größer der Torwinkel, desto groeßer die Rotation
   rotation = constrain(rotation,-PWR*ROT_MAX,PWR*ROT_MAX);
   
-  if(abs(heading)<40 && digitalRead(SWITCH_MOTOR)){
+  if(abs(heading)<40){
     m.drive(0, PWR-abs(rotation),rotation);
-  }else{
-    m.brake(true);
   }
   
   delay(1);  

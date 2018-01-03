@@ -8,6 +8,7 @@ setze Achsenwinkel auf 70°
 *****************************************************/
 Pilot::Pilot(){
   _angle = 70;
+  _motEn = false;
 }
 
 /*****************************************************
@@ -15,6 +16,7 @@ setze Achsenwinkel
 *****************************************************/
 Pilot::Pilot(byte angle){
   _angle = angle;
+  _motEn = false;
 }
 
 /*****************************************************
@@ -50,17 +52,18 @@ IDs:
     '--'
 *****************************************************/
 void Pilot::steerMotor(byte id, int power) {
+  if(_motEn){
+    if(id < 0 || id > 3) {      //Eingabeueberpruefung
+      return;
+    }
   
-  if(id < 0 || id > 3) {      //Eingabeueberpruefung
-    return;
+    power = min(255,power);     //Eingabekorrektur
+    power = max(-255,power);
+  
+    digitalWrite(_fwd[id], power>0);    //drehe Motor vorwarts
+    digitalWrite(_bwd[id], power<=0);   //drehe Motor rueckwaerts
+    analogWrite(_pwm[id], abs(power));  //drehe Motor mit Geschwindigkeit
   }
-
-  power = min(255,power);     //Eingabekorrektur
-  power = max(-255,power);
-
-  digitalWrite(_fwd[id], power>0);    //drehe Motor vorwarts
-  digitalWrite(_bwd[id], power<=0);   //drehe Motor rueckwaerts
-  analogWrite(_pwm[id], abs(power));  //drehe Motor mit Geschwindigkeit
 }
 
 /*****************************************************
@@ -155,3 +158,19 @@ void Pilot::brake(bool activ) {
     analogWrite(_pwm[i], 255);
   }
 }
+
+void Pilot::setMotEn(bool motEn){
+  _motEn = motEn;
+  if(!motEn){
+    brake(true);
+  }
+}
+
+void Pilot::switchMotEn(){
+  setMotEn(!_motEn);
+}
+
+bool Pilot::getMotEn(){
+  return _motEn;
+}
+
