@@ -35,7 +35,6 @@ void setup() {
   setupDisplay();       //initialisiere Display mit Iceberg Schriftzug
   pinModes();           //setzt die PinModes
   setupMotor();         //setzt Pins und Winkel des Pilot Objekts
-  c.setOutputMode(0);   //Kompass initialisieren
 
   delay(1000);
 
@@ -43,6 +42,13 @@ void setup() {
   startHeading = c.getHeading()-180;  //merkt sich Startwert des Kompass
 
   m.setMotEn(true);
+
+  if(!digitalRead(SWITCH_A)){
+    m.drive(0,0,8);
+    c.calibration();
+  }
+  m.brake(true);
+  c.setOutputMode(0);   //Kompass initialisieren
 }
 
 
@@ -66,6 +72,8 @@ void loop(){
   
   if(abs(heading)<40){
     m.drive(0, PWR-abs(rotation),rotation);
+  }else{
+    m.brake(true);
   }
   
   delay(1);  
@@ -102,7 +110,7 @@ void setupDisplay() {
   d.setTextSize(2);     //setzt Textgroesse
   d.setTextColor(WHITE);//setzt Textfarbe
   d.setCursor(0,0);     //positioniert Cursor
-  d.println("WALL-E");  //schreibt Text auf das Display
+  d.println("ICEBERG ROBOTS");  //schreibt Text auf das Display
   d.display();          //wendet Aenderungen an
 }
 
