@@ -9,9 +9,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define PWR 60     //maximale Motorstärke
+#define PWR 60      //maximale Motorstärke
 //#define ROT_MULTI 0.4
-#define ROT_MAX 0.5
+#define ROT_MAX 0.5 //der maximale Wert der Rotation
   
 Pilot m;            //Motorobjekt
 HMC6352 c;          //Kompassobjekt
@@ -31,10 +31,13 @@ void setup() {
   //Initialisierungen
   Serial.begin(9600);   //Start der Seriellen Kommunikation
   Wire.begin();         //Start der I2C-Kommunikation
+
+  setupDisplay();       //initialisiere Display mit Iceberg Schriftzug
   pinModes();           //setzt die PinModes
   setupMotor();         //setzt Pins und Winkel des Pilot Objekts
   c.setOutputMode(0);   //Kompass initialisieren
-  setupDisplay();       //initialisiere Display mit Iceberg Schriftzug
+
+  delay(1000);
 
   //Torrichtung [-180 bis 179] merken
   startHeading = c.getHeading()-180;  //merkt sich Startwert des Kompass
@@ -52,7 +55,7 @@ void loop(){
   ROT_MULTI = analogRead(POTI)/ 512.0;
 
   //Winkel [-180 bis 179] zum Tor berechnen
-  heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-180 bis 180]*/)+360) % 360)/*[0 bis 359]*/-180; //Misst die Kompassabweichung vom Tor
+  heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
   
   //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
   rotation = map(heading, -30, 30, -PWR*ROT_MULTI, PWR*ROT_MULTI);   //Je größer der Torwinkel, desto groeßer die Rotation
@@ -98,7 +101,7 @@ void setupDisplay() {
   d.setTextSize(2);     //setzt Textgroesse
   d.setTextColor(WHITE);//setzt Textfarbe
   d.setCursor(0,0);     //positioniert Cursor
-  d.println("Iceberg Robots");  //schreibt Text auf das Display
+  d.println("WALL-E");  //schreibt Text auf das Display
   d.display();          //wendet Aenderungen an
 }
 
