@@ -6,6 +6,8 @@
 #include <Wire.h>
 #include <HMC6352.h>
 
+#include <PID_v1.h>
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -22,6 +24,10 @@ int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
 int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
+double Setpoint, Input, Output;
+
+double Kp=2, Ki=5, Kd=1;
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 
 void setup() {
@@ -48,6 +54,8 @@ void setup() {
   }
   m.brake(true);
   c.setOutputMode(0);   //Kompass initialisieren
+  Setpoint = 100;
+  myPID.SetMode(AUTOMATIC);
 }
 
 
@@ -61,18 +69,7 @@ void loop(){
 
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
-  //Winkel [-180 bis 179] zum Tor berechnen
-  heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
-  
-  //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
-  rotation = map(heading, -30, 30, -PWR*ROT_MULTI, PWR*ROT_MULTI);   //Je größer der Torwinkel, desto groeßer die Rotation
-  rotation = constrain(rotation,-PWR*ROT_MAX,PWR*ROT_MAX);
-  
-  if(abs(heading)<40){
-    m.drive(0, PWR-abs(rotation),rotation);
-  }else{
-    ausrichten();
-  }
+  ausrichten();
   
   delay(1);  
 
@@ -111,19 +108,13 @@ void setupDisplay() {
 }
 
 void ausrichten() {
-  //Winkel [-180 bis 179] zum Tor berechnen
   heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
-  
-  //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
-  rotation = map(heading, -180, 180, -PWR, PWR) *2;   //Je größer der Torwinkel, desto groeßer die Rotation
-  rotation = constrain(rotation, -PWR, PWR);
-  
 
-  if(abs(heading) <= 5){
-    m.brake(true);
-  }else{
-    m.drive(0, 0, rotation);
-  }
+  Input = heading;
+  
+  myPID.Compute();
+  
+  m.drive(0, 0, Output);
 
 }
 
