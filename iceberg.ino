@@ -3,6 +3,8 @@
 #include "Pilot.h"
 #include "Utility.h"
 
+#include <SPI.h>
+#include <Pixy.h>
 #include <Wire.h>
 #include <HMC6352.h>
 
@@ -18,28 +20,39 @@
 #define ROT_MAX 0.5 //der maximale Wert der Rotation
 
 #define PWR_LED 30
-  
-Pilot m;            //Motorobjekt
-HMC6352 c;          //Kompassobjekt
-Adafruit_SSD1306 d(PIN_4); //Display-Objekt
 
+Pilot m;            // Motorobjekt
+HMC6352 c;          // Kompassobjekt
+Adafruit_SSD1306 d(PIN_4); // Displayobjekt
+Pixy pixy;          // Kameraobjekt
 
 boolean stateFine = true;
-boolean ballsicht = false;
 boolean ballbesitz = false;
 
-int heading;        //Wert des Kompass
-int startHeading;   //Startwert des Kompass
-int rotation;       //rotationswert für die Motoren
+int heading;        // Wert des Kompass
+int startHeading;   // Startwert des Kompass
+int rotation;       // rotationswert für die Motoren
 unsigned long turningTimer = 0;
 
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800);
 
-// Wichtungseinstellungen des PID-Reglers
-double pidFilterP=0.32;  // p:proportional
-double pidFilterI=0.03;  // i:vorausschauend
-double pidFilterD=0.03;  // d:Schwung herausnehmen (nicht zu weit drehen)
+//Pixyeinstellungen
+#define SPEED          100  //Geschwindigkeit des Roboters in %
+#define PIXY_BALL_NUMMER  1 //Pixy-Signature des Balls
+#define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2) //Die Mitte des Bildes der Pixy (in Pixeln)
+uint16_t blocks;            //hier werden die erkannten Bloecke gespeichert
+unsigned long lastPixy = 0; //Timer zum Auslesen der Pixy
+byte blockAnzahl = 0;       //Anzahl der erkannten Bloecke
+int highX;                  //Position des Balls (x-Koordinate)
+int highY;                  //Position des Balls (y-Koordinate)
+int xAbw = 0;               //die Abweichung des Balls von der Mitte des Pixybildes
+boolean ballSicht;          //ob wir den Ball sehen
+
+//Wichtungseinstellungen des PID-Reglers
+double pidFilterP = 0.32; // p:proportional
+double pidFilterI = 0.03; // i:vorausschauend
+double pidFilterD = 0.03; // d:Schwung herausnehmen (nicht zu weit drehen)
 double pidSetpoint;  // Nulllevel [-180 bis 180]:Winkel des Tours
 double pidIn;        // Kompasswert [-180 bis 180]
 double pidOut;       // Rotationsstärke [-255 bis 255]
@@ -49,80 +62,84 @@ void setup() {
   //startSound();     // Fiepen, welches Programstart signalisiert
 
   //Initialisierungen
-  Serial.begin(9600);   //Start der Seriellen Kommunikation
-  Wire.begin();         //Start der I2C-Kommunikation
+  Serial.begin(9600);   // Start der Seriellen Kommunikation
+  Wire.begin();         // Start der I2C-Kommunikation
 
-  setupDisplay();       //initialisiere Display mit Iceberg Schriftzug
-  pinModes();           //setzt die PinModes
-  setupMotor();         //setzt Pins und Winkel des Pilot Objekts
+  setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
+  pinModes();           // setzt die PinModes
+  setupMotor();         // setzt Pins und Winkel des Pilot Objekts
+  pixy.init();          // initialisiere Kamera
 
   delay(1000);
 
   //Torrichtung [-180 bis 179] merken
-  startHeading = c.getHeading()-180;  //merkt sich Startwert des Kompass
+  startHeading = c.getHeading() - 180; //merkt sich Startwert des Kompass
 
   m.setMotEn(true);
 
-  if(!digitalRead(SWITCH_A)){
-    m.drive(0,0,8);
+  if (!digitalRead(SWITCH_A)) {
+    m.drive(0, 0, 8);
     c.calibration();
   }
   m.brake(true);
   c.setOutputMode(0);   //Kompass initialisieren
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
-  myPID.SetOutputLimits(-255,255);
+  myPID.SetOutputLimits(-255, 255);
 
   matrix.begin(); // This initializes the NeoPixel library.
   stateLed.begin();
 }
 
 
-void loop(){
-  stateLed.setPixelColor(0, stateLed.Color(PWR_LED*!stateFine,PWR_LED*stateFine,0));
-  stateLed.setPixelColor(1, stateLed.Color(PWR_LED*battLow(),PWR_LED*!battLow(),0));
-  
-  if(millis() % 1000 < 200){
-    stateLed.setPixelColor(2, stateLed.Color(0,PWR_LED,0));
-  }else{
-    stateLed.setPixelColor(2, stateLed.Color(0,0,0));
+void loop() {
+  stateLed.setPixelColor(0, stateLed.Color(PWR_LED * !stateFine, PWR_LED * stateFine, 0));
+  stateLed.setPixelColor(1, stateLed.Color(PWR_LED * battLow(), PWR_LED * !battLow(), 0));
+
+  if (millis() % 1000 < 200) {
+    stateLed.setPixelColor(2, stateLed.Color(0, PWR_LED, 0));
+  } else {
+    stateLed.setPixelColor(2, stateLed.Color(0, 0, 0));
   }
 
-  
+  //wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
+  if (millis() - lastPixy > 25) {
+    readPixy();
+  }
 
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
-  matrix.setPixelColor(1, matrix.Color(!m.getMotEn()*PWR_LED, m.getMotEn()*PWR_LED,0));
+  matrix.setPixelColor(1, matrix.Color(!m.getMotEn()*PWR_LED, m.getMotEn()*PWR_LED, 0));
 
   ausrichten();
-  pidFilterI = analogRead(POTI)/10000.0;
+  pidFilterI = analogRead(POTI) / 10000.0;
 
-  
-  delay(1);  
+
+  delay(1);
 
   //fahre geradeaus (zum Tor)
-  
-  
+
+
   d.clearDisplay();
   d.setTextSize(2);
   d.setTextColor(WHITE);
-  d.setCursor(0,0);
-  d.println("Komp: "+ String(heading));
-  d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
-  d.println("OUTP: "+ String(round(pidOut)));
-  
-  d.println("I: "+ String(pidFilterI));
+  d.setCursor(0, 0);
+  d.println("Komp: " + String(heading));
+  d.println("MotE: " + String(!digitalRead(SWITCH_MOTOR)));
+  d.println("OUTP: " + String(round(pidOut)));
+
+  d.println("I: " + String(pidFilterI));
   d.display();
 
   matrix.show();
   stateLed.show();
-  
+
   delay(1);
-  
+
 }
 
-void setupMotor(){
+void setupMotor() {
   m.setAngle(70);
-  
+
   m.setPins(0, FWD0, BWD0, PWM0);
   m.setPins(1, FWD1, BWD1, PWM1);
   m.setPins(2, FWD2, BWD2, PWM2);
@@ -134,22 +151,45 @@ void setupDisplay() {
   d.clearDisplay();     //leert das Display
   d.setTextSize(2);     //setzt Textgroesse
   d.setTextColor(WHITE);//setzt Textfarbe
-  d.setCursor(0,0);     //positioniert Cursor
+  d.setCursor(0, 0);    //positioniert Cursor
   d.println("ICEBERG ROBOTS");  //schreibt Text auf das Display
   d.display();          //wendet Aenderungen an
 }
 
 void ausrichten() {
-  heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
+  heading = ((int)((c.getHeading()/*[0 bis 359]*/ - startHeading/*[-359 bis 359]*/) + 360) % 360)/*[0 bis 359]*/ - 180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
 
   pidIn = (double) heading;
-  
-  double gap = abs(pidSetpoint-pidIn); //distance away from setpoint
+
+  double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
   myPID.SetTunings(pidFilterP, pidFilterI, pidFilterD);
   myPID.Compute();
-  
+
   m.drive(0, 0, -pidOut);
 
 }
 
+//Methode zum Auslesen der Pixy; Diese Methode sucht nach dem groesten Block in der Farbe des Balls
+void readPixy() {
+  int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
+  highX = 0;             //Position des Balls (X)
+  highY = 0;             //Position des Balls (Y)
+  blockAnzahl = 0;       //Anzahl der Bloecke
 
+  blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
+
+  for (int j = 0; j < blocks; j++) {                                  //geht alle erkannten Bloecke durch
+    if (pixy.blocks[j].signature == PIXY_BALL_NUMMER) {               //Überprueft, ob es sich bei dem Block um den Ball handelt
+      if (pixy.blocks[j].height * pixy.blocks[j].width > greatestBlock) { //Wenn der Block der aktuell groesste ist
+        greatestBlock = pixy.blocks[j].height * pixy.blocks[j].width;
+        highX = pixy.blocks[j].x;                                     //Position des Blocks wird uebernommen
+        highY = pixy.blocks[j].y;
+      }
+      blockAnzahl++;        //Anzahl wird hochgezaehlt
+    }
+  }
+
+  lastPixy = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
+
+  ballSicht = blockAnzahl != 0; //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+}
