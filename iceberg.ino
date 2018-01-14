@@ -28,7 +28,7 @@ boolean stateFine = true;
 boolean ballsicht = false;
 boolean ballbesitz = false;
 
-int heading;        //Wert des Kompass
+int heading = 0;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
 int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
@@ -75,18 +75,20 @@ void setup() {
 
   matrix.begin(); // This initializes the NeoPixel library.
   stateLed.begin();
+
+  Serial.println("setup done");
 }
 
 
 void loop(){
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
+  showState(0, stateFine);
+  showState(1, battLow());
+  showState(2, millis() % 1000 < 200);
 
-  showBool(stateLed,0,stateFine);
-  showBool(stateLed,1,battLow());
-  showBool(stateLed,2,millis() % 1000 < 200);
-  showBool(matrix,1,m.getMotEn());
-  showBool(matrix,2,ballsicht);
-  showBool(matrix,3,ballbesitz);
+  showMatrix(1, m.getMotEn());
+  showMatrix(2, ballsicht);
+  showMatrix(3, ballbesitz);
 
   ausrichten();
 
@@ -95,16 +97,21 @@ void loop(){
   d.clearDisplay();
   d.setTextSize(2);
   d.setTextColor(WHITE);
+  
   d.setCursor(0,0);
-  d.println("Komp: "+ String(heading));
-  d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
-  d.println("OUTP: "+ String(round(pidOut)));
+  d.println("MotE: " + String(m.getMotEn()));
+  d.println("Komp: " + String(heading));
   
   d.display();
+  delay(1);
+  
   matrix.show();
   stateLed.show();
+
   
   delay(1);
+
+  debugln("loop");
   
 }
 
@@ -140,8 +147,12 @@ void ausrichten() {
 
 }
 
-void showBool(Adafruit_NeoPixel nMatrix, byte pos, boolean state){
-  nMatrix.setPixelColor(1, nMatrix.Color(!state*PWR_LED,state*PWR_LED,0));
+void showMatrix(byte pos, boolean state){
+  matrix.setPixelColor(pos, matrix.Color((!state)*PWR_LED,state*PWR_LED,0));
+}
+
+void showState(byte pos, boolean state){
+  stateLed.setPixelColor(pos, stateLed.Color((!state)*PWR_LED,state*PWR_LED,0));
 }
 
 
