@@ -33,17 +33,9 @@ int startHeading;   //Startwert des Kompass
 int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
 
-<<<<<<< HEAD
-double Setpoint, Input, Output;
-
-double consKp=0.32, consKi=0.03, consKd=0.03;
-
-PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
-
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800);
 
-=======
 // Wichtungseinstellungen des PID-Reglers
 double pidFilterP=0.32;  // p:proportional
 double pidFilterI=0.03;  // i:vorausschauend
@@ -52,7 +44,6 @@ double pidSetpoint;  // Nulllevel [-180 bis 180]:Winkel des Tours
 double pidIn;        // Kompasswert [-180 bis 180]
 double pidOut;       // Rotationsstärke [-255 bis 255]
 PID myPID(&pidIn, &pidOut, &pidSetpoint, pidFilterP, pidFilterI, pidFilterD, DIRECT);
->>>>>>> master
 
 void setup() {
   //startSound();     // Fiepen, welches Programstart signalisiert
