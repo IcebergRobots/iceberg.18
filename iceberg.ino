@@ -26,8 +26,10 @@ HMC6352 c;          // Kompassobjekt
 Adafruit_SSD1306 d(PIN_4); // Displayobjekt
 Pixy pixy;          // Kameraobjekt
 
+// Led-Matrix
 boolean stateFine = true;
-boolean ballbesitz = false;
+boolean canSeeBall = false;
+boolean isOnTheBall = false;
 
 int heading;        // Wert des Kompass
 int startHeading;   // Startwert des Kompass
@@ -37,10 +39,22 @@ unsigned long turningTimer = 0;
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800);
 
-// Wichtungseinstellungen des PID-Reglers
-double pidFilterP=0.32;  // p:proportional
-double pidFilterI=0.03;  // i:vorausschauend
-double pidFilterD=0.03;  // d:Schwung herausnehmen (nicht zu weit drehen)
+//Pixyeinstellungen
+#define SPEED          100  //Geschwindigkeit des Roboters in %
+#define PIXY_BALL_NUMMER  1 //Pixy-Signature des Balls
+#define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2) //Die Mitte des Bildes der Pixy (in Pixeln)
+uint16_t blocks;            //hier werden die erkannten Bloecke gespeichert
+unsigned long lastPixy = 0; //Timer zum Auslesen der Pixy
+byte blockAnzahl = 0;       //Anzahl der erkannten Bloecke
+int highX;                  //Position des Balls (x-Koordinate)
+int highY;                  //Position des Balls (y-Koordinate)
+int xAbw = 0;               //die Abweichung des Balls von der Mitte des Pixybildes
+boolean ballSicht;          //ob wir den Ball sehen
+
+//Wichtungseinstellungen des PID-Reglers
+double pidFilterP = 0.32; // p:proportional
+double pidFilterI = 0.03; // i:vorausschauend
+double pidFilterD = 0.03; // d:Schwung herausnehmen (nicht zu weit drehen)
 double pidSetpoint;  // Nulllevel [-180 bis 180]:Winkel des Tours
 double pidIn;        // Kompasswert [-180 bis 180]
 double pidOut;       // Rotationsstärke [-255 bis 255]
@@ -80,52 +94,38 @@ void setup() {
 }
 
 
-void loop(){
-  stateLed.setPixelColor(0, stateLed.Color(PWR_LED*!stateFine,PWR_LED*stateFine,0));
-  stateLed.setPixelColor(1, stateLed.Color(PWR_LED*battLow(),PWR_LED*!battLow(),0));
-  
-  if(millis() % 1000 < 200){
-    stateLed.setPixelColor(2, stateLed.Color(0,PWR_LED,0));
-  }else{
-    stateLed.setPixelColor(2, stateLed.Color(0,0,0));
+void loop() {
+  m.setMotEn(!digitalRead(SWITCH_MOTOR));
+
+  showBool(stateLed, 0, stateFine);
+  showBool(stateLed, 1, battLow());
+  showBool(stateLed, 2, millis() % 1000 < 200);
+  showBool(matrix, 1, m.getMotEn());
+  showBool(matrix, 2, canSeeBall);
+  showBool(matrix, 3, isOnTheBall);
+
+  //wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
+  if (millis() - lastPixy > 25) {
+    readPixy();
   }
 
-  
-
-  m.setMotEn(!digitalRead(SWITCH_MOTOR));
-  matrix.setPixelColor(1, matrix.Color(!m.getMotEn()*PWR_LED, m.getMotEn()*PWR_LED,0));
-
-  showBool(stateLed,0,stateFine);
-  showBool(stateLed,1,battLow());
-  showBool(stateLed,2,millis() % 1000 < 200);
-  showBool(matrix,1,m.getMotEn());
-  showBool(matrix,2,ballsicht);
-  showBool(matrix,3,ballbesitz);
-
   ausrichten();
-  pidFilterI = analogRead(POTI)/10000.0;
 
-  
-  delay(1);  
+  delay(1);
 
-  //fahre geradeaus (zum Tor)
-  
-  
   d.clearDisplay();
   d.setTextSize(2);
   d.setTextColor(WHITE);
-  d.setCursor(0,0);
-  d.println("Komp: "+ String(heading));
-  d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
-  d.println("OUTP: "+ String(round(pidOut)));
-  
-  d.println("I: "+ String(pidFilterI));
+  d.setCursor(0, 0);
+  d.println("Komp: " + String(heading));
+  d.println("MotE: " + String(!digitalRead(SWITCH_MOTOR)));
+  d.println("OUTP: " + String(round(pidOut)));
+
   d.display();
   matrix.show();
   stateLed.show();
 
   delay(1);
-
 }
 
 void setupMotor() {
@@ -160,7 +160,12 @@ void ausrichten() {
 
 }
 
-
+//Methode zum Auslesen der Pixy; Diese Methode sucht nach dem groesten Block in der Farbe des Balls
+void readPixy() {
+  int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
+  highX = 0;             //Position des Balls (X)
+  highY = 0;             //Position des Balls (Y)
+  blockAnzahl = 0;       //Anzahl der Bloecke
 
   blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
 
@@ -180,45 +185,8 @@ void ausrichten() {
   ballSicht = blockAnzahl != 0; //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
 }
 
-//Pixyeinstellungen
-#define SPEED          100  //Geschwindigkeit des Roboters in %
-#define PIXY_BALL_NUMMER  1 //Pixy-Signature des Balls
-#define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2) //Die Mitte des Bildes der Pixy (in Pixeln)
-uint16_t blocks;            //hier werden die erkannten Bloecke gespeichert
-unsigned long lastPixy = 0; //Timer zum Auslesen der Pixy
-byte blockAnzahl = 0;       //Anzahl der erkannten Bloecke
-int highX;                  //Position des Balls (x-Koordinate)
-int highY;                  //Position des Balls (y-Koordinate)
-int xAbw = 0;               //die Abweichung des Balls von der Mitte des Pixybildes
-boolean ballSicht;          //ob wir den Ball sehen
-
-//Wichtungseinstellungen des PID-Reglers
-double pidFilterP = 0.32; // p:proportional
-double pidFilterI = 0.03; // i:vorausschauend
-double pidFilterD = 0.03; // d:Schwung herausnehmen (nicht zu weit drehen)
-void loop() {
-
-  //wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
-  if (millis() - lastPixy > 25) {
-    readPixy();
-  }
-
-  delay(1);  
-  
-  d.setCursor(0, 0);
-  d.println("Komp: " + String(heading));
-  d.println("MotE: " + String(!digitalRead(SWITCH_MOTOR)));
-  d.println("OUTP: " + String(round(pidOut)));
-
-  d.println("I: " + String(pidFilterI));
-//Methode zum Auslesen der Pixy; Diese Methode sucht nach dem groesten Block in der Farbe des Balls
-void readPixy() {
-  int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
-  highX = 0;             //Position des Balls (X)
-  highY = 0;             //Position des Balls (Y)
-  blockAnzahl = 0;       //Anzahl der Bloecke
-void showBool(Adafruit_NeoPixel nMatrix, byte pos, boolean state){
-  nMatrix.setPixelColor(1, nMatrix.Color(!state*PWR_LED,state*PWR_LED,0));
+void showBool(Adafruit_NeoPixel nMatrix, byte pos, boolean state) {
+  nMatrix.setPixelColor(1, nMatrix.Color(!state * PWR_LED, state * PWR_LED, 0));
 }
 
-
+
