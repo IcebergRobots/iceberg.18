@@ -104,8 +104,8 @@ void loop() {
   showState(2, millis() % 1000 < 200);
 
   showMatrix(1, m.getMotEn());
-  showMatrix(2, ballsicht);
-  showMatrix(3, ballbesitz);
+  showMatrix(2, canSeeBall);
+  showMatrix(3, isOnTheBall);
 
 
   //wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
@@ -165,10 +165,6 @@ void ausrichten() {
 
 }
 
-void showBool(Adafruit_NeoPixel nMatrix, byte pos, boolean state){
-  nMatrix.setPixelColor(1, nMatrix.Color(!state*PWR_LED,state*PWR_LED,0));
-}
-
 //Methode zum Auslesen der Pixy; Diese Methode sucht nach dem groesten Block in der Farbe des Balls
 void readPixy() {
   int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
@@ -197,3 +193,7 @@ void readPixy() {
 void showMatrix(byte pos, boolean state){
   matrix.setPixelColor(pos, matrix.Color((!state)*PWR_LED,state*PWR_LED,0));
 }
+
+void showState(byte pos, boolean state){ 
+  stateLed.setPixelColor(pos, stateLed.Color((!state)*PWR_LED,state*PWR_LED,0)); 
+} 
