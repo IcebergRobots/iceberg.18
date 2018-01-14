@@ -24,10 +24,12 @@ int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
 int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
+
 double Setpoint, Input, Output;
 
-double Kp=2, Ki=5, Kd=1;
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+double consKp=0.32, consKi=0.03, consKd=0.03;
+
+PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
 
 
 void setup() {
@@ -54,8 +56,9 @@ void setup() {
   }
   m.brake(true);
   c.setOutputMode(0);   //Kompass initialisieren
-  Setpoint = 100;
+  Setpoint = 0;
   myPID.SetMode(AUTOMATIC);
+  myPID.SetOutputLimits(-255,255);
 }
 
 
@@ -70,6 +73,8 @@ void loop(){
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
   ausrichten();
+  consKi = analogRead(POTI)/10000.0;
+
   
   delay(1);  
 
@@ -82,6 +87,9 @@ void loop(){
   d.setCursor(0,0);
   d.println("Komp: "+ String(heading));
   d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
+  d.println("OUTP: "+ String(round(Output)));
+  
+  d.println("I: "+ String(consKi));
   d.display();
   
   delay(1);
@@ -110,11 +118,13 @@ void setupDisplay() {
 void ausrichten() {
   heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
 
-  Input = heading;
+  Input = (double) heading;
   
+  double gap = abs(Setpoint-Input); //distance away from setpoint
+  myPID.SetTunings(consKp, consKi, consKd);
   myPID.Compute();
   
-  m.drive(0, 0, Output);
+  m.drive(0, 0, -Output);
 
 }
 
