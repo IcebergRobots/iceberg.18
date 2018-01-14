@@ -25,7 +25,7 @@ Adafruit_SSD1306 d(PIN_4); //Display-Objekt
 
 
 boolean stateFine = true;
-boolean ballsicht = false:
+boolean ballsicht = false;
 boolean ballbesitz = false;
 
 int heading;        //Wert des Kompass
