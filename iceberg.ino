@@ -33,6 +33,7 @@ int startHeading;   //Startwert des Kompass
 int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
 
+<<<<<<< HEAD
 double Setpoint, Input, Output;
 
 double consKp=0.32, consKi=0.03, consKd=0.03;
@@ -42,6 +43,16 @@ PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800);
 
+=======
+// Wichtungseinstellungen des PID-Reglers
+double pidFilterP=0.32;  // p:proportional
+double pidFilterI=0.03;  // i:vorausschauend
+double pidFilterD=0.03;  // d:Schwung herausnehmen (nicht zu weit drehen)
+double pidSetpoint;  // Nulllevel [-180 bis 180]:Winkel des Tours
+double pidIn;        // Kompasswert [-180 bis 180]
+double pidOut;       // Rotationsstärke [-255 bis 255]
+PID myPID(&pidIn, &pidOut, &pidSetpoint, pidFilterP, pidFilterI, pidFilterD, DIRECT);
+>>>>>>> master
 
 void setup() {
   //startSound();     // Fiepen, welches Programstart signalisiert
@@ -67,7 +78,7 @@ void setup() {
   }
   m.brake(true);
   c.setOutputMode(0);   //Kompass initialisieren
-  Setpoint = 0;
+  pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255,255);
 
@@ -92,7 +103,7 @@ void loop(){
   matrix.setPixelColor(1, matrix.Color(!m.getMotEn()*PWR_LED, m.getMotEn()*PWR_LED,0));
 
   ausrichten();
-  consKi = analogRead(POTI)/10000.0;
+  pidFilterI = analogRead(POTI)/10000.0;
 
   
   delay(1);  
@@ -106,9 +117,9 @@ void loop(){
   d.setCursor(0,0);
   d.println("Komp: "+ String(heading));
   d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
-  d.println("OUTP: "+ String(round(Output)));
+  d.println("OUTP: "+ String(round(pidOut)));
   
-  d.println("I: "+ String(consKi));
+  d.println("I: "+ String(pidFilterI));
   d.display();
 
   matrix.show();
@@ -140,13 +151,13 @@ void setupDisplay() {
 void ausrichten() {
   heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
 
-  Input = (double) heading;
+  pidIn = (double) heading;
   
-  double gap = abs(Setpoint-Input); //distance away from setpoint
-  myPID.SetTunings(consKp, consKi, consKd);
+  double gap = abs(pidSetpoint-pidIn); //distance away from setpoint
+  myPID.SetTunings(pidFilterP, pidFilterI, pidFilterD);
   myPID.Compute();
   
-  m.drive(0, 0, -Output);
+  m.drive(0, 0, -pidOut);
 
 }
 
