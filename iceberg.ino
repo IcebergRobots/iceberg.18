@@ -11,14 +11,22 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#include <Adafruit_NeoPixel.h>
+
 #define PWR 60      //maximale Motorstärke
 #define ROT_MULTI 0.35
 #define ROT_MAX 0.5 //der maximale Wert der Rotation
+
+#define PWR_LED 30
   
 Pilot m;            //Motorobjekt
 HMC6352 c;          //Kompassobjekt
 Adafruit_SSD1306 d(PIN_4); //Display-Objekt
 
+
+boolean stateFine = true;
+boolean ballsicht = false:
+boolean ballbesitz = false;
 
 int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
@@ -30,6 +38,9 @@ double Setpoint, Input, Output;
 double consKp=0.32, consKi=0.03, consKd=0.03;
 
 PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
+
+Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800);
 
 
 void setup() {
@@ -59,18 +70,26 @@ void setup() {
   Setpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255,255);
+
+  matrix.begin(); // This initializes the NeoPixel library.
+  stateLed.begin();
 }
 
 
 void loop(){
-  //Batteriestand prüfen
-  /*if(battLow()){
-    tone(BUZZER, 900);
+  stateLed.setPixelColor(0, stateLed.Color(PWR_LED*!stateFine,PWR_LED*stateFine,0));
+  stateLed.setPixelColor(1, stateLed.Color(PWR_LED*battLow(),PWR_LED*!battLow(),0));
+  
+  if(millis() % 1000 < 200){
+    stateLed.setPixelColor(2, stateLed.Color(0,PWR_LED,0));
   }else{
-    noTone(BUZZER);
-  }*/
+    stateLed.setPixelColor(2, stateLed.Color(0,0,0));
+  }
+
+  
 
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
+  matrix.setPixelColor(1, matrix.Color(!m.getMotEn()*PWR_LED, m.getMotEn()*PWR_LED,0));
 
   ausrichten();
   consKi = analogRead(POTI)/10000.0;
@@ -91,6 +110,9 @@ void loop(){
   
   d.println("I: "+ String(consKi));
   d.display();
+
+  matrix.show();
+  stateLed.show();
   
   delay(1);
   
@@ -127,4 +149,5 @@ void ausrichten() {
   m.drive(0, 0, -Output);
 
 }
+
 
