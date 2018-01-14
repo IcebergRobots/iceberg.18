@@ -98,6 +98,7 @@ void setup() {
 
 void loop() {
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
+  
   showState(0, stateFine);
   showState(1, battLow());
   showState(2, millis() % 1000 < 200);
@@ -119,12 +120,10 @@ void loop() {
   d.clearDisplay();
   d.setTextSize(2);
   d.setTextColor(WHITE);
-  d.setCursor(0,0);
-  d.println("Komp: "+ String(heading));
-  d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
-  d.println("OUTP: "+ String(round(pidOut)));
   
-  d.display();
+  d.setCursor(0,0);
+  d.println("MotE: " + String(m.getMotEn()));
+  d.println("Komp: " + String(heading));
   delay(1);
   
   matrix.show();
@@ -170,13 +169,6 @@ void showBool(Adafruit_NeoPixel nMatrix, byte pos, boolean state){
   nMatrix.setPixelColor(1, nMatrix.Color(!state*PWR_LED,state*PWR_LED,0));
 }
 
-
-
-  
-  d.setCursor(0,0);
-  d.println("MotE: " + String(m.getMotEn()));
-  d.println("Komp: " + String(heading));
-  
 //Methode zum Auslesen der Pixy; Diese Methode sucht nach dem groesten Block in der Farbe des Balls
 void readPixy() {
   int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
@@ -200,5 +192,8 @@ void readPixy() {
   lastPixy = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
 
   ballSicht = blockAnzahl != 0; //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+}
+
 void showMatrix(byte pos, boolean state){
   matrix.setPixelColor(pos, matrix.Color((!state)*PWR_LED,state*PWR_LED,0));
+}
