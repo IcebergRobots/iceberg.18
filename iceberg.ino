@@ -6,6 +6,8 @@
 #include <Wire.h>
 #include <HMC6352.h>
 
+#include <PID_v1.h>
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -22,6 +24,12 @@ int heading;        //Wert des Kompass
 int startHeading;   //Startwert des Kompass
 int rotation;       //rotationswert für die Motoren
 unsigned long turningTimer = 0;
+
+double Setpoint, Input, Output;
+
+double consKp=0.32, consKi=0.03, consKd=0.03;
+
+PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
 
 
 void setup() {
@@ -48,6 +56,9 @@ void setup() {
   }
   m.brake(true);
   c.setOutputMode(0);   //Kompass initialisieren
+  Setpoint = 0;
+  myPID.SetMode(AUTOMATIC);
+  myPID.SetOutputLimits(-255,255);
 }
 
 
@@ -61,18 +72,9 @@ void loop(){
 
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
-  //Winkel [-180 bis 179] zum Tor berechnen
-  heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
-  
-  //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
-  rotation = map(heading, -30, 30, -PWR*ROT_MULTI, PWR*ROT_MULTI);   //Je größer der Torwinkel, desto groeßer die Rotation
-  rotation = constrain(rotation,-PWR*ROT_MAX,PWR*ROT_MAX);
-  
-  if(abs(heading)<40){
-    m.drive(0, PWR-abs(rotation),rotation);
-  }else{
-    ausrichten();
-  }
+  ausrichten();
+  consKi = analogRead(POTI)/10000.0;
+
   
   delay(1);  
 
@@ -85,6 +87,9 @@ void loop(){
   d.setCursor(0,0);
   d.println("Komp: "+ String(heading));
   d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
+  d.println("OUTP: "+ String(round(Output)));
+  
+  d.println("I: "+ String(consKi));
   d.display();
   
   delay(1);
@@ -111,19 +116,15 @@ void setupDisplay() {
 }
 
 void ausrichten() {
-  //Winkel [-180 bis 179] zum Tor berechnen
   heading = ((int)((c.getHeading()/*[0 bis 359]*/-startHeading/*[-359 bis 359]*/)+360) % 360)/*[0 bis 359]*/-180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
-  
-  //Rotationsstärke [-PWR bis PWR] für Torausrichtung berechnen
-  rotation = map(heading, -180, 180, -PWR, PWR) *2;   //Je größer der Torwinkel, desto groeßer die Rotation
-  rotation = constrain(rotation, -PWR, PWR);
-  
 
-  if(abs(heading) <= 5){
-    m.brake(true);
-  }else{
-    m.drive(0, 0, rotation);
-  }
+  Input = (double) heading;
+  
+  double gap = abs(Setpoint-Input); //distance away from setpoint
+  myPID.SetTunings(consKp, consKi, consKd);
+  myPID.Compute();
+  
+  m.drive(0, 0, -Output);
 
 }
 
