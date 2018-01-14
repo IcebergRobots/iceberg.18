@@ -38,7 +38,7 @@ Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ80
 
 // Wichtungseinstellungen des PID-Reglers
 double pidFilterP=0.32;  // p:proportional
-double pidFilterI=0.03;  // i:vorausschauend
+double pidFilterI=0.04;  // i:vorausschauend
 double pidFilterD=0.03;  // d:Schwung herausnehmen (nicht zu weit drehen)
 double pidSetpoint;  // Nulllevel [-180 bis 180]:Winkel des Tours
 double pidIn;        // Kompasswert [-180 bis 180]
@@ -79,28 +79,18 @@ void setup() {
 
 
 void loop(){
-  stateLed.setPixelColor(0, stateLed.Color(PWR_LED*!stateFine,PWR_LED*stateFine,0));
-  stateLed.setPixelColor(1, stateLed.Color(PWR_LED*battLow(),PWR_LED*!battLow(),0));
-  
-  if(millis() % 1000 < 200){
-    stateLed.setPixelColor(2, stateLed.Color(0,PWR_LED,0));
-  }else{
-    stateLed.setPixelColor(2, stateLed.Color(0,0,0));
-  }
-
-  
-
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
-  matrix.setPixelColor(1, matrix.Color(!m.getMotEn()*PWR_LED, m.getMotEn()*PWR_LED,0));
+
+  showBool(stateLed,0,stateFine);
+  showBool(stateLed,1,battLow());
+  showBool(stateLed,2,millis() % 1000 < 200);
+  showBool(matrix,1,m.getMotEn());
+  showBool(matrix,2,ballsicht);
+  showBool(matrix,3,ballbesitz);
 
   ausrichten();
-  pidFilterI = analogRead(POTI)/10000.0;
 
-  
   delay(1);  
-
-  //fahre geradeaus (zum Tor)
-  
   
   d.clearDisplay();
   d.setTextSize(2);
@@ -110,9 +100,7 @@ void loop(){
   d.println("MotE: "+ String(!digitalRead(SWITCH_MOTOR)));
   d.println("OUTP: "+ String(round(pidOut)));
   
-  d.println("I: "+ String(pidFilterI));
   d.display();
-
   matrix.show();
   stateLed.show();
   
@@ -150,6 +138,10 @@ void ausrichten() {
   
   m.drive(0, 0, -pidOut);
 
+}
+
+void showBool(Adafruit_NeoPixel nMatrix, byte pos, boolean state){
+  nMatrix.setPixelColor(1, nMatrix.Color(!state*PWR_LED,state*PWR_LED,0));
 }
 
 
