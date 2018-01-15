@@ -7,58 +7,58 @@
 #include <Pixy.h>
 #include <Wire.h>
 #include <HMC6352.h>
-
 #include <PID_v1.h>
-
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-
 #include <Adafruit_NeoPixel.h>
 
-#define PWR 60      //maximale Motorstärke
+// Einstellungen: FAHREN
+#define PWR 60          // maximale Motorstärke
 #define ROT_MULTI 0.35
-#define ROT_MAX 0.5 //der maximale Wert der Rotation
+#define ROT_MAX 0.5     // der maximale Wert der Rotation
+Pilot m;                // OBJEKTINITIALISIERUNG
 
-#define PWR_LED 30
-
-Pilot m;            // Motorobjekt
-HMC6352 c;          // Kompassobjekt
-Adafruit_SSD1306 d(PIN_4); // Displayobjekt
-Pixy pixy;          // Kameraobjekt
-
-// Led-Matrix
-boolean stateFine = true;
-boolean canSeeBall = false;
-boolean isOnTheBall = false;
-
-int heading = 0;        //Wert des Kompass
-int startHeading;   //Startwert des Kompass
-int rotation;       //rotationswert für die Motoren
+// Einstellungen: KOMPASS
+int heading = 0;                // Wert des Kompass
+int startHeading;               // Startwert des Kompass
+int rotation;                   // rotationswert für die Motoren
 unsigned long turningTimer = 0;
+HMC6352 c;                      // OBJEKTINITIALISIERUNG
 
-Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800);
-
-//Pixyeinstellungen
-#define SPEED          100  //Geschwindigkeit des Roboters in %
-#define PIXY_BALL_NUMMER  1 //Pixy-Signature des Balls
-#define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2) //Die Mitte des Bildes der Pixy (in Pixeln)
-uint16_t blocks;            //hier werden die erkannten Bloecke gespeichert
-unsigned long lastPixy = 0; //Timer zum Auslesen der Pixy
-byte blockAnzahl = 0;       //Anzahl der erkannten Bloecke
-int highX;                  //Position des Balls (x-Koordinate)
-int highY;                  //Position des Balls (y-Koordinate)
-int xAbw = 0;               //die Abweichung des Balls von der Mitte des Pixybildes
-boolean ballSicht;          //ob wir den Ball sehen
-
-//Wichtungseinstellungen des PID-Reglers
+// Einstellungen: WICHTUNG DER PID-REGLER
 double pidFilterP = 0.32; // p:proportional
 double pidFilterI = 0.03; // i:vorausschauend
 double pidFilterD = 0.03; // d:Schwung herausnehmen (nicht zu weit drehen)
-double pidSetpoint;  // Nulllevel [-180 bis 180]:Winkel des Tours
-double pidIn;        // Kompasswert [-180 bis 180]
-double pidOut;       // Rotationsstärke [-255 bis 255]
-PID myPID(&pidIn, &pidOut, &pidSetpoint, pidFilterP, pidFilterI, pidFilterD, DIRECT);
+double pidSetpoint;       // Nulllevel [-180 bis 180]:Winkel des Tours
+double pidIn;             // Kompasswert [-180 bis 180]
+double pidOut;            // Rotationsstärke [-255 bis 255]
+PID myPID(&pidIn, &pidOut, &pidSetpoint, pidFilterP, pidFilterI, pidFilterD, DIRECT); // OBJEKTINITIALISIERUNG
+
+// Einstellungen: PIXY
+#define SPEED 100             // Geschwindigkeit des Roboters in %
+#define PIXY_BALL_NUMMER 1    // Pixy-Signature des Balls
+#define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2)  //Die Mitte des Bildes der Pixy (in Pixeln)
+uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
+unsigned long lastPixy = 0;   // Timer zum Auslesen der Pixy
+byte blockAnzahl = 0;         // Anzahl der erkannten Bloecke
+int highX;                    // Position des Balls (x-Koordinate)
+int highY;                    // Position des Balls (y-Koordinate)
+int xAbw = 0;                 // die Abweichung des Balls von der Mitte des Pixybildes
+boolean ballSicht;            // ob wir den Ball sehen
+Pixy pixy;                    // OBJEKTINITIALISIERUNG
+
+// Einstellungen: DISPLAY
+Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
+
+// Einstellungen: STATUS-LEDS & LED-MATRIX
+#define PWR_LED 30            // Helligkeit der Status-Leds
+boolean stateFine = true;     // liegt kein Fehler vor?
+boolean canSeeBall = false;   // sieht die Kamera den Ball?
+boolean isOnTheBall = false;  // besitzen der Roboter den Ball?
+Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
+Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (STATUS-LEDS)
+
+//###################################################################################################
 
 void setup() {
   //startSound();     // Fiepen, welches Programstart signalisiert
@@ -95,10 +95,11 @@ void setup() {
   Serial.println("setup done");
 }
 
+//###################################################################################################
 
 void loop() {
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
-  
+
   showState(0, stateFine);
   showState(1, battLow());
   showState(2, millis() % 1000 < 200);
@@ -120,19 +121,22 @@ void loop() {
   d.clearDisplay();
   d.setTextSize(2);
   d.setTextColor(WHITE);
-  
-  d.setCursor(0,0);
+
+  d.setCursor(0, 0);
   d.println("MotE: " + String(m.getMotEn()));
   d.println("Komp: " + String(heading));
   delay(1);
-  
+
   matrix.show();
   stateLed.show();
-  
+
   delay(1);
-  
+
 }
 
+//###################################################################################################
+
+// Piloten konfigurieren
 void setupMotor() {
   m.setAngle(70);
 
@@ -142,6 +146,7 @@ void setupMotor() {
   m.setPins(3, FWD3, BWD3, PWM3);
 }
 
+// Bildschirm konfigurieren und Startschriftzug zeigen
 void setupDisplay() {
   d.begin(SSD1306_SWITCHCAPVCC, 0x3C);  //Initialisieren des Displays
   d.clearDisplay();     //leert das Display
@@ -152,6 +157,7 @@ void setupDisplay() {
   d.display();          //wendet Aenderungen an
 }
 
+// Roboter mittels PID-Regler zum Tor ausrichten
 void ausrichten() {
   heading = ((int)((c.getHeading()/*[0 bis 359]*/ - startHeading/*[-359 bis 359]*/) + 360) % 360)/*[0 bis 359]*/ - 180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
 
@@ -165,7 +171,7 @@ void ausrichten() {
 
 }
 
-//Methode zum Auslesen der Pixy; Diese Methode sucht nach dem groesten Block in der Farbe des Balls
+// Pixy auslesen: sucht groesten Block in der Farbe des Balls
 void readPixy() {
   int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
   highX = 0;             //Position des Balls (X)
@@ -190,10 +196,12 @@ void readPixy() {
   ballSicht = blockAnzahl != 0; //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
 }
 
-void showMatrix(byte pos, boolean state){
-  matrix.setPixelColor(pos, matrix.Color((!state)*PWR_LED,state*PWR_LED,0));
+// Matrix-Led zeigt Boolean-Wert rot oder gruen an
+void showMatrix(byte pos, boolean state) {
+  matrix.setPixelColor(pos, matrix.Color((!state)*PWR_LED, state * PWR_LED, 0));
 }
 
-void showState(byte pos, boolean state){ 
-  stateLed.setPixelColor(pos, stateLed.Color((!state)*PWR_LED,state*PWR_LED,0)); 
-} 
+// Status-Led zeigt Boolean-Wert rot oder gruen an
+void showState(byte pos, boolean state) {
+  stateLed.setPixelColor(pos, stateLed.Color((!state)*PWR_LED, state * PWR_LED, 0));
+}
