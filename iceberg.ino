@@ -61,9 +61,6 @@ Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ80
 //###################################################################################################
 
 void setup() {
-  //startSound();     // Fiepen, welches Programstart signalisiert
-
-  //Initialisierungen
   Serial.begin(9600);   // Start der Seriellen Kommunikation
   Wire.begin();         // Start der I2C-Kommunikation
 
@@ -77,22 +74,22 @@ void setup() {
   //Torrichtung [-180 bis 179] merken
   startHeading = c.getHeading() - 180; //merkt sich Startwert des Kompass
 
-  m.setMotEn(true);
+  m.setMotEn(true);     // aktiviere die Motoren
 
   if (!digitalRead(SWITCH_A)) {
-    m.drive(0, 0, 8);
+    m.drive(0, 0, 8);   // Roboter drehr sich um eigene Achse
     c.calibration();
   }
-  m.brake(true);
-  c.setOutputMode(0);   //Kompass initialisieren
+  m.brake(true);        // Roboter bremst aktiv
+  c.setOutputMode(0);   // Kompass initialisieren
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
 
-  matrix.begin(); // This initializes the NeoPixel library.
-  stateLed.begin();
+  matrix.begin();   // MATRIX-LEDS initialisieren
+  stateLed.begin(); // STATUS-LEDS initialisieren
 
-  Serial.println("setup done");
+  debugln("setup done");
 }
 
 //###################################################################################################
