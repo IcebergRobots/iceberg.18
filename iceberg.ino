@@ -25,6 +25,13 @@ int rotation;                   // rotationswert für die Motoren
 unsigned long turningTimer = 0;
 HMC6352 c;                      // OBJEKTINITIALISIERUNG
 
+// Einstellungen: BLUETOOTH
+String bluetoothBuffer;
+String command;
+bool  bluetoothIsListening = false;
+unsigned long bluetoothTimer = 0;
+unsigned long heartbeatTimer = 0;
+
 // Einstellungen: WICHTUNG DER PID-REGLER
 double pidFilterP = 0.32; // p:proportional
 double pidFilterI = 0.03; // i:vorausschauend
@@ -61,7 +68,9 @@ Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ80
 //###################################################################################################
 
 void setup() {
-  Serial.begin(9600);   // Start der Seriellen Kommunikation
+  DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
+  BLUETOOTH_SERIAL.begin(38400);
+  bluetooth("IR:available");
   Wire.begin();         // Start der I2C-Kommunikation
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
@@ -104,14 +113,29 @@ void loop() {
   showMatrix(1, m.getMotEn());
   showMatrix(2, canSeeBall);
   showMatrix(3, isOnTheBall);
+  showMatrix(4, millis() - bluetoothTimer < 500);
 
 
-  //wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
+  // wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
   if (millis() - lastPixy > 25) {
     readPixy();
   }
 
   ausrichten();
+
+  // bluetooth senden
+  if (millis() - bluetoothTimer > 100) {
+    bluetooth("heartbeat");
+  }
+
+  // bluetooth auslesen
+  command = receiveBluetooth();
+  if (command != "") {
+    debugln("[" + (String)millis() + "] " + (String)command);
+    if (command == "heartbeat") {
+      heartbeatTimer = millis();
+    }
+  }
 
   delay(1);
 
@@ -191,6 +215,30 @@ void readPixy() {
   lastPixy = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
 
   ballSicht = blockAnzahl != 0; //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+}
+
+// Bluetooth auswerten
+String receiveBluetooth() {
+  if (BLUETOOTH_SERIAL.available() > 0) {
+    char c = BLUETOOTH_SERIAL.read();
+    if ( isListening) {
+      if (c == START_MARKER) {
+        message = "";
+      } else if (c == END_MARKER) {
+        isListening = false;
+        return (message);
+      } else {
+        message += c;
+      }
+    } else {
+      if (c == START_MARKER) {
+        message = "";
+        isListening = true;
+      }
+    }
+
+  }
+  return ("");
 }
 
 // Matrix-Led zeigt Boolean-Wert rot oder gruen an

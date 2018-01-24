@@ -7,9 +7,16 @@
 #include "Utility.h"
 
 #define DEBUG true
+#define DEBUG_SERIAL Serial
+#define BLUETOOTH true
+#define BLUETOOTH_SERIAL Serial3
 
-#define debug(_str_); if(DEBUG){Serial.print(_str_);}
-#define debugln(_str_); if(DEBUG){Serial.println(_str_);}
+#define START_MARKER '<'
+#define END_MARKER '>'
+
+#define debug(_str_); if(DEBUG){DEBUG_SERIAL.print(_str_);}
+#define debugln(_str_); if(DEBUG){DEBUG_SERIAL.println(_str_);}
+#define bluetooth(_str_); if(BLUETOOTH){BLUETOOTH_SERIAL.print(START_MARKER);BLUETOOTH_SERIAL.print(_str_);BLUETOOTH_SERIAL.print(END_MARKER);}
 
 void pinModes();
 
