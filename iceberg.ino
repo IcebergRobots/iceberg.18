@@ -26,9 +26,9 @@ unsigned long turningTimer = 0;
 HMC6352 c;                      // OBJEKTINITIALISIERUNG
 
 // Einstellungen: BLUETOOTH
-String bluetoothBuffer;
-String command;
-bool  bluetoothIsListening = false;
+String bluetoothBuffer = "";
+String command = "";
+bool  activeListening = false;
 unsigned long bluetoothTimer = 0;
 unsigned long heartbeatTimer = 0;
 
@@ -58,7 +58,7 @@ Pixy pixy;                    // OBJEKTINITIALISIERUNG
 Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
-#define PWR_LED 30            // Helligkeit der Status-Leds
+#define PWR_LED 20            // Helligkeit der Status-Leds
 boolean stateFine = true;     // liegt kein Fehler vor?
 boolean canSeeBall = false;   // sieht die Kamera den Ball?
 boolean isOnTheBall = false;  // besitzen der Roboter den Ball?
@@ -113,7 +113,7 @@ void loop() {
   showMatrix(1, m.getMotEn());
   showMatrix(2, canSeeBall);
   showMatrix(3, isOnTheBall);
-  showMatrix(4, millis() - bluetoothTimer < 500);
+  showMatrix(4, millis() - heartbeatTimer < 500);
 
 
   // wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
@@ -125,15 +125,24 @@ void loop() {
 
   // bluetooth senden
   if (millis() - bluetoothTimer > 100) {
-    bluetooth("heartbeat");
+    bluetoothTimer = millis();
+    bluetooth("h"); // heartbeat
   }
 
   // bluetooth auslesen
   command = receiveBluetooth();
   if (command != "") {
-    debugln("[" + (String)millis() + "] " + (String)command);
-    if (command == "heartbeat") {
-      heartbeatTimer = millis();
+    //debugln("[" + (String)millis() + "] " + (String)command);
+    switch (command.charAt(0)) {
+      case 'h':
+        // heartbeat
+        heartbeatTimer = millis();
+        break;
+      /*case '':
+        // statements
+        break;*/
+      default:
+        break;
     }
   }
 
@@ -221,19 +230,19 @@ void readPixy() {
 String receiveBluetooth() {
   if (BLUETOOTH_SERIAL.available() > 0) {
     char c = BLUETOOTH_SERIAL.read();
-    if ( isListening) {
+    if ( activeListening) {
       if (c == START_MARKER) {
-        message = "";
+        bluetoothBuffer = "";
       } else if (c == END_MARKER) {
-        isListening = false;
-        return (message);
+        activeListening = false;
+        return (bluetoothBuffer);
       } else {
-        message += c;
+        bluetoothBuffer += c;
       }
     } else {
       if (c == START_MARKER) {
-        message = "";
-        isListening = true;
+        bluetoothBuffer = "";
+        activeListening = true;
       }
     }
 
