@@ -9,7 +9,7 @@
 #define DEBUG true
 #define DEBUG_SERIAL Serial
 #define BLUETOOTH true
-#define BLUETOOTH_SERIAL Serial3
+#define BLUETOOTH_SERIAL Serial1
 
 #define START_MARKER '<'
 #define END_MARKER '>'
