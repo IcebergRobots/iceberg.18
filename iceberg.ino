@@ -16,6 +16,8 @@
 #define PWR 60          // maximale Motorstärke
 #define ROT_MULTI 0.35
 #define ROT_MAX 0.5     // der maximale Wert der Rotation
+int driveRot = 0;       // korrigiere Kompass
+int driveDir = 0;       // Zielrichtung
 Pilot m;                // OBJEKTINITIALISIERUNG
 
 // Einstellungen: KOMPASS
@@ -124,8 +126,6 @@ void loop() {
     readPixy();
   }
 
-  ausrichten();
-
   // bluetooth senden
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
@@ -144,25 +144,45 @@ void loop() {
         break;
     }
   }
-  
+
   d.clearDisplay();
   d.setTextColor(WHITE);
   d.setTextSize(1);
   d.setCursor(0, 0);
-  d.println("Iceberg Robots ["+String(numberOfMinutes(millis()))+":"+String(numberOfSeconds(millis()))+"]");
+  d.println("Iceberg Robots [" + String(numberOfMinutes(millis())) + ":" + String(numberOfSeconds(millis())) + "]");
   d.setTextSize(2);
-  d.println("Kom: "+String(heading));
+  d.println("Kom: " + String(heading));
   //d.drawCircle(20, d.height()/2, 20, WHITE);
   if (ballSicht) {
     d.println("Ball:");
-    d.drawLine(0.75*d.width(), 0.58*d.height(), constrain(map(ball,-160,160,0.5*d.width(),d.width()-1),0.5*d.width(),d.width()-1), 0.47*d.height(), WHITE);
+    d.drawLine(0.75 * d.width(), 0.58 * d.height(), constrain(map(ball, -160, 160, 0.5 * d.width(), d.width() - 1), 0.5 * d.width(), d.width() - 1), 0.47 * d.height(), WHITE);
   } else {
     d.println("Ball:blind");
   }
-  
+
   d.display();      // aktualisiere Display
   matrix.show();    // aktualisiere Matrix-Leds
   stateLed.show();  // aktualisiere Status-Leds
+
+  driveRot = ausrichten();
+
+  if (ballSicht) {
+    if (-20 < ball && ball < 20) {
+      // fahre geradeaus
+      driveDir = 90;
+    } else {
+      // drehe dich zum Ball
+      driveDir = map(ball, -160, 160, -50, 230);
+    }
+  } else {
+    // fahre nach hinten
+    driveDir = -90;
+  }
+
+  //durch addieren von 360° wird dafuer gesorgt, dass die Richtung groesser als 0 ist
+  while (motorDir < 0) {
+    motorDir += 360;
+  }
 
   delay(1);
 
@@ -197,7 +217,7 @@ void setupDisplay() {
 }
 
 // Roboter mittels PID-Regler zum Tor ausrichten
-void ausrichten() {
+int ausrichten() {
   heading = ((int)((c.getHeading()/*[0 bis 359]*/ - startHeading/*[-359 bis 359]*/) + 360) % 360)/*[0 bis 359]*/ - 180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
 
   pidIn = (double) heading;
@@ -206,8 +226,7 @@ void ausrichten() {
   myPID.SetTunings(pidFilterP, pidFilterI, pidFilterD);
   myPID.Compute();
 
-  m.drive(0, 0, -pidOut);
-
+  return -pidOut;
 }
 
 // Pixy auslesen: sucht groesten Block in der Farbe des Balls
