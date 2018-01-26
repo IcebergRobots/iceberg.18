@@ -48,6 +48,7 @@ PID myPID(&pidIn, &pidOut, &pidSetpoint, pidFilterP, pidFilterI, pidFilterD, DIR
 uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
 unsigned long lastPixy = 0;   // Timer zum Auslesen der Pixy
 byte blockAnzahl = 0;         // Anzahl der erkannten Bloecke
+int ball;                     // Abweichung der Ball X-Koordinate
 int highX;                    // Position des Balls (x-Koordinate)
 int highY;                    // Position des Balls (y-Koordinate)
 int xAbw = 0;                 // die Abweichung des Balls von der Mitte des Pixybildes
@@ -70,7 +71,6 @@ Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ80
 void setup() {
   DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
   BLUETOOTH_SERIAL.begin(38400);
-  bluetooth("IR:available");
   Wire.begin();         // Start der I2C-Kommunikation
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
@@ -85,10 +85,13 @@ void setup() {
 
   m.setMotEn(true);     // aktiviere die Motoren
 
+  // Kalibriere Kompass: Drehe und messe kontinuierlich Kompasswerte
   if (!digitalRead(SWITCH_A)) {
     m.drive(0, 0, 8);   // Roboter drehr sich um eigene Achse
     c.calibration();
   }
+
+  // merke Torrichtung
   m.brake(true);        // Roboter bremst aktiv
   c.setOutputMode(0);   // Kompass initialisieren
   pidSetpoint = 0;
@@ -104,6 +107,7 @@ void setup() {
 //###################################################################################################
 
 void loop() {
+  ball = highX - X_CENTER;
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
   showState(0, stateFine);
@@ -115,8 +119,7 @@ void loop() {
   showMatrix(3, isOnTheBall);
   showMatrix(4, millis() - heartbeatTimer < 500);
 
-
-  // wenn 25ms seit derm letzten Auslesen vergangen sind, wird die Pixy erneut ausgelesen
+  // lese die Pixy maximal alle 25ms aus
   if (millis() - lastPixy > 25) {
     readPixy();
   }
@@ -134,31 +137,32 @@ void loop() {
   if (command != "") {
     //debugln("[" + (String)millis() + "] " + (String)command);
     switch (command.charAt(0)) {
-      case 'h':
-        // heartbeat
+      case 'h': // heartbeat
         heartbeatTimer = millis();
         break;
-      /*case '':
-        // statements
-        break;*/
       default:
         break;
     }
   }
-
-  delay(1);
-
+  
   d.clearDisplay();
-  d.setTextSize(2);
   d.setTextColor(WHITE);
-
+  d.setTextSize(1);
   d.setCursor(0, 0);
-  d.println("MotE: " + String(m.getMotEn()));
-  d.println("Komp: " + String(heading));
-  delay(1);
-
-  matrix.show();
-  stateLed.show();
+  d.println("Iceberg Robots ["+String(numberOfMinutes(millis()))+":"+String(numberOfSeconds(millis()))+"]");
+  d.setTextSize(2);
+  d.println("Kom: "+String(heading));
+  //d.drawCircle(20, d.height()/2, 20, WHITE);
+  if (ballSicht) {
+    d.println("Ball:");
+    d.drawLine(0.75*d.width(), 0.58*d.height(), constrain(map(ball,-160,160,0.5*d.width(),d.width()-1),0.5*d.width(),d.width()-1), 0.47*d.height(), WHITE);
+  } else {
+    d.println("Ball:blind");
+  }
+  
+  d.display();      // aktualisiere Display
+  matrix.show();    // aktualisiere Matrix-Leds
+  stateLed.show();  // aktualisiere Status-Leds
 
   delay(1);
 
@@ -183,7 +187,12 @@ void setupDisplay() {
   d.setTextSize(2);     //setzt Textgroesse
   d.setTextColor(WHITE);//setzt Textfarbe
   d.setCursor(0, 0);    //positioniert Cursor
-  d.println("ICEBERG ROBOTS");  //schreibt Text auf das Display
+  d.println("ICEBERG");  //schreibt Text auf das Display
+  d.println("ROBOTS");
+  d.setTextSize(1);     //setzt Textgroesse
+  d.println();
+  d.setTextSize(2);     //setzt Textgroesse
+  d.println("      2018");
   d.display();          //wendet Aenderungen an
 }
 
