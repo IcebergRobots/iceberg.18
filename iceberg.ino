@@ -13,7 +13,7 @@
 #include <Adafruit_NeoPixel.h>
 
 // Einstellungen: FAHREN
-#define ROT_MULTI 0.35
+#define ROT_MULTI 70    // in Prozent, default=90
 #define ROT_MAX 0.5     // der maximale Wert der Rotation
 int drivePwr = 100;          // maximale Motorstärke
 int driveRot = 0;       // korrigiere Kompass
@@ -58,15 +58,15 @@ boolean ballSicht;            // ob wir den Ball sehen
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: DISPLAY
-#define D_WIDTH 128;
-#define D_HEIGHT 64;
+unsigned long lastDisplay = 0;
+String displayDebug = "";
 Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
 #define PWR_LED 20            // Helligkeit der Status-Leds
 boolean stateFine = true;     // liegt kein Fehler vor?
-boolean canSeeBall = false;   // sieht die Kamera den Ball?
 boolean isOnTheBall = false;  // besitzen der Roboter den Ball?
+Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
 Adafruit_NeoPixel stateLed = Adafruit_NeoPixel(3, STATE_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (STATUS-LEDS)
 
@@ -102,9 +102,15 @@ void setup() {
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
 
+  bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   stateLed.begin(); // STATUS-LEDS initialisieren
 
+  for(int i=0; i<16; i++) {
+      bottom.setPixelColor(i, bottom.Color(255,0,0));
+  }
+  bottom.show();
+  
   debugln("setup done");
 }
 
@@ -119,7 +125,7 @@ void loop() {
   showState(2, millis() % 1000 < 200);
 
   showMatrix(1, m.getMotEn());
-  showMatrix(2, canSeeBall);
+  showMatrix(2, ballSicht);
   showMatrix(3, isOnTheBall);
   showMatrix(4, millis() - heartbeatTimer < 500);
 
@@ -142,72 +148,19 @@ void loop() {
       case 'h': // heartbeat
         heartbeatTimer = millis();
         break;
-      default:
-        break;
     }
-  }
-
-  String myTime = "";
-  int min = numberOfMinutes(millis());
-  if (min < 10) {
-    myTime += "0";
-  }
-  myTime += String(min) + ":";
-  int sec = numberOfSeconds(millis());
-  if (sec < 10) {
-    myTime += "0";
-  }
-  myTime += String(sec);
-
-  d.clearDisplay();
-  d.setTextColor(WHITE);
-  d.setTextSize(1);
-  d.setCursor(3, 3);
-  d.println("Iceberg Robots " + myTime);
-  d.setTextSize(2);
-  //d.println("Kom: " + String(heading));
-  //d.drawCircle(20, d.height()/2, 20, WHITE);
-  int point = 0;
-  if (heading < -135) {
-    //unten
-    point = map(heading, -180, -134, 63 , 125);
-    d.drawRect(point, 61, 2, 2, WHITE);
-  } else if (heading < -45) {
-    //rechts
-    point = map(heading, -135, -44, 61, 0);
-    d.drawRect(125, point, 2, 2, WHITE);
-  } else if (heading < 45) {
-    //oben
-    point = map(heading, -45, 44, 125, 0);
-    d.drawRect(point, 0, 2, 2, WHITE);
-  } else if (heading < 135) {
-    //links
-    point = map(heading, 45, 134, 0, 61);
-    d.drawRect(0, point, 2, 2, WHITE);
-  } else if (heading < 180) {
-    //unten
-    point = map(heading, 135, 179, 0, 62);
-    d.drawRect(point, 61, 2, 2, WHITE);
-  }
-  d.setCursor(3, 14);
-  if (ballSicht) {
-    d.println("Ball:");
-    d.drawLine(91, 27, constrain(map(ball, -150, 150, 60, 123), 60, 123), 14, WHITE);
-  } else {
-    d.println("Ball:blind");
-  }
-
+  }  
+  
   // Fahre
   drivePwr = map(analogRead(POTI), 0, 1023, 0, 255);
   driveRot = ausrichten();
-
   if (ballSicht) {
     if (-20 < ball && ball < 20) {
       // fahre geradeaus
       driveDir = 0;
     } else {
       // drehe dich zum Ball
-      driveDir = map(ball, -160, 160, 110, -110);
+      driveDir = map(ball, -100, 100, ROT_MULTI, -ROT_MULTI);
     }
   } else {
     // fahre nach hinten
@@ -215,11 +168,12 @@ void loop() {
   }
 
   m.drive(driveDir, drivePwr - abs(heading), driveRot);
-  d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
-  d.setCursor(3, 30);
-  d.println("Dir: " + String(driveDir));
 
-  d.display();      // aktualisiere Display
+  // lese die Pixy maximal alle 25ms aus
+  if (millis() - lastDisplay > 25) {
+    updateDisplay();
+  }
+  
   matrix.show();    // aktualisiere Matrix-Leds
   stateLed.show();  // aktualisiere Status-Leds
 
@@ -253,6 +207,53 @@ void setupDisplay() {
   d.setTextSize(2);     //setzt Textgroesse
   d.println("      2018");
   d.display();          //wendet Aenderungen an
+}
+
+void updateDisplay() {
+  String myTime = "";
+  int min = numberOfMinutes(millis());
+  if (min < 10) {
+    myTime += "0";
+  }
+  myTime += String(min) + ":";
+  int sec = numberOfSeconds(millis());
+  if (sec < 10) {
+    myTime += "0";
+  }
+  myTime += String(sec);
+  
+  d.clearDisplay();
+  d.setTextColor(WHITE);
+  d.setTextSize(1);
+  d.setCursor(3, 3);
+  d.println("Iceberg Robots " + myTime);
+  if (heading < -135) { // zeige einen Punkt, der zum Tor zeigt
+    d.drawRect(map(heading, -180, -134, 63 , 125), 61, 2, 2, WHITE); //unten (rechte Hälfte)
+  } else if (heading < -45) {
+    d.drawRect(125, map(heading, -135, -44, 61, 0), 2, 2, WHITE); //rechts
+  } else if (heading < 45) {
+    d.drawRect(map(heading, -45, 44, 125, 0), 0, 2, 2, WHITE); //oben
+  } else if (heading < 135) {
+    d.drawRect(0, map(heading, 45, 134, 0, 61), 2, 2, WHITE); //links
+  } else if (heading < 180) {
+    d.drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
+  }
+  d.setTextSize(2);
+  d.setCursor(3, 14);
+  if (ballSicht) {
+    d.println("Ball:");
+    d.drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
+  } else {
+    d.println("Ball:blind");
+  }
+  d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
+  d.setCursor(3, 30);
+  d.println("Dir: " + String(driveDir));
+  d.setCursor(3, 46);
+  d.println(String(displayDebug));
+  
+  d.display();      // aktualisiere Display
+  lastDisplay = millis();
 }
 
 // Roboter mittels PID-Regler zum Tor ausrichten
