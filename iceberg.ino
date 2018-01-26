@@ -13,9 +13,9 @@
 #include <Adafruit_NeoPixel.h>
 
 // Einstellungen: FAHREN
-#define PWR 60          // maximale Motorstärke
 #define ROT_MULTI 0.35
 #define ROT_MAX 0.5     // der maximale Wert der Rotation
+int drivePwr = 100;          // maximale Motorstärke
 int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
 Pilot m;                // OBJEKTINITIALISIERUNG
@@ -58,6 +58,8 @@ boolean ballSicht;            // ob wir den Ball sehen
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: DISPLAY
+#define D_WIDTH 128;
+#define D_HEIGHT 64;
 Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
@@ -122,7 +124,7 @@ void loop() {
   showMatrix(4, millis() - heartbeatTimer < 500);
 
   // lese die Pixy maximal alle 25ms aus
-  if (millis() - lastPixy > 25) {
+  if (millis() - lastPixy > 30) {
     readPixy();
   }
 
@@ -145,44 +147,81 @@ void loop() {
     }
   }
 
+  String myTime = "";
+  int min = numberOfMinutes(millis());
+  if (min < 10) {
+    myTime += "0";
+  }
+  myTime += String(min) + ":";
+  int sec = numberOfSeconds(millis());
+  if (sec < 10) {
+    myTime += "0";
+  }
+  myTime += String(sec);
+
   d.clearDisplay();
   d.setTextColor(WHITE);
   d.setTextSize(1);
-  d.setCursor(0, 0);
-  d.println("Iceberg Robots [" + String(numberOfMinutes(millis())) + ":" + String(numberOfSeconds(millis())) + "]");
+  d.setCursor(3, 3);
+  d.println("Iceberg Robots " + myTime);
   d.setTextSize(2);
-  d.println("Kom: " + String(heading));
+  //d.println("Kom: " + String(heading));
   //d.drawCircle(20, d.height()/2, 20, WHITE);
+  int point = 0;
+  if (heading < -135) {
+    //unten
+    point = map(heading, -180, -134, 63 , 125);
+    d.drawRect(point, 61, 2, 2, WHITE);
+  } else if (heading < -45) {
+    //rechts
+    point = map(heading, -135, -44, 61, 0);
+    d.drawRect(125, point, 2, 2, WHITE);
+  } else if (heading < 45) {
+    //oben
+    point = map(heading, -45, 44, 125, 0);
+    d.drawRect(point, 0, 2, 2, WHITE);
+  } else if (heading < 135) {
+    //links
+    point = map(heading, 45, 134, 0, 61);
+    d.drawRect(0, point, 2, 2, WHITE);
+  } else if (heading < 180) {
+    //unten
+    point = map(heading, 135, 179, 0, 62);
+    d.drawRect(point, 61, 2, 2, WHITE);
+  }
+  d.setCursor(3, 14);
   if (ballSicht) {
     d.println("Ball:");
-    d.drawLine(0.75 * d.width(), 0.58 * d.height(), constrain(map(ball, -160, 160, 0.5 * d.width(), d.width() - 1), 0.5 * d.width(), d.width() - 1), 0.47 * d.height(), WHITE);
+    d.drawLine(91, 27, constrain(map(ball, -150, 150, 60, 123), 60, 123), 14, WHITE);
   } else {
     d.println("Ball:blind");
   }
 
-  d.display();      // aktualisiere Display
-  matrix.show();    // aktualisiere Matrix-Leds
-  stateLed.show();  // aktualisiere Status-Leds
-
+  // Fahre
+  drivePwr = map(analogRead(POTI), 0, 1023, 0, 255);
   driveRot = ausrichten();
 
   if (ballSicht) {
     if (-20 < ball && ball < 20) {
       // fahre geradeaus
-      driveDir = 90;
+      driveDir = 0;
     } else {
       // drehe dich zum Ball
-      driveDir = map(ball, -160, 160, -50, 230);
+      driveDir = map(ball, -160, 160, 110, -110);
     }
   } else {
     // fahre nach hinten
-    driveDir = -90;
+    driveDir = 180;
   }
 
-  //durch addieren von 360° wird dafuer gesorgt, dass die Richtung groesser als 0 ist
-  while (motorDir < 0) {
-    motorDir += 360;
-  }
+  m.drive(driveDir, drivePwr - abs(heading), driveRot);
+  d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
+  d.setCursor(3, 30);
+  d.println("Dir: " + String(driveDir));
+
+  d.display();      // aktualisiere Display
+  matrix.show();    // aktualisiere Matrix-Leds
+  stateLed.show();  // aktualisiere Status-Leds
 
   delay(1);
 
@@ -218,7 +257,8 @@ void setupDisplay() {
 
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten() {
-  heading = ((int)((c.getHeading()/*[0 bis 359]*/ - startHeading/*[-359 bis 359]*/) + 360) % 360)/*[0 bis 359]*/ - 180/*[-180 bis 179]*/; //Misst die Kompassabweichung vom Tor
+  // Misst die Kompassabweichung vom Tor [-180 bis 179]
+  heading = ((int)((c.getHeading()/*[0 bis 359]*/ - startHeading/*[-359 bis 359]*/) + 360) % 360)/*[0 bis 359]*/ - 180;
 
   pidIn = (double) heading;
 
