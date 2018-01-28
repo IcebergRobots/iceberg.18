@@ -13,9 +13,11 @@
 #include <Adafruit_NeoPixel.h>
 
 // Einstellungen: FAHREN
-int drivePwr = 100;          // maximale Motorstärke
+int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
 int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
+int lineDir = -1;        // Richtung, in der ein Bodensensor ausschlug
+int lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
 Pilot m;                // OBJEKTINITIALISIERUNG
 
 // Einstellungen: KOMPASS
@@ -66,9 +68,11 @@ Adafruit_NeoPixel info = Adafruit_NeoPixel(3, INFO_LED, NEO_GRB + NEO_KHZ800); /
 void setup() {
   DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
   BLUETOOTH_SERIAL.begin(38400);
-  US_SERIAL.begin(115200);    
+  US_SERIAL.begin(115200);
   BOTTOM_SERIAL.begin(38400);
   Wire.begin();         // Start der I2C-Kommunikation
+
+  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   pinModes();           // setzt die PinModes
@@ -137,10 +141,6 @@ void loop() {
     usTimer = millis();
   }
 
-  if (millis() - usTimer > 300) {
-    displayDebug = "";
-  }
-
   // bluetooth senden
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
@@ -158,25 +158,29 @@ void loop() {
   }
 
   // Fahre
-  drivePwr = map(analogRead(POTI), 0, 1023, 0, 255);
   driveRot = ausrichten();
-  if (seeBall) {
-    if (-20 < ball && ball < 20) {
-      // fahre geradeaus
-      driveDir = 0;
-    } else {
-      // drehe dich zum Ball
-      driveDir = map(ball, -100, 100, ROT_MULTI, -ROT_MULTI);
-    }
+  if (lineDir>=0&&millis() - lineTimer < 20) {  // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
+    drivePwr = 255;
   } else {
-    // fahre nach hinten
-    driveDir = 180;
+    drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
+    if (seeBall) {
+      if (-20 < ball && ball < 20) {
+        // fahre geradeaus
+        driveDir = 0;
+      } else {
+        // drehe dich zum Ball
+        driveDir = map(ball, -100, 100, ROT_MULTI, -ROT_MULTI);
+      }
+    } else {
+      // fahre nach hinten
+      driveDir = 180;
+    }
   }
 
-  m.drive(driveDir, drivePwr - abs(heading), driveRot);
+  m.drive(driveDir, drivePwr, driveRot);
 
-  // lese die Pixy maximal alle 25ms aus
-  if (millis() - lastDisplay > 25) {
+  // aktualisiere Bildschirm und LEDs
+  if (millis() - lastDisplay > 40) {
     updateDisplay();
   }
 
@@ -207,8 +211,6 @@ void setupDisplay() {
   d.println("ROBOTS");
   d.setTextSize(1);     //setzt Textgroesse
   d.println();
-  d.setCursor(93, 3);
-  d.println("00:00");
   d.setTextSize(2);     //setzt Textgroesse
   d.println("      2018");
   d.display();          //wendet Aenderungen an
@@ -352,5 +354,14 @@ boolean getUs() {
   }
   digitalWrite(INT_US, 0);
   return false;
+}
+
+void avoidLine() {
+  if (BOTTOM_SERIAL.available() > 0) {
+    lineDir = BOTTOM_SERIAL.read() + 180;
+    driveDir = lineDir;
+    m.drive(driveDir, 255, 0);
+    lineTimer = millis();
+  }
 }
 

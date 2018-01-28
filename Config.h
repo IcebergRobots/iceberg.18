@@ -7,8 +7,7 @@
 #include "Utility.h"
 
 // Fahren
-#define ROT_MULTI 70    // in Prozent, default=90
-#define ROT_MAX 0.5     // der maximale Wert der Rotation
+#define ROT_MULTI 120    // in Prozent, default=90
 
 // PID-Regler
 #define PID_FILTER_P 0.32 // p:proportional
