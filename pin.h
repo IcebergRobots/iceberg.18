@@ -11,7 +11,7 @@
 #define EXT_D49         49  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
 #define EXT_D53         53  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder. Pin 53 MUSS als Output gesetzt sein, nutzen von Pin 53 könnte zu Problemen mit der Pixy führen (ISP und so)
 
-#define LICHTSCHRANKE   A0  //  
+#define LIGHT_BARRIER   A0  //  
 #define BATT_VOLTAGE    A15 //  Hier liegt 2/5 der Akkuspannung an.
 
 #define POTI            A1  //  hier ist das Potentiometer unten auf der Platine angeschlossen

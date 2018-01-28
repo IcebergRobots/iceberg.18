@@ -15,6 +15,9 @@
 #define PID_FILTER_I 0.03 // i:vorausschauend
 #define PID_FILTER_D 0.03 // d:Schwung herausnehmen (nicht zu weit drehen)
 
+// LIGHTBARRIER
+#define LIGHT_BARRIER_TRIGGER_LEVEL 50  // Wert, ab dem Lichtschranke ausschlägt
+
 // Pixy
 #define SPEED 100             // Geschwindigkeit des Roboters in %
 #define PIXY_BALL_NUMMER 1    // Pixy-Signature des Balls
@@ -27,6 +30,8 @@
 #define DEBUG_SERIAL Serial
 #define BLUETOOTH true
 #define BLUETOOTH_SERIAL Serial1
+#define BOTTOM_SERIAL Serial2
+#define US_SERIAL Serial3
 #define START_MARKER '<'
 #define END_MARKER '>'
 

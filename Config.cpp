@@ -1,7 +1,7 @@
 #include "Config.h"
 
 void pinModes(){
-  pinMode(LICHTSCHRANKE,	INPUT_PULLUP);
+  pinMode(LIGHT_BARRIER,	INPUT_PULLUP);
   pinMode(BATT_VOLTAGE,		INPUT		    );
   
   pinMode(POTI,				    INPUT		    );

@@ -40,9 +40,13 @@ PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_
 // Einstellungen: PIXY
 uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
 int ball;                     // Abweichung der Ball X-Koordinate
-boolean ballSicht;            // ob wir den Ball sehen
+boolean seeBall;            // ob wir den Ball sehen
 unsigned long pixyTimer = 0;   // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
+
+// Einstellungen: US
+int us[] = {255, 255, 255, 255};  // Werte des US-Sensors
+unsigned long usTimer = 0;        // wann wurde der Us zuletzt ausgelesen?
 
 // Einstellungen: DISPLAY
 unsigned long lastDisplay = 0;
@@ -51,7 +55,7 @@ Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
 boolean stateFine = true;     // liegt kein Fehler vor?
-boolean isOnTheBall = false;  // besitzen der Roboter den Ball?
+boolean hasBall = false;  // besitzen der Roboter den Ball?
 boolean showBottom = true;    // sollen die Boden-Leds an sein?
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
@@ -62,6 +66,8 @@ Adafruit_NeoPixel info = Adafruit_NeoPixel(3, INFO_LED, NEO_GRB + NEO_KHZ800); /
 void setup() {
   DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
   BLUETOOTH_SERIAL.begin(38400);
+  US_SERIAL.begin(115200);    
+  BOTTOM_SERIAL.begin(38400);
   Wire.begin();         // Start der I2C-Kommunikation
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
@@ -101,13 +107,15 @@ void setup() {
 void loop() {
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
+  hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
+
   showLed(info, 0, stateFine);
   showLed(info, 1, !battLow());
   showLed(info, 2, millis() % 1000 < 200, false, true);
 
   showLed(matrix, 1, m.getMotEn());
-  showLed(matrix, 2, ballSicht);
-  showLed(matrix, 3, isOnTheBall);
+  showLed(matrix, 2, seeBall);
+  showLed(matrix, 3, hasBall);
   showLed(matrix, 4, millis() - heartbeatTimer < 500);
 
   showBottom = !digitalRead(SWITCH_B);
@@ -116,9 +124,21 @@ void loop() {
   }
   bottom.show();
 
-  // lese die Pixy maximal alle 25ms aus
+  // lese die Pixy maximal alle 30ms aus
   if (millis() - pixyTimer > 30) {
     readPixy();
+  }
+
+  // lese die US maximal alle 30ms aus
+  if (!digitalRead(BUTTON_1) && millis() - usTimer > 500) {
+    if (getUs()) {
+      displayDebug = String(us[0]) + "," + String(us[1]) + "," + String(us[2]) + "," + String(us[3]);
+    }
+    usTimer = millis();
+  }
+
+  if (millis() - usTimer > 300) {
+    displayDebug = "";
   }
 
   // bluetooth senden
@@ -140,7 +160,7 @@ void loop() {
   // Fahre
   drivePwr = map(analogRead(POTI), 0, 1023, 0, 255);
   driveRot = ausrichten();
-  if (ballSicht) {
+  if (seeBall) {
     if (-20 < ball && ball < 20) {
       // fahre geradeaus
       driveDir = 0;
@@ -187,6 +207,8 @@ void setupDisplay() {
   d.println("ROBOTS");
   d.setTextSize(1);     //setzt Textgroesse
   d.println();
+  d.setCursor(93, 3);
+  d.println("00:00");
   d.setTextSize(2);     //setzt Textgroesse
   d.println("      2018");
   d.display();          //wendet Aenderungen an
@@ -224,7 +246,7 @@ void updateDisplay() {
   }
   d.setTextSize(2);
   d.setCursor(3, 14);
-  if (ballSicht) {
+  if (seeBall) {
     d.println("Ball:");
     d.drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
   } else {
@@ -279,7 +301,7 @@ void readPixy() {
 
   pixyTimer = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
 
-  ballSicht = (blockAnzahl > 0); //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+  seeBall = (blockAnzahl > 0); //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
 }
 
 // Bluetooth auswerten
@@ -312,7 +334,23 @@ void showLed(Adafruit_NeoPixel &board, byte pos, boolean state, boolean showRed,
 }
 
 void showLed(Adafruit_NeoPixel &board, byte pos, boolean state) {
-  debugln("m1.1");
   showLed(board, pos, state, true, true);
-  debugln("m1.2");
 }
+
+boolean getUs() {
+  digitalWrite(INT_US, 1);
+  usTimer = millis();
+  while (millis() - usTimer < 3) {
+    if (US_SERIAL.available() >= 4) {
+      debugln("available");
+      for (int i = 0; i < 4; i++) {
+        us[i] = US_SERIAL.read();
+      }
+      digitalWrite(INT_US, 0);
+      return true;
+    }
+  }
+  digitalWrite(INT_US, 0);
+  return false;
+}
+
