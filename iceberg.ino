@@ -159,7 +159,7 @@ void loop() {
 
   // Fahre
   driveRot = ausrichten();
-  if (lineDir>=0&&millis() - lineTimer < 20) {  // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
+  if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
     drivePwr = 255;
   } else {
     drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
@@ -340,20 +340,29 @@ void showLed(Adafruit_NeoPixel &board, byte pos, boolean state) {
 }
 
 boolean getUs() {
-  digitalWrite(INT_US, 1);
+  /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
+   *  empfängt und speichern diese Werte im globalen Array us[]:
+   *      0 
+   *     .--.
+   *    /    \ 1
+   *  3 \    /
+   *     '--'
+   *       2
+   *  gibt zurück, ob Daten empfangen wurden
+   */
+  digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
   usTimer = millis();
-  while (millis() - usTimer < 3) {
-    if (US_SERIAL.available() >= 4) {
-      debugln("available");
+  while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
+    if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
       for (int i = 0; i < 4; i++) {
         us[i] = US_SERIAL.read();
       }
-      digitalWrite(INT_US, 0);
+      digitalWrite(INT_US, 0);  // beende das Interrupt Signal
       return true;
     }
   }
-  digitalWrite(INT_US, 0);
-  return false;
+  digitalWrite(INT_US, 0);  // beende das Interrupt Signal
+  return false; // keine Daten konnten emopfangen werden
 }
 
 void avoidLine() {
@@ -364,4 +373,3 @@ void avoidLine() {
     lineTimer = millis();
   }
 }
-
