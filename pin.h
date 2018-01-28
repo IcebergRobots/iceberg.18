@@ -34,7 +34,7 @@
 #define ROTARY_A        26  //  Rotary Encoder Rotation A
 #define ROTARY_B        28  //  Rotary Encoder Rotation B
 
-#define STATE_LED       6   //  hier sind 3 RGB-LEDs angeschlossen: State, Battery, Heartbeat
+#define INFO_LED       6   //  hier sind 3 RGB-LEDs angeschlossen: State, Battery, Heartbeat
 #define BUZZER          9   //  zum Ausgeben von Signaltönen
 #define MATRIX_LED      41  //  Reihenfolge: Schuss, Mot. EN, Balls., Ballb., Bluet., Bodens., lift, Pixy, line, undefined, undefined, Debug
 
