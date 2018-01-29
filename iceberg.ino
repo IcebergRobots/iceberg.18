@@ -50,6 +50,9 @@ Pixy pixy;                    // OBJEKTINITIALISIERUNG
 int us[] = {255, 255, 255, 255};  // Werte des US-Sensors
 unsigned long usTimer = 0;        // wann wurde der Us zuletzt ausgelesen?
 
+// Einstellungen: KICK
+unsigned long kickTimer = 0;    // Zeitpunkt des letzten Schießens
+
 // Einstellungen: DISPLAY
 unsigned long lastDisplay = 0;
 String displayDebug = "";     // unterste Zeile des Bildschirms;
@@ -122,6 +125,10 @@ void loop() {
   showLed(matrix, 3, hasBall);
   showLed(matrix, 4, millis() - heartbeatTimer < 500);
 
+  if(!digitalRead(SCHUSS_BUTTON)) {
+    kick();
+  }
+
   showBottom = !digitalRead(SWITCH_B);
   for (int i = 0; i < 16; i++) {
     showLed(bottom, i, showBottom, true, false);
@@ -169,7 +176,7 @@ void loop() {
         driveDir = 0;
       } else {
         // drehe dich zum Ball
-        driveDir = map(ball, -100, 100, ROT_MULTI, -ROT_MULTI);
+        driveDir = constrain(map(ball, -100, 100, ROT_MULTI, -ROT_MULTI), -90, 90);
       }
     } else {
       // fahre nach hinten
@@ -341,15 +348,15 @@ void showLed(Adafruit_NeoPixel &board, byte pos, boolean state) {
 
 boolean getUs() {
   /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
-   *  empfängt und speichern diese Werte im globalen Array us[]:
-   *      0 
-   *     .--.
-   *    /    \ 1
-   *  3 \    /
-   *     '--'
-   *       2
-   *  gibt zurück, ob Daten empfangen wurden
-   */
+      empfängt und speichern diese Werte im globalen Array us[]:
+          0
+         .--.
+        /    \ 1
+      3 \    /
+         '--'
+           2
+      gibt zurück, ob Daten empfangen wurden
+  */
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
   usTimer = millis();
   while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
@@ -373,3 +380,13 @@ void avoidLine() {
     lineTimer = millis();
   }
 }
+
+void kick() {
+  if (millis() - kickTimer > 200) {
+    digitalWrite(SCHUSS, 1);
+    delay(30);
+    digitalWrite(SCHUSS, 0);
+    kickTimer = millis();
+  }
+}
+
