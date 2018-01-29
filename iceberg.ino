@@ -107,12 +107,20 @@ void setup() {
   info.begin(); // STATUS-LEDS initialisieren
 
   debugln("setup done");
+
+  // sorge dafür, dass alle Timer genügend Abstand haben
+  while (millis() < 200) {}
 }
 
 //###################################################################################################
 
 void loop() {
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
+
+  // schuß wieder aus machen
+  if (millis() - kickTimer > 30) {
+    digitalWrite(SCHUSS, 0);
+  }
 
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
 
@@ -125,17 +133,19 @@ void loop() {
   showLed(matrix, 3, hasBall);
   showLed(matrix, 4, millis() - heartbeatTimer < 500);
 
-  if(!digitalRead(SCHUSS_BUTTON)) {
+  // schieße
+  if (!digitalRead(SCHUSS_BUTTON)) {
     kick();
   }
 
+  // prüfe, ob Boden-Leds an sein sollen
   showBottom = !digitalRead(SWITCH_B);
   for (int i = 0; i < 16; i++) {
     showLed(bottom, i, showBottom, true, false);
   }
   bottom.show();
 
-  // lese die Pixy maximal alle 30ms aus
+  // aktualisiere Pixywerte (max. alle 30ms)
   if (millis() - pixyTimer > 30) {
     readPixy();
   }
@@ -165,18 +175,21 @@ void loop() {
   }
 
   // Fahre
+  int rotMulti = map(analogRead(POTI), 0, 1023, 0, 1);
+  displayDebug = "m=" + String(rotMulti);
   driveRot = ausrichten();
   if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
     drivePwr = 255;
   } else {
-    drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
+    //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
+    drivePwr = 60 - abs(heading);
     if (seeBall) {
       if (-20 < ball && ball < 20) {
         // fahre geradeaus
         driveDir = 0;
       } else {
         // drehe dich zum Ball
-        driveDir = constrain(map(ball, -100, 100, ROT_MULTI, -ROT_MULTI), -90, 90);
+        driveDir = constrain(map(ball, -1, 1, rotMulti, -rotMulti), -90, 90);
       }
     } else {
       // fahre nach hinten
@@ -382,10 +395,8 @@ void avoidLine() {
 }
 
 void kick() {
-  if (millis() - kickTimer > 200) {
+  if (millis() - kickTimer > 333) {
     digitalWrite(SCHUSS, 1);
-    delay(30);
-    digitalWrite(SCHUSS, 0);
     kickTimer = millis();
   }
 }
