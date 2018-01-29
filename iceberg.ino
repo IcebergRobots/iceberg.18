@@ -41,9 +41,11 @@ PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_
 
 // Einstellungen: PIXY
 uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
+
 int ball;                     // Abweichung der Ball X-Koordinate
-boolean seeBall;            // ob wir den Ball sehen
-unsigned long pixyTimer = 0;   // Zeitpunkt des letzten Auslesens der Pixy
+int ballSize;                 // Größe der Ballbox
+boolean seeBall;              // ob wir den Ball sehen
+unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: US
@@ -91,6 +93,11 @@ void setup() {
 
   // Kalibriere Kompass: Drehe und messe kontinuierlich Kompasswerte
   if (!digitalRead(SWITCH_A)) {
+    d.clearDisplay();
+    d.setTextSize(2);
+    d.setCursor(0, 0);
+    d.println("Kalibrierung");
+    d.display();
     m.drive(0, 0, 8);   // Roboter drehr sich um eigene Achse
     c.calibration();
   }
@@ -104,7 +111,7 @@ void setup() {
 
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
-  info.begin(); // STATUS-LEDS initialisieren
+  info.begin();     // STATUS-LEDS initialisieren
 
   debugln("setup done");
 
@@ -134,7 +141,7 @@ void loop() {
   showLed(matrix, 4, millis() - heartbeatTimer < 500);
 
   // schieße
-  if (!digitalRead(SCHUSS_BUTTON)) {
+  if (hasBall || !digitalRead(SCHUSS_BUTTON)) {
     kick();
   }
 
@@ -146,7 +153,7 @@ void loop() {
   bottom.show();
 
   // aktualisiere Pixywerte (max. alle 30ms)
-  if (millis() - pixyTimer > 30) {
+  if (millis() - pixyTimer > 50) {
     readPixy();
   }
 
@@ -175,29 +182,41 @@ void loop() {
   }
 
   // Fahre
-  int rotMulti = map(analogRead(POTI), 0, 1023, 0, 1);
-  displayDebug = "m=" + String(rotMulti);
-  driveRot = ausrichten();
-  if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
-    drivePwr = 255;
+  float rotMulti = map(analogRead(POTI), 0, 1023, 0, 150);
+  if (ballSize > 1000) {
+    rotMulti *= 0.04;
+  } else if (ballSize > 500) {
+    rotMulti *= 0.03;
   } else {
-    //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
-    drivePwr = 60 - abs(heading);
-    if (seeBall) {
-      if (-20 < ball && ball < 20) {
-        // fahre geradeaus
-        driveDir = 0;
-      } else {
-        // drehe dich zum Ball
-        driveDir = constrain(map(ball, -1, 1, rotMulti, -rotMulti), -90, 90);
-      }
+    rotMulti *= 0.02;
+  }
+  displayDebug = String(rotMulti) + "," + String(ballSize);
+  driveRot = ausrichten();
+  if (m.getMotEn()) {
+    if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
+      drivePwr = 255;
     } else {
-      // fahre nach hinten
-      driveDir = 180;
+      //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
+      drivePwr = 40 - abs(heading);
+      if (seeBall) {
+        if (-20 < ball && ball < 20) {
+          // fahre geradeaus
+          driveDir = 0;
+        } else {
+          // drehe dich zum Ball
+          driveDir = constrain(map(ball, -100, 100, rotMulti * 100, -rotMulti * 100), -90, 90);
+        }
+      } else {
+        // fahre nach hinten
+        driveDir = 180;
+
+
+      }
     }
+
+    m.drive(driveDir, drivePwr, driveRot);
   }
 
-  m.drive(driveDir, drivePwr, driveRot);
 
   // aktualisiere Bildschirm und LEDs
   if (millis() - lastDisplay > 40) {
@@ -274,7 +293,7 @@ void updateDisplay() {
   } else {
     d.println("Ball:blind");
   }
-  d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
+  d.drawLine(3, 11, map(analogRead(POTI), 0, 1023, 3, 123), 11, WHITE);
   d.setCursor(3, 30);
   d.println("Dir: " + String(driveDir));
   d.setCursor(3, 46);
@@ -291,13 +310,15 @@ int ausrichten() {
   // Misst die Kompassabweichung vom Tor [-180 bis 179]
   heading = ((int)((c.getHeading()/*[0 bis 359]*/ - startHeading/*[-359 bis 359]*/) + 360) % 360)/*[0 bis 359]*/ - 180;
 
-  pidIn = (double) heading;
+  if (m.getMotEn()) {
+    pidIn = (double) heading;
 
-  double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
-  myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
-  myPID.Compute();
+    double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
+    myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
+    myPID.Compute();
 
-  return -pidOut; // [-255 bis 255]
+    return -pidOut; // [-255 bis 255]
+  }
 }
 
 // Pixy auslesen: sucht groesten Block in der Farbe des Balls
@@ -316,6 +337,7 @@ void readPixy() {
         highX = pixy.blocks[j].x;
         highY = pixy.blocks[j].y;
         ball = highX - X_CENTER;    // neue Ballposition wird gesetzt
+        ballSize = greatestBlock;
       }
       blockAnzahl++;        //Anzahl wird hochgezaehlt
     }
