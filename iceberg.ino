@@ -6,11 +6,14 @@
 #include <SPI.h>
 #include <Pixy.h>
 #include <Wire.h>
-#include <HMC6352.h>
 #include <PID_v1.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_NeoPixel.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_LSM303_U.h>
+#include <Adafruit_9DOF.h>
+#include <Adafruit_L3GD20_U.h>
 
 // Einstellungen: FAHREN
 int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
@@ -24,7 +27,9 @@ Pilot m;                // OBJEKTINITIALISIERUNG
 int heading = 0;                // Wert des Kompass
 int startHeading;               // Startwert des Kompass
 int rotation;                   // rotationswert für die Motoren
-HMC6352 c;                      // OBJEKTINITIALISIERUNG
+Adafruit_9DOF                 dof   = Adafruit_9DOF();
+Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(30301);
+Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
 
 // Einstellungen: BLUETOOTH
 String bluetoothBuffer = "";
@@ -64,9 +69,16 @@ Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
 boolean stateFine = true;     // liegt kein Fehler vor?
 boolean hasBall = false;  // besitzen der Roboter den Ball?
 boolean showBottom = true;    // sollen die Boden-Leds an sein?
+
+String errorMessage = "";
+
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
 Adafruit_NeoPixel info = Adafruit_NeoPixel(3, INFO_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (STATUS-LEDS)
+
+sensors_event_t accel_event;
+sensors_event_t mag_event;
+sensors_vec_t   orientation;
 
 //###################################################################################################
 
@@ -84,27 +96,37 @@ void setup() {
   setupMotor();         // setzt Pins und Winkel des Pilot Objekts
   pixy.init();          // initialisiere Kamera
 
+  if(!accel.begin()){
+    stateFine = false;
+    errorMessage += "accel.begin failed | ";
+  }
+
+  if(!mag.begin()){
+    stateFine = false;
+    errorMessage += "mag.begin failed | ";
+  }
+
   delay(1000);
 
+  getCompassHeading();
+
   //Torrichtung [-180 bis 179] merken
-  startHeading = c.getHeading() - 180; //merkt sich Startwert des Kompass
+  startHeading = heading - 180; //merkt sich Startwert des Kompass
 
   m.setMotEn(true);     // aktiviere die Motoren
 
   // Kalibriere Kompass: Drehe und messe kontinuierlich Kompasswerte
-  if (!digitalRead(SWITCH_A)) {
+  /*if (!digitalRead(SWITCH_A)) {
     d.clearDisplay();
     d.setTextSize(2);
     d.setCursor(0, 0);
     d.println("Kalibrierung");
     d.display();
     m.drive(0, 0, 8);   // Roboter drehr sich um eigene Achse
-    c.calibration();
-  }
+  }*/
 
   // merke Torrichtung
   m.brake(true);        // Roboter bremst aktiv
-  c.setOutputMode(0);   // Kompass initialisieren
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
@@ -122,6 +144,18 @@ void setup() {
 //###################################################################################################
 
 void loop() {
+  if(!digitalRead(BIG_BUTTON)){
+    m.drive(0, 0, 255);                           //steuert die Motoren an
+    delay(1000);
+    m.drive(0, 0, 0);
+  }
+
+  if(!digitalRead(BUTTON_1)){
+    m.drive(0, 255, 0);                           //steuert die Motoren an
+    delay(1000);
+    m.brake(true);
+  }
+  
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
   // schuß wieder aus machen
@@ -209,7 +243,6 @@ void loop() {
       } else {
         // fahre nach hinten
         driveDir = 180;
-
 
       }
     }
@@ -308,8 +341,8 @@ void updateDisplay() {
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten() {
   // Misst die Kompassabweichung vom Tor [-180 bis 179]
-  heading = ((int)((c.getHeading()/*[0 bis 359]*/ - startHeading/*[-359 bis 359]*/) + 360) % 360)/*[0 bis 359]*/ - 180;
-
+  getCompassHeading();
+  
   if (m.getMotEn()) {
     pidIn = (double) heading;
 
@@ -420,6 +453,17 @@ void kick() {
   if (millis() - kickTimer > 333) {
     digitalWrite(SCHUSS, 1);
     kickTimer = millis();
+  }
+}
+
+void getCompassHeading(){
+  accel.getEvent(&accel_event);
+  mag.getEvent(&mag_event);
+  if(dof.fusionGetOrientation(&accel_event, &mag_event, &orientation)){
+    heading =  (((int)orientation.heading- startHeading + 720) % 360)-180;
+  }else{
+    stateFine = false;
+    errorMessage += "error reading compass | ";
   }
 }
 
