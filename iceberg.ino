@@ -107,11 +107,13 @@ void setup() {
   }
 
   delay(1000);
-
+  
+  mag.enableAutoRange(true);
+  
   getCompassHeading();
 
   //Torrichtung [-180 bis 179] merken
-  startHeading = heading - 180; //merkt sich Startwert des Kompass
+  startHeading = heading; //merkt sich Startwert des Kompass
 
   m.setMotEn(true);     // aktiviere die Motoren
 
@@ -459,7 +461,7 @@ void kick() {
 void getCompassHeading(){
   accel.getEvent(&accel_event);
   mag.getEvent(&mag_event);
-  if(dof.fusionGetOrientation(&accel_event, &mag_event, &orientation)){
+  if(dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)){
     heading =  (((int)orientation.heading- startHeading + 720) % 360)-180;
   }else{
     stateFine = false;
