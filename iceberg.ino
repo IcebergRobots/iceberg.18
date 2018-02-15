@@ -50,6 +50,7 @@ uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
 int ball;                     // Abweichung der Ball X-Koordinate
 int ballSize;                 // Größe der Ballbox
 boolean seeBall;              // ob wir den Ball sehen
+byte noBallCounter = 0;       //hier wird gezählt, wie oft in folge kein Ball gesehen wurde
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
@@ -194,9 +195,9 @@ void loop() {
   }
 
   // lese die US maximal alle 30ms aus
-  if (!digitalRead(BUTTON_1) && millis() - usTimer > 500) {
+  if (millis() - usTimer > 100) {
     if (getUs()) {
-      displayDebug = String(us[0]) + "," + String(us[1]) + "," + String(us[2]) + "," + String(us[3]);
+      //displayDebug = String(us[0]) + "," + String(us[1]) + "," + String(us[2]) + "," + String(us[3]);
     }
     usTimer = millis();
   }
@@ -219,36 +220,48 @@ void loop() {
 
   // Fahre
   float rotMulti = map(analogRead(POTI), 0, 1023, 0, 150);
-  if (ballSize > 1000) {
+  if (ballSize > 2000) {
     rotMulti *= 0.04;
-  } else if (ballSize > 500) {
-    rotMulti *= 0.03;
+  } else if (ballSize > 1000) {
+    rotMulti *= 0.06;
   } else {
     rotMulti *= 0.02;
   }
-  displayDebug = String(rotMulti) + "," + String(ballSize);
+  //displayDebug = String(rotMulti) + "," + String(ballSize);
   driveRot = ausrichten();
-  if (m.getMotEn()) {
+  if (m.getMotEn() || true) {
     if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
       drivePwr = 255;
     } else {
       //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
-      drivePwr = 40 - abs(heading);
-      if (seeBall) {
-        if (-20 < ball && ball < 20) {
+      if (noBallCounter < 5) {
+        driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti * 100, -rotMulti * 100), -120, 120);
+        if (-15 < ball && ball < 15) {
           // fahre geradeaus
-          driveDir = 0;
+          drivePwr = SPEED_BALL_IN_FRONT;
         } else {
           // drehe dich zum Ball
-          driveDir = constrain(map(ball, -100, 100, rotMulti * 100, -rotMulti * 100), -90, 90);
+          drivePwr = SPEED;
         }
       } else {
         // fahre nach hinten
         driveDir = 180;
+        drivePwr = SPEED_BACKWARDS;
+
+        if(us[3] < 20 && us[3] > 0){
+          drivePwr = 0;
+          if(driveRot == 0){
+            m.brake(true);
+          }
+        }
 
       }
+      if (ballSize > 1000) {
+        drivePwr /= 2;
+      }
     }
-
+    drivePwr = max(drivePwr-abs(driveRot),0);
+    
     m.drive(driveDir, drivePwr, driveRot);
   }
 
@@ -362,6 +375,7 @@ void readPixy() {
   int highX = 0;             //Position des Balls (X)
   int highY = 0;             //Position des Balls (Y)
   int blockAnzahl = 0;       //Anzahl der Bloecke
+  ballSize = 0;
 
   blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
 
@@ -381,6 +395,12 @@ void readPixy() {
   pixyTimer = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
 
   seeBall = (blockAnzahl > 0); //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+
+  if(seeBall){
+    noBallCounter = 0;
+  }else{
+    noBallCounter++;
+  }
 }
 
 // Bluetooth auswerten
@@ -419,10 +439,10 @@ void showLed(Adafruit_NeoPixel &board, byte pos, boolean state) {
 boolean getUs() {
   /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
       empfängt und speichern diese Werte im globalen Array us[]:
-          0
+          1
          .--.
-        /    \ 1
-      3 \    /
+        /    \ 0
+      2 \    /
          '--'
            2
       gibt zurück, ob Daten empfangen wurden

@@ -10,7 +10,7 @@
 #define ROT_MULTI 80     // in Prozent, default=90
 
 // PID-Regler
-#define PID_FILTER_P 0.32 // p:proportional
+#define PID_FILTER_P 0.52 // p:proportional
 #define PID_FILTER_I 0.03 // i:vorausschauend
 #define PID_FILTER_D 0.03 // d:Schwung herausnehmen (nicht zu weit drehen)
 
@@ -18,7 +18,9 @@
 #define LIGHT_BARRIER_TRIGGER_LEVEL 50  // Wert, ab dem Lichtschranke ausschlägt
 
 // Pixy
-#define SPEED 100             // Geschwindigkeit des Roboters in %
+#define SPEED_BALL_IN_FRONT 70
+#define SPEED_BACKWARDS 40
+#define SPEED 50             // Geschwindigkeit des Roboters 0-255
 #define PIXY_BALL_NUMMER 1    // Pixy-Signature des Balls
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
