@@ -7,15 +7,16 @@
 #include "Utility.h"
 
 // Fahren
-#define ROTATION 60             // [0 bis *] default=14
-#define ROTATION_CLOSE 75       // [0 bis *] default=28
+#define ROTATION 65             // [0 bis *] default=14
+#define ROTATION_CLOSE 80       // [0 bis *] default=28
 #define ROTATION_TOUCH 100      // [0 bis *] default=42
 #define SPEED 60                // [0 bis 255] default=60
+#define SPEED_SIDEWAY 60        // [0 bis 255] default=60
 #define SPEED_BALL_IN_FRONT 100 // [0 bis 255] default=255
 #define SPEED_BACKWARDS 40      // [0 bis 255] default=40
 
 // PID-Regler
-#define PID_FILTER_P 0.2//.52 // p:proportional
+#define PID_FILTER_P 0.25//.52 // p:proportional
 #define PID_FILTER_I 0//.03 // i:vorausschauend
 #define PID_FILTER_D 0.06//.03 // d:Schwung herausnehmen (nicht zu weit drehen)
 

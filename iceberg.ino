@@ -49,8 +49,8 @@ uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
 
 int ball;                     // Abweichung der Ball X-Koordinate
 int ballSize;                 // Größe der Ballbox
-boolean seeBall;              // ob wir den Ball sehen
-byte noBallCounter = 0;       //hier wird gezählt, wie oft in folge kein Ball gesehen wurde
+boolean seeBall = false;      // sehen wir den ball?
+unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
@@ -149,10 +149,6 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  if (!digitalRead(BIG_BUTTON)) {
-    moveTimer = millis();
-  }
-
   if (!digitalRead(BUTTON_1)) {
     m.drive(0, 255, 0);                           //steuert die Motoren an
     delay(1000);
@@ -167,6 +163,7 @@ void loop() {
   }
 
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
+  seeBall = millis() - seeBallTimer < 50;
 
   showLed(info, 0, stateFine);
   showLed(info, 1, !battLow());
@@ -240,20 +237,25 @@ void loop() {
       drivePwr = 255;
     } else {
       //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
-      if (millis() - moveTimer < 800) {
-        driveDir = -110;
-        drivePwr = 80;
-      } /*else if (millis() - moveTimer < 1200) {
-        driveDir = 90;
-        drivePwr = 100;
-      }*/ else if (noBallCounter < 5) {
-        driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti, -rotMulti), -120, 120);
-        if (-15 < ball && ball < 15) {
-          // fahre geradeaus
-          drivePwr = SPEED_BALL_IN_FRONT;
+      if (seeBall) {
+        if (ball > 100) {
+          // fahre seitwärts nach links
+          driveDir = -110;
+          drivePwr = SPEED_SIDEWAY;
+        } else if (ball < -100) {
+          // fahre seitwärts nach rechts
+          driveDir = 110;
+          drivePwr = SPEED_SIDEWAY;
         } else {
-          // drehe dich zum Ball
-          drivePwr = SPEED;
+          // fahre in Richtung des Balls
+          driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti, -rotMulti), -120, 120);
+          if (-15 < ball && ball < 15) {
+            // fahre geradeaus
+            drivePwr = SPEED_BALL_IN_FRONT;
+          } else {
+            // drehe dich zum Ball
+            drivePwr = SPEED;
+          }
         }
       } else {
         // fahre nach hinten
@@ -406,12 +408,8 @@ void readPixy() {
 
   pixyTimer = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
 
-  seeBall = (blockAnzahl > 0); //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
-
-  if (seeBall) {
-    noBallCounter = 0;
-  } else {
-    noBallCounter++;
+  if(blockAnzahl > 0) { //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+    seeBallTimer = millis();
   }
 }
 
