@@ -18,9 +18,9 @@
 #define LIGHT_BARRIER_TRIGGER_LEVEL 50  // Wert, ab dem Lichtschranke ausschlägt
 
 // Pixy
-#define SPEED_BALL_IN_FRONT 255
+#define SPEED_BALL_IN_FRONT 80
 #define SPEED_BACKWARDS 40
-#define SPEED 60             // Geschwindigkeit des Roboters 0-255
+#define SPEED 60              // Geschwindigkeit des Roboters [0 bis 255]
 #define PIXY_BALL_NUMMER 1    // Pixy-Signature des Balls
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX

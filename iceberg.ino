@@ -71,7 +71,9 @@ boolean stateFine = true;     // liegt kein Fehler vor?
 boolean hasBall = false;  // besitzen der Roboter den Ball?
 boolean showBottom = true;    // sollen die Boden-Leds an sein?
 
+// DEBUG
 String errorMessage = "";
+boolean dirOverflow = false;
 
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
@@ -90,27 +92,27 @@ void setup() {
   BOTTOM_SERIAL.begin(38400);
   Wire.begin();         // Start der I2C-Kommunikation
 
-  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
+  //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   pinModes();           // setzt die PinModes
   setupMotor();         // setzt Pins und Winkel des Pilot Objekts
   pixy.init();          // initialisiere Kamera
 
-  if(!accel.begin()){
+  if (!accel.begin()) {
     stateFine = false;
     errorMessage += "accel.begin failed | ";
   }
 
-  if(!mag.begin()){
+  if (!mag.begin()) {
     stateFine = false;
     errorMessage += "mag.begin failed | ";
   }
 
   delay(1000);
-  
+
   mag.enableAutoRange(true);
-  
+
   getCompassHeading();
 
   //Torrichtung [-180 bis 179] merken
@@ -126,7 +128,7 @@ void setup() {
     d.println("Kalibrierung");
     d.display();
     m.drive(0, 0, 8);   // Roboter drehr sich um eigene Achse
-  }*/
+    }*/
 
   // merke Torrichtung
   m.brake(true);        // Roboter bremst aktiv
@@ -147,18 +149,18 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  if(!digitalRead(BIG_BUTTON)){
+  if (!digitalRead(BIG_BUTTON)) {
     m.drive(0, 0, 255);                           //steuert die Motoren an
     delay(1000);
     m.drive(0, 0, 0);
   }
 
-  if(!digitalRead(BUTTON_1)){
+  if (!digitalRead(BUTTON_1)) {
     m.drive(0, 255, 0);                           //steuert die Motoren an
     delay(1000);
     m.brake(true);
   }
-  
+
   m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
   // schuß wieder aus machen
@@ -170,12 +172,13 @@ void loop() {
 
   showLed(info, 0, stateFine);
   showLed(info, 1, !battLow());
-  showLed(info, 2, millis() % 1000 < 200, false, true);
+  showLed(info, 2, millis() % 1000 < 200, true);
 
   showLed(matrix, 1, m.getMotEn());
   showLed(matrix, 2, seeBall);
   showLed(matrix, 3, hasBall);
   showLed(matrix, 4, millis() - heartbeatTimer < 500);
+  showLed(matrix, 10, ballSize > 32);
 
   // schieße
   if (hasBall || !digitalRead(SCHUSS_BUTTON)) {
@@ -183,9 +186,14 @@ void loop() {
   }
 
   // prüfe, ob Boden-Leds an sein sollen
-  showBottom = !digitalRead(SWITCH_B);
   for (int i = 0; i < 16; i++) {
-    bottom.setPixelColor(i,255,0,0);
+    if (!digitalRead(SWITCH_B)) {
+      bottom.setPixelColor(i, 0, 0, 0);
+    } else if (!digitalRead(SWITCH_A)) {
+      bottom.setPixelColor(i, 255, 255, 255);
+    } else {
+      bottom.setPixelColor(i, 255, 0, 0);
+    }
   }
   bottom.show();
 
@@ -220,9 +228,9 @@ void loop() {
 
   // Fahre
   float rotMulti = map(analogRead(POTI), 0, 1023, 0, 150);
-  if (ballSize > 2000) {
+  if (ballSize > 45) {
     rotMulti *= 0.04;
-  } else if (ballSize > 1000) {
+  } else if (ballSize > 32) {
     rotMulti *= 0.06;
   } else {
     rotMulti *= 0.02;
@@ -248,20 +256,23 @@ void loop() {
         driveDir = 180;
         drivePwr = SPEED_BACKWARDS;
 
-        if(us[3] < 40 && us[3] > 0){
+        if (us[3] < 40 && us[3] > 0) {
           drivePwr = 0;
-          if(driveRot == 0){
+          if (driveRot == 0) {
             m.brake(true);
           }
         }
 
       }
-      if (ballSize > 1000) {
+      if (ballSize > 32) {
         drivePwr /= 2;
       }
     }
-    drivePwr = max(drivePwr-abs(driveRot),0);
-    
+    drivePwr = max(drivePwr - abs(driveRot), 0);
+
+    if (driveDir > 180) {
+      dirOverflow = true;
+    }
     m.drive(driveDir, drivePwr, driveRot);
   }
 
@@ -357,7 +368,7 @@ void updateDisplay() {
 int ausrichten() {
   // Misst die Kompassabweichung vom Tor [-180 bis 179]
   getCompassHeading();
-  
+
   if (m.getMotEn()) {
     pidIn = (double) heading;
 
@@ -386,7 +397,7 @@ void readPixy() {
         highX = pixy.blocks[j].x;
         highY = pixy.blocks[j].y;
         ball = highX - X_CENTER;    // neue Ballposition wird gesetzt
-        ballSize = greatestBlock;
+        ballSize = pixy.blocks[j].width;
       }
       blockAnzahl++;        //Anzahl wird hochgezaehlt
     }
@@ -396,9 +407,9 @@ void readPixy() {
 
   seeBall = (blockAnzahl > 0); //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
 
-  if(seeBall){
+  if (seeBall) {
     noBallCounter = 0;
-  }else{
+  } else {
     noBallCounter++;
   }
 }
@@ -428,12 +439,12 @@ String receiveBluetooth() {
 }
 
 // Status-Led zeigt Boolean-Wert rot oder gruen an
-void showLed(Adafruit_NeoPixel &board, byte pos, boolean state, boolean showRed, boolean showGreen) {
-  board.setPixelColor(pos, bottom.Color(showRed * (!state) * PWR_LED, showGreen * state * PWR_LED, 0));
+void showLed(Adafruit_NeoPixel &board, byte pos, boolean state, boolean showRed) {
+  board.setPixelColor(pos, bottom.Color((!showRed) * (!state) * PWR_LED, state * PWR_LED, 0));
 }
 
 void showLed(Adafruit_NeoPixel &board, byte pos, boolean state) {
-  showLed(board, pos, state, true, true);
+  showLed(board, pos, state, false);
 }
 
 boolean getUs() {
@@ -478,12 +489,12 @@ void kick() {
   }
 }
 
-void getCompassHeading(){
+void getCompassHeading() {
   accel.getEvent(&accel_event);
   mag.getEvent(&mag_event);
-  if(dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)){
-    heading =  (((int)orientation.heading- startHeading + 720) % 360)-180;
-  }else{
+  if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
+    heading =  (((int)orientation.heading - startHeading + 720) % 360) - 180;
+  } else {
     stateFine = false;
     errorMessage += "error reading compass | ";
   }
