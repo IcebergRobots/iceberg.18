@@ -73,7 +73,6 @@ boolean showBottom = true;    // sollen die Boden-Leds an sein?
 
 // DEBUG
 String errorMessage = "";
-boolean dirOverflow = false;
 
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
@@ -270,9 +269,6 @@ void loop() {
     }
     drivePwr = max(drivePwr - abs(driveRot), 0);
 
-    if (driveDir > 180) {
-      dirOverflow = true;
-    }
     m.drive(driveDir, drivePwr, driveRot);
   }
 
