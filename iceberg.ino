@@ -177,7 +177,7 @@ void loop() {
   showLed(matrix, 2, seeBall);
   showLed(matrix, 3, hasBall);
   showLed(matrix, 4, millis() - heartbeatTimer < 500);
-  showLed(matrix, 10, ballSize > 32);
+  showLed(matrix, 11, ballSize > 15);
 
   // schieße
   if (hasBall || !digitalRead(SCHUSS_BUTTON)) {
@@ -226,13 +226,13 @@ void loop() {
   }
 
   // Fahre
-  float rotMulti = map(analogRead(POTI), 0, 1023, 0, 150);
-  if (ballSize > 45) {
-    rotMulti *= 0.04;
+  float rotMulti;
+  if (ballSize > 40) {
+    rotMulti = ROTATION_TOUCH;
   } else if (ballSize > 32) {
-    rotMulti *= 0.06;
+    rotMulti = ROTATION_CLOSE;
   } else {
-    rotMulti *= 0.02;
+    rotMulti = ROTATION;
   }
   //displayDebug = String(rotMulti) + "," + String(ballSize);
   driveRot = ausrichten();
@@ -242,7 +242,7 @@ void loop() {
     } else {
       //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
       if (noBallCounter < 5) {
-        driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti * 100, -rotMulti * 100), -120, 120);
+        driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti, -rotMulti), -120, 120);
         if (-15 < ball && ball < 15) {
           // fahre geradeaus
           drivePwr = SPEED_BALL_IN_FRONT;

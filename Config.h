@@ -7,7 +7,12 @@
 #include "Utility.h"
 
 // Fahren
-#define ROT_MULTI 80     // in Prozent, default=90
+#define ROTATION 60             // [0 bis *] default=14
+#define ROTATION_CLOSE 75       // [0 bis *] default=28
+#define ROTATION_TOUCH 100      // [0 bis *] default=42
+#define SPEED 60                // [0 bis 255] default=60
+#define SPEED_BALL_IN_FRONT 100 // [0 bis 255] default=255
+#define SPEED_BACKWARDS 40      // [0 bis 255] default=40
 
 // PID-Regler
 #define PID_FILTER_P 0.2//.52 // p:proportional
@@ -18,9 +23,6 @@
 #define LIGHT_BARRIER_TRIGGER_LEVEL 50  // Wert, ab dem Lichtschranke ausschlägt
 
 // Pixy
-#define SPEED_BALL_IN_FRONT 80
-#define SPEED_BACKWARDS 40
-#define SPEED 60              // Geschwindigkeit des Roboters [0 bis 255]
 #define PIXY_BALL_NUMMER 1    // Pixy-Signature des Balls
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
