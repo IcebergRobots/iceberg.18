@@ -185,7 +185,7 @@ void loop() {
   // prüfe, ob Boden-Leds an sein sollen
   showBottom = !digitalRead(SWITCH_B);
   for (int i = 0; i < 16; i++) {
-    showLed(bottom, i, showBottom, true, false);
+    bottom.setPixelColor(i,255,0,0);
   }
   bottom.show();
 
@@ -248,7 +248,7 @@ void loop() {
         driveDir = 180;
         drivePwr = SPEED_BACKWARDS;
 
-        if(us[3] < 20 && us[3] > 0){
+        if(us[3] < 40 && us[3] > 0){
           drivePwr = 0;
           if(driveRot == 0){
             m.brake(true);
@@ -444,7 +444,7 @@ boolean getUs() {
         /    \ 0
       2 \    /
          '--'
-           2
+           3
       gibt zurück, ob Daten empfangen wurden
   */
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
