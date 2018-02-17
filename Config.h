@@ -17,7 +17,7 @@
 // PID-Regler
 #define PID_FILTER_P 0.2//.52 // p:proportional
 #define PID_FILTER_I 0//.03 // i:vorausschauend
-#define PID_FILTER_D 0.02//.03 // d:Schwung herausnehmen (nicht zu weit drehen)
+#define PID_FILTER_D 0.06//.03 // d:Schwung herausnehmen (nicht zu weit drehen)
 
 // LIGHTBARRIER
 #define LIGHT_BARRIER_TRIGGER_LEVEL 50  // Wert, ab dem Lichtschranke ausschlägt

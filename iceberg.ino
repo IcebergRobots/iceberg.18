@@ -73,6 +73,7 @@ boolean showBottom = true;    // sollen die Boden-Leds an sein?
 
 // DEBUG
 String errorMessage = "";
+unsigned long moveTimer = 0;
 
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
@@ -149,9 +150,7 @@ void setup() {
 
 void loop() {
   if (!digitalRead(BIG_BUTTON)) {
-    m.drive(0, 0, 255);                           //steuert die Motoren an
-    delay(1000);
-    m.drive(0, 0, 0);
+    moveTimer = millis();
   }
 
   if (!digitalRead(BUTTON_1)) {
@@ -241,7 +240,13 @@ void loop() {
       drivePwr = 255;
     } else {
       //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
-      if (noBallCounter < 5) {
+      if (millis() - moveTimer < 800) {
+        driveDir = -110;
+        drivePwr = 80;
+      } /*else if (millis() - moveTimer < 1200) {
+        driveDir = 90;
+        drivePwr = 100;
+      }*/ else if (noBallCounter < 5) {
         driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti, -rotMulti), -120, 120);
         if (-15 < ball && ball < 15) {
           // fahre geradeaus
