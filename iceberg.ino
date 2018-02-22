@@ -16,6 +16,7 @@
 #include <Adafruit_L3GD20_U.h>
 
 // Einstellungen: FAHREN
+boolean start = false;
 int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
 int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
@@ -35,6 +36,8 @@ Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
 String bluetoothBuffer = "";
 String command = "";
 bool  activeListening = false;
+bool startLast = false;
+unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
 unsigned long heartbeatTimer = 0; // Zeitpunkt des letzten empfangenen Heartbeat
 
@@ -155,8 +158,13 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  displayMessage("loop");
-  m.setMotEn(!digitalRead(SWITCH_MOTOR));
+  // remote start when keeper aktiviert
+  if (!digitalRead(SWITCH_MOTOR)) {
+    m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
+  } else {
+    start = false;
+  }
+
 
   if (!digitalRead(BUTTON_1)) {
     m.drive(0, 255, 0);                           //steuert die Motoren an
@@ -189,12 +197,12 @@ void loop() {
 
   // prüfe, ob Boden-Leds an sein sollen
   for (int i = 0; i < 16; i++) {
-    if (!digitalRead(SWITCH_B)) {
+    if (!digitalRead(SWITCH_BODENS)) {
       bottom.setPixelColor(i, 0, 0, 0);
     } else if (!digitalRead(SWITCH_A)) {
-      bottom.setPixelColor(i, 255, 255, 255);
-    } else {
       bottom.setPixelColor(i, 255, 0, 0);
+    } else {
+      bottom.setPixelColor(i, 255, 255, 255);
     }
   }
   bottom.show();
@@ -212,10 +220,27 @@ void loop() {
     usTimer = millis();
   }
 
+  // remote start
+  if (!digitalRead(BIG_BUTTON)) {
+    if (!startLast || millis() - startTimer < 100) {
+      bluetooth('s');
+      start = true;
+    } else if (millis() - startTimer > 1000) {
+      bluetooth('b');
+      m.brake(true);
+      start = false;
+    }
+    startLast = true;
+  } else {
+    startLast = false;
+    startTimer = millis();
+  }
+
   // bluetooth senden
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
     bluetooth("h"); // heartbeat
+
   }
 
   // bluetooth auslesen
@@ -224,6 +249,13 @@ void loop() {
     switch (command.charAt(0)) {
       case 'h': // heartbeat
         heartbeatTimer = millis();
+        break;
+      case 's': // start
+        start = true;
+        break;
+      case 'b': // brake
+        m.brake(true);
+        start = false;
         break;
     }
   }
@@ -403,9 +435,7 @@ void readPixy() {
   int blockAnzahl = 0;       //Anzahl der Bloecke
   ballSize = 0;
 
-  //displayMessage("pixy read");
   blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
-  //displayMessage("pixy over");
 
   for (int j = 0; j < blocks; j++) {                                  //geht alle erkannten Bloecke durch
     if (pixy.blocks[j].signature == PIXY_BALL_NUMMER) {               //Überprueft, ob es sich bei dem Block um den Ball handelt
@@ -496,7 +526,7 @@ void avoidLine() {
 }
 
 void kick() {
-  if (millis() - kickTimer > 333) {
+  if (millis() - kickTimer > 333 && digitalRead(SWITCH_SCHUSS)) {
     digitalWrite(SCHUSS, 1);
     kickTimer = millis();
   }
