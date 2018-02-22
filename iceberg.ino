@@ -72,7 +72,7 @@ boolean hasBall = false;  // besitzen der Roboter den Ball?
 boolean showBottom = true;    // sollen die Boden-Leds an sein?
 
 // DEBUG
-String errorMessage = "";
+String messageLog = "";
 unsigned long moveTimer = 0;
 
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
@@ -95,30 +95,33 @@ void setup() {
   //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
+  displayMessage("1/8 Pins");
   pinModes();           // setzt die PinModes
+  displayMessage("2/8 Motoren");
   setupMotor();         // setzt Pins und Winkel des Pilot Objekts
+  displayMessage("3/8 Pixy");
   pixy.init();          // initialisiere Kamera
 
+  displayMessage("4/8 Accel");
   if (!accel.begin()) {
     stateFine = false;
-    errorMessage += "accel.begin failed | ";
+    displayMessage("4/8 Accel failed");
   }
 
+  displayMessage("5/8 Mag");
   if (!mag.begin()) {
     stateFine = false;
-    errorMessage += "mag.begin failed | ";
+    displayMessage("5/8 Mag failed");
   }
 
-  delay(1000);
+  delay(1);
 
+  displayMessage("6/8 Kompass");
   mag.enableAutoRange(true);
-
   getCompassHeading();
 
   //Torrichtung [-180 bis 179] merken
   startHeading = heading; //merkt sich Startwert des Kompass
-
-  m.setMotEn(true);     // aktiviere die Motoren
 
   // Kalibriere Kompass: Drehe und messe kontinuierlich Kompasswerte
   /*if (!digitalRead(SWITCH_A)) {
@@ -130,16 +133,19 @@ void setup() {
     m.drive(0, 0, 8);   // Roboter drehr sich um eigene Achse
     }*/
 
+  displayMessage("7/8 Tor");
   // merke Torrichtung
   m.brake(true);        // Roboter bremst aktiv
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
 
+  displayMessage("8/8 Leds");
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
 
+  displayMessage("setup done");
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
@@ -149,13 +155,14 @@ void setup() {
 //###################################################################################################
 
 void loop() {
+  displayMessage("loop");
+  m.setMotEn(!digitalRead(SWITCH_MOTOR));
+
   if (!digitalRead(BUTTON_1)) {
     m.drive(0, 255, 0);                           //steuert die Motoren an
     delay(1000);
     m.brake(true);
   }
-
-  m.setMotEn(!digitalRead(SWITCH_MOTOR));
 
   // schuß wieder aus machen
   if (millis() - kickTimer > 30) {
@@ -310,11 +317,16 @@ void setupDisplay() {
   d.setCursor(0, 0);    //positioniert Cursor
   d.println("ICEBERG");  //schreibt Text auf das Display
   d.println("ROBOTS");
-  d.setTextSize(1);     //setzt Textgroesse
-  d.println();
-  d.setTextSize(2);     //setzt Textgroesse
-  d.println("      2018");
   d.display();          //wendet Aenderungen an
+}
+
+void displayMessage(String str) {
+  messageLog += START_MARKER + String(str) + END_MARKER + "\n";
+  d.setCursor(3, 46);
+  d.fillRect(3, 46, 123, 16, false); // lösche das Textfeld
+  d.setTextSize(2);     //setzt Textgroesse
+  d.println(str.substring(0, 10));
+  d.display();
 }
 
 // Infos auf dem Bildschirm anzeigen
@@ -391,7 +403,9 @@ void readPixy() {
   int blockAnzahl = 0;       //Anzahl der Bloecke
   ballSize = 0;
 
+  //displayMessage("pixy read");
   blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
+  //displayMessage("pixy over");
 
   for (int j = 0; j < blocks; j++) {                                  //geht alle erkannten Bloecke durch
     if (pixy.blocks[j].signature == PIXY_BALL_NUMMER) {               //Überprueft, ob es sich bei dem Block um den Ball handelt
@@ -408,7 +422,7 @@ void readPixy() {
 
   pixyTimer = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
 
-  if(blockAnzahl > 0) { //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+  if (blockAnzahl > 0) { //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
     seeBallTimer = millis();
   }
 }
@@ -495,7 +509,7 @@ void getCompassHeading() {
     heading =  (((int)orientation.heading - startHeading + 720) % 360) - 180;
   } else {
     stateFine = false;
-    errorMessage += "error reading compass | ";
+    displayMessage("E: Com:read");
   }
 }
 

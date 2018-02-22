@@ -16,7 +16,7 @@
 #define SPEED_BACKWARDS 40      // [0 bis 255] default=40
 
 // PID-Regler
-#define PID_FILTER_P 0.3 //.52 // p:proportional
+#define PID_FILTER_P 0.27 //.52 // p:proportional
 #define PID_FILTER_I 0 //.03 // i:vorausschauend
 #define PID_FILTER_D 0.03 //.03 // d:Schwung herausnehmen (nicht zu weit drehen)
 
