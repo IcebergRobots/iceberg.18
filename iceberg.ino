@@ -75,6 +75,7 @@ boolean hasBall = false;  // besitzen der Roboter den Ball?
 boolean showBottom = true;    // sollen die Boden-Leds an sein?
 
 // DEBUG
+boolean isTypeA;
 String messageLog = "";
 unsigned long moveTimer = 0;
 
@@ -96,6 +97,7 @@ void setup() {
   Wire.begin();         // Start der I2C-Kommunikation
 
   //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
+  isTypeA = !digitalRead(TYPE);
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/8 Pins");
@@ -162,6 +164,7 @@ void loop() {
   if (!digitalRead(SWITCH_MOTOR)) {
     m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
   } else {
+    m.setMotEn(false);
     start = false;
   }
 
@@ -379,7 +382,11 @@ void updateDisplay() {
   d.setTextColor(WHITE);
   d.setTextSize(1);
   d.setCursor(3, 3);
-  d.println("Iceberg Robots " + myTime);
+  if(isTypeA) {
+      d.println("IcebergRobotsA " + myTime);
+  } else {
+      d.println("IcebergRobotsB " + myTime);
+  }
   if (heading < -135) { // zeige einen Punkt, der zum Tor zeigt
     d.drawRect(map(heading, -180, -134, 63 , 125), 61, 2, 2, WHITE); //unten (rechte Hälfte)
   } else if (heading < -45) {
@@ -404,7 +411,8 @@ void updateDisplay() {
   d.println("Dir: " + String(driveDir));
   d.setCursor(3, 46);
   d.println(String(displayDebug));
-
+  d.invertDisplay(m.getMotEn());
+  debugln(m.getMotEn());
   d.display();      // aktualisiere Display
   matrix.show();    // aktualisiere Matrix-Leds
   info.show();  // aktualisiere Status-Leds
