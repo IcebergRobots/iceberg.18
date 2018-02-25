@@ -97,7 +97,7 @@ void setup() {
   Wire.begin();         // Start der I2C-Kommunikation
 
   //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
-  isTypeA = !digitalRead(TYPE);
+  isTypeA = digitalRead(TYPE);
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/8 Pins");

@@ -15,7 +15,7 @@
 #define BATT_VOLTAGE    A15 //  Hier liegt 2/5 der Akkuspannung an.
 
 #define POTI            A1  //  hier ist das Potentiometer unten auf der Platine angeschlossen
-#define TYPE            A10 //  low bei Roboter A und high bei Roboter B
+#define TYPE            A10 //  high bei Roboter A und low bei Roboter B
 
 #define BIG_BUTTON      A5  //  hier ist der große Button auf der Platine angeschlossen
 #define SCHUSS_BUTTON   8   //  hier ist ein Button angeschlussen mit der Beschriftung: Schuss
