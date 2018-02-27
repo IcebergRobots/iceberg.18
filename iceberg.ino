@@ -51,9 +51,11 @@ PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_
 uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
 
 int ball;                     // Abweichung der Ball X-Koordinate
-int ballSize;                 // Größe der Ballbox
+int ballWidth;                // Breite der Ballbox
 boolean seeBall = false;      // sehen wir den ball?
-unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
+unsigned long seeBallTimer = 0;   // Zeitpunkt des letzten Ball Sehens
+unsigned long ballRightTimer = 0; // Zeitpunkt der letzten Ballsicht über 15°
+unsigned long ballLeftTimer = 0;  // Zeitpunkt der letzten Ballsicht unter -15
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
@@ -107,6 +109,7 @@ void setup() {
   setupMotor();         // setzt Pins und Winkel des Pilot Objekts
   displayMessage("3/8 Pixy");
   pixy.init();          // initialisiere Kamera
+  pixy.setLED(0, 0, 0);
 
   displayMessage("4/8 Accel");
   if (!accel.begin()) {
@@ -128,16 +131,6 @@ void setup() {
 
   //Torrichtung [-180 bis 179] merken
   startHeading = heading; //merkt sich Startwert des Kompass
-
-  // Kalibriere Kompass: Drehe und messe kontinuierlich Kompasswerte
-  /*if (!digitalRead(SWITCH_A)) {
-    d.clearDisplay();
-    d.setTextSize(2);
-    d.setCursor(0, 0);
-    d.println("Kalibrierung");
-    d.display();
-    m.drive(0, 0, 8);   // Roboter drehr sich um eigene Achse
-    }*/
 
   displayMessage("7/8 Tor");
   // merke Torrichtung
@@ -169,7 +162,6 @@ void loop() {
     start = false;
   }
 
-
   if (!digitalRead(BUTTON_1)) {
     m.drive(0, 255, 0);                           //steuert die Motoren an
     delay(1000);
@@ -192,7 +184,7 @@ void loop() {
   showLed(matrix, 2, seeBall);
   showLed(matrix, 3, hasBall);
   showLed(matrix, 4, millis() - heartbeatTimer < 500);
-  showLed(matrix, 11, ballSize > 15);
+  showLed(matrix, 11, ballWidth > 15);
 
   // schieße
   if (hasBall || !digitalRead(SCHUSS_BUTTON)) {
@@ -265,18 +257,18 @@ void loop() {
   }
 
   // Fahre
-  displayDebug = ballSize;
+  displayDebug = ballWidth;
   float rotMulti;
-  if (ballSize > 100) {
+  if (ballWidth > 100) {
     rotMulti = ROTATION_TOUCH;
-  } else if (ballSize > 40) {
+  } else if (ballWidth > 40) {
     rotMulti = ROTATION_10CM;
-  } else if (ballSize > 20) {
+  } else if (ballWidth > 20) {
     rotMulti = ROTATION_18CM;
   } else {
     rotMulti = ROTATION_AWAY;
   }
-  //displayDebug = String(rotMulti) + "," + String(ballSize);
+  //displayDebug = String(rotMulti) + "," + String(ballWidth);
   driveRot = ausrichten();
   if (m.getMotEn() || true) {
     if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
@@ -284,7 +276,26 @@ void loop() {
     } else {
       //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
       if (seeBall) {
-        if (ball > 100 && ballSize < 50) {
+        // merke Zeitpunkte, wenn sich Ball rechts oder links befindet
+        if (ball > 50) {
+          ballRightTimer = millis();
+        }
+        if (ball < -50 ) {
+          ballLeftTimer = millis();
+        }
+/*
+        // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
+        if (millis() - ballRightTimer < 500 && ball < 10) {
+          rotMulti = ROTATION_TOUCH;
+          drivePwr = SPEED_AVOID_DRIFT;
+        }
+        if (millis() - ballLeftTimer < 500 && ball > 10) {
+          rotMulti = ROTATION_TOUCH;
+          drivePwr = SPEED_AVOID_DRIFT;
+        }
+*/
+        // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+        if (ball > 100) {
           // fahre seitwärts nach links
           driveDir = -100;
           drivePwr = SPEED_SIDEWAY;
@@ -293,7 +304,8 @@ void loop() {
           driveDir = 100;
           drivePwr = SPEED_SIDEWAY;
         } else {
-          // fahre in Richtung des Balls
+
+        // fahre in Richtung des Balls
           driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti, -rotMulti), -120, 120);
           if (-15 < ball && ball < 15) {
             // fahre geradeaus
@@ -316,7 +328,7 @@ void loop() {
         }
 
       }
-      if (ballSize > 32) {
+      if (ballWidth > 32) {
         drivePwr /= 2;
       }
     }
@@ -386,10 +398,10 @@ void updateDisplay() {
   d.setTextColor(WHITE);
   d.setTextSize(1);
   d.setCursor(3, 3);
-  if(isTypeA) {
-      d.println("IcebergRobotsA " + myTime);
+  if (isTypeA) {
+    d.println("IcebergRobotsA " + myTime);
   } else {
-      d.println("IcebergRobotsB " + myTime);
+    d.println("IcebergRobotsB " + myTime);
   }
   if (heading < -135) { // zeige einen Punkt, der zum Tor zeigt
     d.drawRect(map(heading, -180, -134, 63 , 125), 61, 2, 2, WHITE); //unten (rechte Hälfte)
@@ -405,11 +417,15 @@ void updateDisplay() {
   d.setTextSize(2);
   d.setCursor(3, 14);
   if (seeBall) {
-    d.println("Ball:");
+    d.println("Ball");
+    d.setCursor(50, 20);
+    d.setTextSize(1);
+    d.println(ball);
     d.drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
   } else {
     d.println("Ball:blind");
   }
+  d.setTextSize(2);
   d.drawLine(3, 11, map(analogRead(POTI), 0, 1023, 3, 123), 11, WHITE);
   d.setCursor(3, 30);
   d.println("Dir: " + String(driveDir));
@@ -441,11 +457,12 @@ int ausrichten() {
 
 // Pixy auslesen: sucht groesten Block in der Farbe des Balls
 void readPixy() {
+  pixy.setLED(0, 0, 0);
   int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
   int highX = 0;             //Position des Balls (X)
   int highY = 0;             //Position des Balls (Y)
   int blockAnzahl = 0;       //Anzahl der Bloecke
-  ballSize = 0;
+  ballWidth = 0;
 
   blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
 
@@ -456,7 +473,7 @@ void readPixy() {
         highX = pixy.blocks[j].x;
         highY = pixy.blocks[j].y;
         ball = highX - X_CENTER;    // neue Ballposition wird gesetzt
-        ballSize = pixy.blocks[j].width;
+        ballWidth = pixy.blocks[j].width;
       }
       blockAnzahl++;        //Anzahl wird hochgezaehlt
     }
