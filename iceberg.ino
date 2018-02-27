@@ -162,12 +162,6 @@ void loop() {
     start = false;
   }
 
-  if (!digitalRead(BUTTON_1)) {
-    m.drive(0, 255, 0);                           //steuert die Motoren an
-    delay(1000);
-    m.brake(true);
-  }
-
   // schuß wieder aus machen
   if (millis() - kickTimer > 30) {
     digitalWrite(SCHUSS, 0);
@@ -256,6 +250,7 @@ void loop() {
     }
   }
 
+
   // Fahre
   displayDebug = ballWidth;
   float rotMulti;
@@ -283,17 +278,17 @@ void loop() {
         if (ball < -50 ) {
           ballLeftTimer = millis();
         }
-/*
-        // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
-        if (millis() - ballRightTimer < 500 && ball < 10) {
-          rotMulti = ROTATION_TOUCH;
-          drivePwr = SPEED_AVOID_DRIFT;
-        }
-        if (millis() - ballLeftTimer < 500 && ball > 10) {
-          rotMulti = ROTATION_TOUCH;
-          drivePwr = SPEED_AVOID_DRIFT;
-        }
-*/
+        /*
+                // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
+                if (millis() - ballRightTimer < 500 && ball < 10) {
+                  rotMulti = ROTATION_TOUCH;
+                  drivePwr = SPEED_AVOID_DRIFT;
+                }
+                if (millis() - ballLeftTimer < 500 && ball > 10) {
+                  rotMulti = ROTATION_TOUCH;
+                  drivePwr = SPEED_AVOID_DRIFT;
+                }
+        */
         // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
         if (ball > 100) {
           // fahre seitwärts nach links
@@ -305,7 +300,7 @@ void loop() {
           drivePwr = SPEED_SIDEWAY;
         } else {
 
-        // fahre in Richtung des Balls
+          // fahre in Richtung des Balls
           driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti, -rotMulti), -120, 120);
           if (-15 < ball && ball < 15) {
             // fahre geradeaus
@@ -428,9 +423,27 @@ void updateDisplay() {
   d.setTextSize(2);
   d.drawLine(3, 11, map(analogRead(POTI), 0, 1023, 3, 123), 11, WHITE);
   d.setCursor(3, 30);
-  d.println("Dir: " + String(driveDir));
-  d.setCursor(3, 46);
-  d.println(String(displayDebug));
+  if (!digitalRead(BUTTON_1)) {
+    d.print("^");
+    d.setCursor(21, 30);
+    d.print(us[1]);
+    d.setCursor(69, 30);
+    d.print(String("   ").substring(0, 3 - String(us[0]).length()) + String(us[0]));
+    d.setCursor(111, 30);
+    d.print(">");
+    d.setCursor(3, 46);
+    d.print("<");
+    d.setCursor(21, 46);
+    d.print(us[2]);
+    d.setCursor(69, 46);
+    d.print(String("   ").substring(0, 3 - String(us[3]).length()) + String(us[3]));
+    d.setCursor(111, 46);
+    d.print("v");
+  } else {
+    d.println("Dir: " + String(driveDir));
+    d.setCursor(3, 30);
+    d.println(String(displayDebug.substring(0, 10)));
+  }
   d.invertDisplay(m.getMotEn());
   debugln(m.getMotEn());
   d.display();      // aktualisiere Display
