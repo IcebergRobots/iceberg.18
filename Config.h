@@ -16,6 +16,11 @@
 #define SPEED_BALL_IN_FRONT 100 // [0 bis 255] default=255
 #define SPEED_BACKWARDS 40      // [0 bis 255] default=40
 #define SPEED_AVOID_DRIFT 200   // [0 bis 255] default=100
+#define SPEED_KEEPER 20         // [0 bis 255] default=40
+
+// Feld
+#define COURT_WIDTH 120
+#define COURT_GOAL_TO_BORDER 50
 
 // PID-Regler
 #define PID_FILTER_P 0.27 //.52 // p:proportional

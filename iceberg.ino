@@ -20,8 +20,9 @@ boolean start = false;
 int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
 int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
-int lineDir = -1;        // Richtung, in der ein Bodensensor ausschlug
+int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
 int lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
+boolean lastKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
 Pilot m;                // OBJEKTINITIALISIERUNG
 
 // Einstellungen: KOMPASS
@@ -316,9 +317,21 @@ void loop() {
         drivePwr = SPEED_BACKWARDS;
 
         if (us[3] < 40 && us[3] > 0) {
-          drivePwr = 0;
-          if (driveRot == 0) {
-            m.brake(true);
+          drivePwr = SPEED_KEEPER;
+          if (lastKeeperLeft) {
+            if (us[2] > COURT_GOAL_TO_BORDER) {
+              driveDir = 90;
+            } else {
+              driveDir = -90;
+              lastKeeperLeft = false;
+            }
+          } else {
+            if (us[0] > COURT_GOAL_TO_BORDER) {
+              driveDir = -90;
+            } else {
+              driveDir = 90;
+              lastKeeperLeft = true;
+            }
           }
         }
 
@@ -421,7 +434,7 @@ void updateDisplay() {
     d.println("Ball:blind");
   }
   d.setTextSize(2);
-  d.drawLine(3, 11, map(analogRead(POTI), 0, 1023, 3, 123), 11, WHITE);
+  d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
   d.setCursor(3, 30);
   if (!digitalRead(BUTTON_1)) {
     d.print("^");
@@ -441,7 +454,7 @@ void updateDisplay() {
     d.print("v");
   } else {
     d.println("Dir: " + String(driveDir));
-    d.setCursor(3, 30);
+    d.setCursor(3, 46);
     d.println(String(displayDebug.substring(0, 10)));
   }
   d.invertDisplay(m.getMotEn());
@@ -454,17 +467,21 @@ void updateDisplay() {
 
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten() {
-  // Misst die Kompassabweichung vom Tor [-180 bis 179]
-  getCompassHeading();
-
   if (m.getMotEn()) {
-    pidIn = (double) heading;
+    // Misst die Kompassabweichung vom Tor [-180 bis 179]
+    getCompassHeading();
 
-    double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
-    myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
-    myPID.Compute();
+    if (m.getMotEn()) {
+      pidIn = (double) heading;
 
-    return -pidOut; // [-255 bis 255]
+      double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
+      myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
+      myPID.Compute();
+
+      return -pidOut; // [-255 bis 255]
+    }
+  } else {
+    return 0;
   }
 }
 
