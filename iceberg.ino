@@ -90,6 +90,8 @@ sensors_vec_t   orientation;
 //###################################################################################################
 
 void setup() {
+  isTypeA = !digitalRead(TYPE);
+
   DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
   BLUETOOTH_SERIAL.begin(38400);
   US_SERIAL.begin(115200);
@@ -97,7 +99,6 @@ void setup() {
   Wire.begin();         // Start der I2C-Kommunikation
 
   //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
-  isTypeA = digitalRead(TYPE);
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/8 Pins");
@@ -264,13 +265,16 @@ void loop() {
   }
 
   // Fahre
+  displayDebug = ballSize;
   float rotMulti;
-  if (ballSize > 40) {
+  if (ballSize > 100) {
     rotMulti = ROTATION_TOUCH;
-  } else if (ballSize > 32) {
-    rotMulti = ROTATION_CLOSE;
+  } else if (ballSize > 40) {
+    rotMulti = ROTATION_10CM;
+  } else if (ballSize > 20) {
+    rotMulti = ROTATION_18CM;
   } else {
-    rotMulti = ROTATION;
+    rotMulti = ROTATION_AWAY;
   }
   //displayDebug = String(rotMulti) + "," + String(ballSize);
   driveRot = ausrichten();
@@ -280,13 +284,13 @@ void loop() {
     } else {
       //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
       if (seeBall) {
-        if (ball > 100) {
+        if (ball > 100 && ballSize < 50) {
           // fahre seitwärts nach links
-          driveDir = -110;
+          driveDir = -100;
           drivePwr = SPEED_SIDEWAY;
         } else if (ball < -100) {
           // fahre seitwärts nach rechts
-          driveDir = 110;
+          driveDir = 100;
           drivePwr = SPEED_SIDEWAY;
         } else {
           // fahre in Richtung des Balls
