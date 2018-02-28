@@ -7,9 +7,10 @@
 #include "Utility.h"
 
 // Fahren
-#define ROTATION_AWAY 40             // [0 bis *] default=14
-#define ROTATION_18CM 70       // [0 bis *] default=28
-#define ROTATION_10CM 90         // [0 bis *] default=80
+#define ANGLE_SIDEWAY 100       // [0 bis 180] default=100
+#define ROTATION_AWAY 40        // [0 bis *] default=14
+#define ROTATION_18CM 70        // [0 bis *] default=28
+#define ROTATION_10CM 90        // [0 bis *] default=80
 #define ROTATION_TOUCH 20       // [0 bis *] default=42
 #define SPEED 60                // [0 bis 255] default=60
 #define SPEED_SIDEWAY 60        // [0 bis 255] default=60
@@ -20,7 +21,7 @@
 
 // Feld
 #define COURT_WIDTH 120
-#define COURT_GOAL_TO_BORDER 50
+#define COURT_GOAL_TO_BORDER 60
 
 // PID-Regler
 #define PID_FILTER_P 0.27 //.52 // p:proportional

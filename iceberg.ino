@@ -292,11 +292,11 @@ void loop() {
         // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
         if (ball > 100) {
           // fahre seitwärts nach links
-          driveDir = -100;
+          driveDir = -ANGLE_SIDEWAY;
           drivePwr = SPEED_SIDEWAY;
         } else if (ball < -100) {
           // fahre seitwärts nach rechts
-          driveDir = 100;
+          driveDir = ANGLE_SIDEWAY;
           drivePwr = SPEED_SIDEWAY;
         } else {
 
@@ -315,20 +315,20 @@ void loop() {
         driveDir = 180;
         drivePwr = SPEED_BACKWARDS;
 
-        if (us[3] < 40 && us[3] > 0) {
+        if (us[3] < 50 && us[3] > 0) {
           drivePwr = SPEED_KEEPER;
           if (lastKeeperLeft) {
             if (us[2] > COURT_GOAL_TO_BORDER) {
-              driveDir = 90;
+              driveDir = ANGLE_SIDEWAY;
             } else {
-              driveDir = -90;
+              driveDir = -ANGLE_SIDEWAY;
               lastKeeperLeft = false;
             }
           } else {
             if (us[0] > COURT_GOAL_TO_BORDER) {
-              driveDir = -90;
+              driveDir = -ANGLE_SIDEWAY;
             } else {
-              driveDir = 90;
+              driveDir = ANGLE_SIDEWAY;
               lastKeeperLeft = true;
             }
           }
