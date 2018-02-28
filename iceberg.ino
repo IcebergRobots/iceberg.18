@@ -26,9 +26,9 @@ boolean lastKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbe
 Pilot m;                // OBJEKTINITIALISIERUNG
 
 // Einstellungen: KOMPASS
-int heading = 0;                // Wert des Kompass
-int startHeading;               // Startwert des Kompass
-int rotation;                   // rotationswert für die Motoren
+int heading = 0;                    // Wert des Kompass
+int startHeading = 0;               // Startwert des Kompass
+int rotation = 0;                   // rotationswert für die Motoren
 Adafruit_9DOF                 dof   = Adafruit_9DOF();
 Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(30301);
 Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
@@ -72,10 +72,13 @@ unsigned long lastDisplay = 0;
 String displayDebug = "";     // unterste Zeile des Bildschirms;
 Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
 
-// Einstellungen: STATUS-LEDS & LED-MATRIX
+// STATUS-LEDS & LED-MATRIX
 boolean stateFine = true;     // liegt kein Fehler vor?
 boolean hasBall = false;  // besitzen der Roboter den Ball?
 boolean showBottom = true;    // sollen die Boden-Leds an sein?
+
+// BUZZER
+unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 
 // DEBUG
 boolean isTypeA;
@@ -127,10 +130,7 @@ void setup() {
 
   displayMessage("6/8 Kompass");
   mag.enableAutoRange(true);
-  getCompassHeading();
-
-  //Torrichtung [-180 bis 179] merken
-  startHeading = heading; //merkt sich Startwert des Kompass
+  heading = getCompassHeading();
 
   displayMessage("7/8 Tor");
   // merke Torrichtung
@@ -165,6 +165,19 @@ void loop() {
   // schuß wieder aus machen
   if (millis() - kickTimer > 30) {
     digitalWrite(SCHUSS, 0);
+  }
+
+  // buzzer anschalten bzw. wieder ausschalten
+  debugln("buzzer" + String(millis() <= buzzerStopTimer))
+  digitalWrite(BUZZER, millis() <= buzzerStopTimer);
+
+  // kompass kalibrieren
+  if (!digitalRead(BUTTON_2)) {
+    //Torrichtung [-180 bis 179] merken
+    startHeading = 0;
+    startHeading = getCompassHeading(); //merkt sich Startwert des Kompass
+    heading = 0;
+    buzzerTone(5000);
   }
 
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
@@ -457,7 +470,6 @@ void updateDisplay() {
     d.println(String(displayDebug.substring(0, 10)));
   }
   d.invertDisplay(m.getMotEn());
-  debugln(m.getMotEn());
   d.display();      // aktualisiere Display
   matrix.show();    // aktualisiere Matrix-Leds
   info.show();  // aktualisiere Status-Leds
@@ -467,7 +479,7 @@ void updateDisplay() {
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten() {
   // Misst die Kompassabweichung vom Tor [-180 bis 179]
-  getCompassHeading();
+  heading = getCompassHeading();
 
   if (m.getMotEn()) {
     pidIn = (double) heading;
@@ -586,14 +598,18 @@ void kick() {
   }
 }
 
-void getCompassHeading() {
+int getCompassHeading() {
   accel.getEvent(&accel_event);
   mag.getEvent(&mag_event);
   if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
-    heading =  (((int)orientation.heading - startHeading + 720) % 360) - 180;
+    return (((int)orientation.heading - startHeading + 720) % 360) - 180;
   } else {
     stateFine = false;
     displayMessage("E: Com:read");
   }
+}
+
+void buzzerTone(int duration) {
+  buzzerStopTimer = millis() + duration;
 }
 

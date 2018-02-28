@@ -6,7 +6,6 @@
 #define EXT_A4          A4  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
 #define EXT_A6          A6  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
 #define EXT_A7          A7  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
-#define EXT_D45         45  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
 #define EXT_D47         47  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
 #define EXT_D49         49  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
 #define EXT_D53         53  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder. Pin 53 MUSS als Output gesetzt sein, nutzen von Pin 53 könnte zu Problemen mit der Pixy führen (ISP und so)
@@ -35,7 +34,8 @@
 #define ROTARY_A        26  //  Rotary Encoder Rotation A
 #define ROTARY_B        28  //  Rotary Encoder Rotation B
 
-#define INFO_LED       6   //  hier sind 3 RGB-LEDs angeschlossen: State, Battery, Heartbeat
+#define BUZZER          45  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
+#define INFO_LED        6   //  hier sind 3 RGB-LEDs angeschlossen: State, Battery, Heartbeat
 #define BUZZER          9   //  zum Ausgeben von Signaltönen
 #define MATRIX_LED      41  //  Reihenfolge: Schuss, Mot. EN, Balls., Ballb., Bluet., Bodens., lift, Pixy, line, undefined, undefined, Debug
 
