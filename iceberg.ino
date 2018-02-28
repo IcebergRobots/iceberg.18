@@ -93,8 +93,6 @@ sensors_vec_t   orientation;
 //###################################################################################################
 
 void setup() {
-  isTypeA = !digitalRead(TYPE);
-
   DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
   BLUETOOTH_SERIAL.begin(38400);
   US_SERIAL.begin(115200);
@@ -106,6 +104,7 @@ void setup() {
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/8 Pins");
   pinModes();           // setzt die PinModes
+  isTypeA = digitalRead(TYPE);
   displayMessage("2/8 Motoren");
   setupMotor();         // setzt Pins und Winkel des Pilot Objekts
   displayMessage("3/8 Pixy");
@@ -467,21 +466,17 @@ void updateDisplay() {
 
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten() {
+  // Misst die Kompassabweichung vom Tor [-180 bis 179]
+  getCompassHeading();
+
   if (m.getMotEn()) {
-    // Misst die Kompassabweichung vom Tor [-180 bis 179]
-    getCompassHeading();
+    pidIn = (double) heading;
 
-    if (m.getMotEn()) {
-      pidIn = (double) heading;
+    double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
+    myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
+    myPID.Compute();
 
-      double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
-      myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
-      myPID.Compute();
-
-      return -pidOut; // [-255 bis 255]
-    }
-  } else {
-    return 0;
+    return -pidOut; // [-255 bis 255]
   }
 }
 
