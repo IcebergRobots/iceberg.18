@@ -6,6 +6,7 @@
 #include <SPI.h>
 #include <Pixy.h>
 #include <Wire.h>
+#include <EEPROM.h>
 #include <PID_v1.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -105,41 +106,47 @@ void setup() {
   //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
-  displayMessage("1/8 Pins");
+  displayMessage("1/9 Pins");
   pinModes();           // setzt die PinModes
   isTypeA = digitalRead(TYPE);
-  displayMessage("2/8 Motoren");
+  displayMessage("2/9 Motoren");
   setupMotor();         // setzt Pins und Winkel des Pilot Objekts
-  displayMessage("3/8 Pixy");
+  displayMessage("3/9 Pixy");
   pixy.init();          // initialisiere Kamera
   pixy.setLED(0, 0, 0);
-
-  displayMessage("4/8 Accel");
+  displayMessage("4/9 EEPROM");
+  if(EEPROM.read(0)==0) {
+    startHeading = -EEPROM.read(1);
+  } else {
+    startHeading = EEPROM.read(1);
+  }
+  
+  displayMessage("5/9 Accel");
   if (!accel.begin()) {
     stateFine = false;
-    displayMessage("4/8 Accel failed");
+    displayMessage("5/9 Accel failed");
   }
 
-  displayMessage("5/8 Mag");
+  displayMessage("6/9 Mag");
   if (!mag.begin()) {
     stateFine = false;
-    displayMessage("5/8 Mag failed");
+    displayMessage("6/9 Mag failed");
   }
 
   delay(1);
 
-  displayMessage("6/8 Kompass");
+  displayMessage("7/9 Kompass");
   mag.enableAutoRange(true);
   heading = getCompassHeading();
 
-  displayMessage("7/8 Tor");
+  displayMessage("8/9 Tor");
   // merke Torrichtung
   m.brake(true);        // Roboter bremst aktiv
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
 
-  displayMessage("8/8 Leds");
+  displayMessage("9/9 Leds");
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
@@ -168,7 +175,6 @@ void loop() {
   }
 
   // buzzer anschalten bzw. wieder ausschalten
-  debugln("buzzer" + String(millis() <= buzzerStopTimer))
   digitalWrite(BUZZER, millis() <= buzzerStopTimer);
 
   // kompass kalibrieren
@@ -176,6 +182,8 @@ void loop() {
     //Torrichtung [-180 bis 179] merken
     startHeading = 0;
     startHeading = getCompassHeading(); //merkt sich Startwert des Kompass
+    EEPROM.write(0, startHeading>=0);   // Vorzeichen
+    EEPROM.write(1, abs(startHeading)); // Winkel
     heading = 0;
     buzzerTone(5000);
   }
@@ -243,7 +251,10 @@ void loop() {
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
     bluetooth("h"); // heartbeat
-
+    if(start) {
+      bluetooth("s"); // game running
+    }
+    
   }
 
   // bluetooth auslesen
@@ -599,6 +610,7 @@ void kick() {
 }
 
 int getCompassHeading() {
+  // kompasswert [-180 bis 180]
   accel.getEvent(&accel_event);
   mag.getEvent(&mag_event);
   if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
