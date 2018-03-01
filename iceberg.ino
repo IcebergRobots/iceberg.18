@@ -99,10 +99,10 @@ void setup() {
   DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
   BLUETOOTH_SERIAL.begin(38400);
   US_SERIAL.begin(115200);
-  BOTTOM_SERIAL.begin(38400);
+  BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
-  //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
+  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/8 Pins");
@@ -353,8 +353,11 @@ void loop() {
       }
     }
     drivePwr = max(drivePwr - abs(driveRot), 0);
-
-    m.drive(driveDir, drivePwr, driveRot);
+    
+    if(millis()-lineTimer > 50){
+      m.drive(driveDir, drivePwr, driveRot);
+      digitalWrite(BUZZER_AKTIV, LOW);
+    }
   }
 
 
@@ -583,8 +586,12 @@ boolean getUs() {
 }
 
 void avoidLine() {
-  if (BOTTOM_SERIAL.available() > 0) {
-    lineDir = BOTTOM_SERIAL.read() + 180;
+  digitalWrite(BUZZER_AKTIV,HIGH);
+  while(BOTTOM_SERIAL.available() > 1){
+    BOTTOM_SERIAL.read();
+  }
+  if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 50) {
+    lineDir = BOTTOM_SERIAL.read()*90 + 90;
     driveDir = lineDir;
     m.drive(driveDir, 255, 0);
     lineTimer = millis();

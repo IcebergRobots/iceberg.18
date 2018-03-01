@@ -34,7 +34,7 @@
 #define ROTARY_A        26  //  Rotary Encoder Rotation A
 #define ROTARY_B        28  //  Rotary Encoder Rotation B
 
-#define BUZZER          45  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
+#define BUZZER_AKTIV    45  //  Pin ohne feste Funktion. Verbunden mit Platinensteckverbinder
 #define INFO_LED        6   //  hier sind 3 RGB-LEDs angeschlossen: State, Battery, Heartbeat
 #define BUZZER          9   //  zum Ausgeben von Signaltönen
 #define MATRIX_LED      41  //  Reihenfolge: Schuss, Mot. EN, Balls., Ballb., Bluet., Bodens., lift, Pixy, line, undefined, undefined, Debug
