@@ -276,9 +276,10 @@ void loop() {
 
 
   // Fahre
-  displayDebug = ballWidth;
   float rotMulti;
-  if (ballWidth > 100) {
+  if(!seeBall) {
+    rotMulti = ROTATION_SIDEWAY;
+  } else if (ballWidth > 100) {
     rotMulti = ROTATION_TOUCH;
   } else if (ballWidth > 40) {
     rotMulti = ROTATION_10CM;
@@ -339,7 +340,7 @@ void loop() {
         driveDir = 180;
         drivePwr = SPEED_BACKWARDS;
 
-        if (us[3] < 50 && us[3] > 0) {
+        if (us[3] < 50 && us[3] > 0 && abs(heading) < 40) {
           drivePwr = SPEED_KEEPER;
           if (lastKeeperLeft) {
             if (us[2] > COURT_GOAL_TO_BORDER) {
@@ -370,7 +371,7 @@ void loop() {
     }
   }
 
-
+  displayDebug = driveRot;
   // aktualisiere Bildschirm und LEDs
   if (millis() - lastDisplay > 40) {
     updateDisplay();
