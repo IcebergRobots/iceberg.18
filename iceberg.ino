@@ -7,6 +7,7 @@
 #include <Pixy.h>
 #include <Wire.h>
 #include <EEPROM.h>
+#include <RotaryEncoder.h>
 #include <PID_v1.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -73,13 +74,17 @@ unsigned long lastDisplay = 0;
 String displayDebug = "";     // unterste Zeile des Bildschirms;
 Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
 
-// STATUS-LEDS & LED-MATRIX
+// Einstellungen: STATUS-LEDS & LED-MATRIX
 boolean stateFine = true;     // liegt kein Fehler vor?
 boolean hasBall = false;  // besitzen der Roboter den Ball?
 boolean showBottom = true;    // sollen die Boden-Leds an sein?
 
-// BUZZER
+// Einstellungen: BUZZER
 unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
+
+// Einstellungen: ROTARY-ENCODER
+RotaryEncoder rotaryEncoder(ROTARY_B, ROTARY_A);
+int rotaryPosition = 0;
 
 // DEBUG
 boolean isTypeA;
@@ -97,7 +102,7 @@ sensors_vec_t   orientation;
 //###################################################################################################
 
 void setup() {
-  DEBUG_SERIAL.begin(9600);   // Start der Seriellen Kommunikation
+  DEBUG_SERIAL.begin(115200);   // Start der Seriellen Kommunikation
   BLUETOOTH_SERIAL.begin(38400);
   US_SERIAL.begin(115200);
   BOTTOM_SERIAL.begin(115200);
@@ -161,6 +166,9 @@ void setup() {
 //###################################################################################################
 
 void loop() {
+  debugln("loop");
+  rotaryEncoder.tick(); // update rotary encoder
+
   // remote start when keeper aktiviert
   if (!digitalRead(SWITCH_MOTOR)) {
     m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
@@ -177,6 +185,11 @@ void loop() {
   // buzzer anschalten bzw. wieder ausschalten
   digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);
 
+  // read rotary encoder
+  rotaryEncoder.tick(); // update rotary encoder
+  rotaryPosition = (ROTARY_MAX + (rotaryEncoder.getPosition() % ROTARY_MAX)) % ROTARY_MAX;
+  displayDebug = rotaryPosition;
+
   // kompass kalibrieren
   if (!digitalRead(BUTTON_2)) {
     //Torrichtung [-180 bis 179] merken
@@ -187,6 +200,8 @@ void loop() {
     heading = 0;
     buzzerTone(200);
   }
+
+  rotaryEncoder.tick(); // update rotary encoder
 
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
@@ -218,18 +233,22 @@ void loop() {
   }
   bottom.show();
 
+  rotaryEncoder.tick(); // update rotary encoder
+
   // aktualisiere Pixywerte (max. alle 30ms)
   if (millis() - pixyTimer > 50) {
     readPixy();
   }
 
+  rotaryEncoder.tick(); // update rotary encoder
+
   // lese die US maximal alle 30ms aus
   if (millis() - usTimer > 100) {
-    if (getUs()) {
-      //displayDebug = String(us[0]) + "," + String(us[1]) + "," + String(us[2]) + "," + String(us[3]);
-    }
+    getUs();
     usTimer = millis();
   }
+
+  rotaryEncoder.tick(); // update rotary encoder
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
@@ -274,10 +293,11 @@ void loop() {
     }
   }
 
+  rotaryEncoder.tick(); // update rotary encoder
 
   // Fahre
   float rotMulti;
-  if(!seeBall) {
+  if (!seeBall) {
     rotMulti = ROTATION_SIDEWAY;
   } else if (ballWidth > 100) {
     rotMulti = ROTATION_TOUCH;
@@ -288,8 +308,13 @@ void loop() {
   } else {
     rotMulti = ROTATION_AWAY;
   }
+
+  rotaryEncoder.tick(); // update rotary encoder
   //displayDebug = String(rotMulti) + "," + String(ballWidth);
   driveRot = ausrichten();
+
+  rotaryEncoder.tick(); // update rotary encoder
+
   if (m.getMotEn() || true) {
     if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
       drivePwr = 255;
@@ -366,18 +391,22 @@ void loop() {
     }
     drivePwr = max(drivePwr - abs(driveRot), 0);
 
+    rotaryEncoder.tick(); // update rotary encoder
+
     if (millis() - lineTimer > 50) {
       m.drive(driveDir, drivePwr, driveRot);
     }
   }
 
-  displayDebug = driveRot;
+  rotaryEncoder.tick(); // update rotary encoder
+
+  //displayDebug = driveRot;
   // aktualisiere Bildschirm und LEDs
   if (millis() - lastDisplay > 40) {
     updateDisplay();
   }
 
-  delay(1);
+  rotaryEncoder.tick(); // update rotary encoder
 
 }
 
@@ -494,6 +523,8 @@ void updateDisplay() {
 int ausrichten() {
   // Misst die Kompassabweichung vom Tor [-180 bis 179]
   heading = getCompassHeading();
+
+  rotaryEncoder.tick(); // update rotary encoder
 
   if (m.getMotEn()) {
     pidIn = (double) heading;
@@ -618,9 +649,16 @@ void kick() {
 
 int getCompassHeading() {
   // kompasswert [-180 bis 180]
+  rotaryEncoder.tick(); // update rotary encoder
   accel.getEvent(&accel_event);
+  rotaryEncoder.tick(); // update rotary encoder
+
   mag.getEvent(&mag_event);
+
+  rotaryEncoder.tick(); // update rotary encoder
+
   if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
+    rotaryEncoder.tick(); // update rotary encoder
     return (((int)orientation.heading - startHeading + 720) % 360) - 180;
   } else {
     stateFine = false;

@@ -32,11 +32,14 @@
 // LIGHTBARRIER
 #define LIGHT_BARRIER_TRIGGER_LEVEL 50  // Wert, ab dem Lichtschranke ausschlägt
 
-// Pixy
+// PIYX
 #define PIXY_BALL_NUMMER 1    // Pixy-Signature des Balls
 
-// Einstellungen: STATUS-LEDS & LED-MATRIX
+// STATUS-LEDS & LED-MATRIX
 #define PWR_LED 20            // Helligkeit der Status-Leds
+
+// ROTARY-ENCODER
+#define ROTARY_MAX 10  // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
 
 // Serielle Kommunikationen
 #define DEBUG true
