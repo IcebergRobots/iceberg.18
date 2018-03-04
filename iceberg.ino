@@ -53,6 +53,7 @@ PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_
 
 // Einstellungen: PIXY
 uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
+int greatestBlock;
 
 int ball;                     // Abweichung der Ball X-Koordinate
 int ballWidth;                // Breite der Ballbox
@@ -495,17 +496,22 @@ void updateDisplay() {
   d.setTextSize(2);
   d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
 
-  String line1 = "";
-  String line2 = "";
+  String name1 = "";
+  String name2 = "";
+  String value1 = "";
+  String value2 = "";
 
   switch (rotaryPosition) {
     case 0:
-      line1 = "Dir: " + String(driveDir);
-      line2 = String(displayDebug);
+      name1 = "Dir:";
+      name2 = String(displayDebug);
+      value1 = String(driveDir);
       break;
     case 1:
-      line1 = "^        >";
-      line2 = "<        v";
+      name1 = "^";
+      value1 = ">";
+      name2 = "<";
+      value2 = "v";
       d.setCursor(21, 30);
       d.print(us[1] + String("    ").substring(0, 4 - String(us[1]).length() ));
       d.print(String("   ").substring(0, 3 - String(us[0]).length()) + String(us[0]) );
@@ -514,27 +520,44 @@ void updateDisplay() {
       d.print(String("   ").substring(0, 3 - String(us[3]).length()) + String(us[3]));
       break;
     case 2:
-      line1 = "dPwr: " + intToStr4(drivePwr);   // drive power
-      line2 = "dRot: " + intToStr4(driveRot);   // drive rotation
+      name1 = "dPwr:";
+      value1 = intToStr(drivePwr);   // drive power
+      name2 = "dRot:";
+      value2 = intToStr(driveRot);   // drive rotation
       break;
     case 3:
-      line1 = "rotMp:" + intToStr4(rotMulti);  // ratation multiplier
-      line2 = "ball: " + intToStr4(ball);   // ball angle
+      name1 = "rotMp:";
+      value1 = intToStr(rotMulti);  // ratation multiplier
+      name2 = "ball:";
+      value2 = intToStr(ball);   // ball angle
       break;
     case 4:
-      line1 = "t:" + String("        ").substring(0, 8 - String(millis()).length()) + millis(); // ratation multiplier
-      line2 = "headi:" + intToStr4(heading);  // heading
+      name1 = "t:";
+      value1 = String(millis()); // ratation multiplier
+      name2 = "headi:";
+      value2 = intToStr(heading);  // heading
       break;
     case 5:
-      line1 = "bluet-c: " + String(command);  // bluetooth command
-      line2 = "start: " + String(start);      // start
+      name1 = "bluet-c:";
+      value1 = String(command);  // bluetooth command
+      name2 = "start:";
+      value2 = String(start);      // start
+      break;
+    case 6:
+      name1 = "bWid:";
+      value1 = String(ballWidth);  // ball box width
+      name2 = "bSiz:";
+      value2 = String(greatestBlock);  // ball box height*width
       break;
   }
-
+  name1 += String("          ").substring(0, max(0, 10 - name1.length() - value1.length()));
+  name1 = String(name1 + value1).substring(0, 10);
+  name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
+  name2 = String(name2 + value2).substring(0, 10);
   d.setCursor(3, 30);
-  d.println(line1.substring(0, 10));
+  d.println(name1);
   d.setCursor(3, 46);
-  d.println(line2.substring(0, 10));
+  d.println(name2);
 
   d.invertDisplay(m.getMotEn());
   d.display();      // aktualisiere Display
@@ -564,7 +587,7 @@ int ausrichten() {
 // Pixy auslesen: sucht groesten Block in der Farbe des Balls
 void readPixy() {
   pixy.setLED(0, 0, 0);
-  int greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
+  greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
   int highX = 0;             //Position des Balls (X)
   int highY = 0;             //Position des Balls (Y)
   int blockAnzahl = 0;       //Anzahl der Bloecke
@@ -690,14 +713,12 @@ int getCompassHeading() {
   }
 }
 
-String intToStr4(int number) {
-  String str = "";
+String intToStr(int number) {
   if (number < 0) {
-    str = String(number);
+    return String(number);
   } else {
-    str = "+" + String(number);
+    return "+" + String(number);
   }
-  return String("    ").substring(0, 4 - str.length()) + str;
 }
 
 void buzzerTone(int duration) {

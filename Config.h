@@ -39,7 +39,7 @@
 #define PWR_LED 20            // Helligkeit der Status-Leds
 
 // ROTARY-ENCODER
-#define ROTARY_RANGE 6  // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
+#define ROTARY_RANGE 7  // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
 
 // Serielle Kommunikationen
 #define DEBUG true
