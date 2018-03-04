@@ -115,12 +115,12 @@ void setup() {
   pixy.init();          // initialisiere Kamera
   pixy.setLED(0, 0, 0);
   displayMessage("4/9 EEPROM");
-  if(EEPROM.read(0)==0) {
+  if (EEPROM.read(0) == 0) {
     startHeading = -EEPROM.read(1);
   } else {
     startHeading = EEPROM.read(1);
   }
-  
+
   displayMessage("5/9 Accel");
   if (!accel.begin()) {
     stateFine = false;
@@ -175,17 +175,17 @@ void loop() {
   }
 
   // buzzer anschalten bzw. wieder ausschalten
-  digitalWrite(BUZZER, millis() <= buzzerStopTimer);
+  digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);
 
   // kompass kalibrieren
   if (!digitalRead(BUTTON_2)) {
     //Torrichtung [-180 bis 179] merken
     startHeading = 0;
     startHeading = getCompassHeading(); //merkt sich Startwert des Kompass
-    EEPROM.write(0, startHeading>=0);   // Vorzeichen
+    EEPROM.write(0, startHeading >= 0); // Vorzeichen
     EEPROM.write(1, abs(startHeading)); // Winkel
     heading = 0;
-    buzzerTone(5000);
+    buzzerTone(200);
   }
 
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
@@ -251,10 +251,10 @@ void loop() {
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
     bluetooth("h"); // heartbeat
-    if(start) {
+    if (start) {
       bluetooth("s"); // game running
     }
-    
+
   }
 
   // bluetooth auslesen
@@ -364,10 +364,9 @@ void loop() {
       }
     }
     drivePwr = max(drivePwr - abs(driveRot), 0);
-    
-    if(millis()-lineTimer > 50){
+
+    if (millis() - lineTimer > 50) {
       m.drive(driveDir, drivePwr, driveRot);
-      digitalWrite(BUZZER_AKTIV, LOW);
     }
   }
 
@@ -597,12 +596,12 @@ boolean getUs() {
 }
 
 void avoidLine() {
-  digitalWrite(BUZZER_AKTIV,HIGH);
-  while(BOTTOM_SERIAL.available() > 1){
+  buzzerTone(50);
+  while (BOTTOM_SERIAL.available() > 1) {
     BOTTOM_SERIAL.read();
   }
   if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 50) {
-    lineDir = BOTTOM_SERIAL.read()*90 + 90;
+    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
     driveDir = lineDir;
     m.drive(driveDir, 255, 0);
     lineTimer = millis();
@@ -629,6 +628,7 @@ int getCompassHeading() {
 }
 
 void buzzerTone(int duration) {
-  buzzerStopTimer = millis() + duration;
+  digitalWrite(BUZZER_AKTIV, 1);
+  buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
 }
 
