@@ -18,6 +18,7 @@
 #include <Adafruit_L3GD20_U.h>
 
 // Einstellungen: FAHREN
+int rotMulti;
 boolean start = false;
 int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
 int driveRot = 0;       // korrigiere Kompass
@@ -187,7 +188,11 @@ void loop() {
 
   // read rotary encoder
   rotaryEncoder.tick(); // update rotary encoder
-  rotaryPosition = (ROTARY_MAX + (rotaryEncoder.getPosition() % ROTARY_MAX)) % ROTARY_MAX;
+  if (!digitalRead(ROTARY_BUTTON)) {
+    rotaryEncoder.setPosition(0);
+    buzzerTone(50);
+  }
+  rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;
   displayDebug = rotaryPosition;
 
   // kompass kalibrieren
@@ -296,7 +301,6 @@ void loop() {
   rotaryEncoder.tick(); // update rotary encoder
 
   // Fahre
-  float rotMulti;
   if (!seeBall) {
     rotMulti = ROTATION_SIDEWAY;
   } else if (ballWidth > 100) {
@@ -351,7 +355,7 @@ void loop() {
         } else {
 
           // fahre in Richtung des Balls
-          driveDir = constrain(map(ball, -X_CENTER, X_CENTER, rotMulti, -rotMulti), -120, 120);
+          driveDir = constrain(map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti), -120, 120);
           if (-15 < ball && ball < 15) {
             // fahre geradeaus
             drivePwr = SPEED_BALL_IN_FRONT;
@@ -490,28 +494,48 @@ void updateDisplay() {
   }
   d.setTextSize(2);
   d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
-  d.setCursor(3, 30);
-  if (!digitalRead(BUTTON_1)) {
-    d.print("^");
-    d.setCursor(21, 30);
-    d.print(us[1]);
-    d.setCursor(69, 30);
-    d.print(String("   ").substring(0, 3 - String(us[0]).length()) + String(us[0]));
-    d.setCursor(111, 30);
-    d.print(">");
-    d.setCursor(3, 46);
-    d.print("<");
-    d.setCursor(21, 46);
-    d.print(us[2]);
-    d.setCursor(69, 46);
-    d.print(String("   ").substring(0, 3 - String(us[3]).length()) + String(us[3]));
-    d.setCursor(111, 46);
-    d.print("v");
-  } else {
-    d.println("Dir: " + String(driveDir));
-    d.setCursor(3, 46);
-    d.println(String(displayDebug.substring(0, 10)));
+
+  String line1 = "";
+  String line2 = "";
+
+  switch (rotaryPosition) {
+    case 0:
+      line1 = "Dir: " + String(driveDir);
+      line2 = String(displayDebug);
+      break;
+    case 1:
+      line1 = "^        >";
+      line2 = "<        v";
+      d.setCursor(21, 30);
+      d.print(us[1] + String("    ").substring(0, 4 - String(us[1]).length() ));
+      d.print(String("   ").substring(0, 3 - String(us[0]).length()) + String(us[0]) );
+      d.setCursor(21, 46);
+      d.print(us[2] + String("    ").substring(0, 4 - String(us[2]).length() ));
+      d.print(String("   ").substring(0, 3 - String(us[3]).length()) + String(us[3]));
+      break;
+    case 2:
+      line1 = "dPwr: " + intToStr4(drivePwr);   // drive power
+      line2 = "dRot: " + intToStr4(driveRot);   // drive rotation
+      break;
+    case 3:
+      line1 = "rotMp:" + intToStr4(rotMulti);  // ratation multiplier
+      line2 = "ball: " + intToStr4(ball);   // ball angle
+      break;
+    case 4:
+      line1 = "t:" + String("        ").substring(0, 8 - String(millis()).length()) + millis(); // ratation multiplier
+      line2 = "headi:" + intToStr4(heading);  // heading
+      break;
+    case 5:
+      line1 = "bluet-c: " + String(command);  // bluetooth command
+      line2 = "start: " + String(start);      // start
+      break;
   }
+
+  d.setCursor(3, 30);
+  d.println(line1.substring(0, 10));
+  d.setCursor(3, 46);
+  d.println(line2.substring(0, 10));
+
   d.invertDisplay(m.getMotEn());
   d.display();      // aktualisiere Display
   matrix.show();    // aktualisiere Matrix-Leds
@@ -664,6 +688,16 @@ int getCompassHeading() {
     stateFine = false;
     displayMessage("E: Com:read");
   }
+}
+
+String intToStr4(int number) {
+  String str = "";
+  if (number < 0) {
+    str = String(number);
+  } else {
+    str = "+" + String(number);
+  }
+  return String("    ").substring(0, 4 - str.length()) + str;
 }
 
 void buzzerTone(int duration) {
