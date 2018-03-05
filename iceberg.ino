@@ -92,7 +92,7 @@ int rotaryPosition = 0;
 bool seeBallMate = false;
 int ballMate = 0;
 int ballWidthMate = 0;
-byte usMate[] = {0,0,0,0};
+byte usMate[] = {0, 0, 0, 0};
 
 // DEBUG
 boolean isTypeA;
@@ -557,11 +557,11 @@ void updateDisplay() {
       name2 = "<";
       value2 = "v";
       d.setCursor(21, 30);
-      d.print(us[1] + String("    ").substring(0, 4 - String(us[1]).length() ));
-      d.print(String("   ").substring(0, 3 - String(us[0]).length()) + String(us[0]) );
+      d.print(us[1] + String("   ").substring(0, 3 - String(us[1]).length() ));
+      d.print(String("    ").substring(0, 4 - String(us[0]).length()) + String(us[0]) );
       d.setCursor(21, 46);
-      d.print(us[2] + String("    ").substring(0, 4 - String(us[2]).length() ));
-      d.print(String("   ").substring(0, 3 - String(us[3]).length()) + String(us[3]));
+      d.print(us[2] + String("   ").substring(0, 3 - String(us[2]).length() ));
+      d.print(String("    ").substring(0, 4 - String(us[3]).length()) + String(us[3]));
       break;
     case 2:
       name1 = "dPwr:";
@@ -593,7 +593,36 @@ void updateDisplay() {
       name2 = "bSiz:";
       value2 = String(greatestBlock);  // ball box height*width
       break;
+    case 7:
+      name1 = "Mball:";
+      if (seeBallMate) {
+        value1 = intToStr(ballMate);
+      } else {
+        value1 = "blind";
+      }
+      name2 = "Msiz:";
+      value2 = String(ballWidthMate);
+      break;
+    case 8:
+      name1 = "^";
+      value1 = ">";
+      name2 = "<";
+      value2 = "v";
+      d.setCursor(21, 30);
+      d.print(usMate[1] + String("   ").substring(0, 3 - String(usMate[1]).length() ));
+      d.print(String("M   ").substring(0, 4 - String(usMate[0]).length()) + String(usMate[0]) );
+      d.setCursor(21, 46);
+      d.print(usMate[2] + String("   ").substring(0, 3 - String(usMate[2]).length() ));
+      d.print(String("M   ").substring(0, 4 - String(usMate[3]).length()) + String(usMate[3]));
+      break;
   }
+
+  bool seeBallMate = false;
+  int ballMate = 0;
+  int ballWidthMate = 0;
+  byte usMate[] = {0, 0, 0, 0};
+
+
   name1 += String("          ").substring(0, max(0, 10 - name1.length() - value1.length()));
   name1 = String(name1 + value1).substring(0, 10);
   name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
