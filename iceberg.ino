@@ -281,33 +281,48 @@ void loop() {
     char data[9];
     data[0] = 'h';
     if (!start) {
-      data[1] = 255;  // pause: 255
+      data[1] = (byte) 255;  // pause: 255
     } else if (!seeBall) {
-      data[1] = 2;    // ball blind: 2
+      data[1] = (byte) 2;    // ball blind: 2
     } else {
-      data[1] = ball < 0;
+      data[1] = (byte) ball < 0;
       // ball < 0: 0
       // ball >= 0: 1
     }
-    data[2] = constrain(abs(ball), 0, 255); // 0: not negativ, 1: negativ
-    data[3] = ballWidth % 256;
-    data[4] = ballWidth / 256;
-    data[5] = us[0];
-    data[6] = us[1];
-    data[7] = us[2];
-    data[8] = us[3];
+    data[2] = (byte) 12; //constrain(abs(ball), 0, 255); // 0: not negativ, 1: negativ
+    data[3] = (byte) 23; //ballWidth % 256;
+    data[4] = (byte) 34; //ballWidth / 256;
+    data[5] = (byte) 45; //us[0];
+    data[6] = (byte) 56; //us[1];
+    data[7] = (byte) 150; //us[2];
+    data[8] = (byte) 25; //us[3];
     bluetooth(data); // heartbeat
   }
 
   // bluetooth auslesen
   command = receiveBluetooth();
   if (command != "") {
-    debug(command);
+    debug(command.charAt(0));
     debug(".");
+    debug((byte)command.charAt(1));
+    debug(".");
+    debug((byte)command.charAt(2));
+    debug(".");
+    debug((byte)command.charAt(3));
+    debug(".");
+    debug((byte)command.charAt(4));
+    debug(".");
+    debug((byte)command.charAt(5));
+    debug(".");
+    debug((byte)command.charAt(6));
+    debug(".");
+    debug((byte)command.charAt(7));
+    debug(".");
+    debug((byte)command.charAt(8));
     switch (command.charAt(0)) {
       case 'h': // heartbeat
         heartbeatTimer = millis();
-        switch ((unsigned char) command.charAt(1)) {
+        switch ((byte) command.charAt(1)) {
           case 255:
             m.brake(true);
             start = false;
@@ -317,21 +332,21 @@ void loop() {
             break;
           case 1:
             seeBallMate = true;
-            ballMate = -(unsigned char) command.charAt(2);
+            ballMate = -(byte) command.charAt(2);
             break;
           case 0:
             seeBallMate = true;
-            ballMate = (unsigned char) command.charAt(2);
+            ballMate = (byte) command.charAt(2);
             break;
           default:
             seeBallMate = false;
             break;
         }
-        ballWidthMate = (unsigned char) command.charAt(3) + 256 * (unsigned char) command.charAt(4);
-        usMate[0] = (unsigned char) command.charAt(5);
-        usMate[1] = (unsigned char) command.charAt(6);
-        usMate[2] = (unsigned char) command.charAt(7);
-        usMate[3] = (unsigned char) command.charAt(8);
+        ballWidthMate = (byte) command.charAt(3) + 256 * (byte) command.charAt(4);
+        usMate[0] = (byte) command.charAt(5);
+        usMate[1] = (byte) command.charAt(6);
+        usMate[2] = (byte) command.charAt(7);
+        usMate[3] = (byte) command.charAt(8);
         break;
       case 's': // start
         start = true;
@@ -340,7 +355,7 @@ void loop() {
         break;
       case 'd': // brake
         for (int i = 0; i < 4; i++) {
-          us[i] = (unsigned char) command.charAt(i + 1);
+          us[i] = (byte) command.charAt(i + 1);
         }
         break;
     }
