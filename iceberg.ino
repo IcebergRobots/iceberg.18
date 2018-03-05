@@ -110,9 +110,10 @@ sensors_vec_t   orientation;
 //###################################################################################################
 
 void setup() {
-  DEBUG_SERIAL.begin(115200);   // Start der Seriellen Kommunikation
-  BLUETOOTH_SERIAL.begin(115200); // 38400
-  US_SERIAL.begin(38400); // 115200
+  // Start der Seriellen Kommunikation
+  DEBUG_SERIAL.begin(115200);
+  BLUETOOTH_SERIAL.begin(115200);
+  US_SERIAL.begin(115200);
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
