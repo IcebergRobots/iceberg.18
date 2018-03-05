@@ -88,6 +88,12 @@ unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 RotaryEncoder rotaryEncoder(ROTARY_B, ROTARY_A);
 int rotaryPosition = 0;
 
+// Einstellungen: MATE
+bool seeBallMate = false;
+int ballMate = 0;
+int ballWidthMate = 0;
+byte usMate[] = {0,0,0,0};
+
 // DEBUG
 boolean isTypeA;
 String messageLog = "";
@@ -271,7 +277,7 @@ void loop() {
   // bluetooth senden
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
-    char data[7];
+    char data[9];
     data[0] = 'h';
     if (!start) {
       data[1] = 255;  // pause: 255
@@ -285,10 +291,10 @@ void loop() {
     data[2] = constrain(abs(ball), 0, 255); // 0: not negativ, 1: negativ
     data[3] = ballWidth % 256;
     data[4] = ballWidth / 256;
-    data[3] = us[0];
-    data[4] = us[1];
-    data[5] = us[2];
-    data[6] = us[3];
+    data[5] = us[0];
+    data[6] = us[1];
+    data[7] = us[2];
+    data[8] = us[3];
     bluetooth(data); // heartbeat
   }
 
@@ -298,13 +304,36 @@ void loop() {
     switch (command.charAt(0)) {
       case 'h': // heartbeat
         heartbeatTimer = millis();
+        switch ((unsigned char) command.charAt(1)) {
+          case 255:
+            m.brake(true);
+            start = false;
+            break;
+          case 2:
+            seeBallMate = false;
+            break;
+          case 1:
+            seeBallMate = true;
+            ballMate = -(unsigned char) command.charAt(2);
+            break;
+          case 0:
+            seeBallMate = true;
+            ballMate = (unsigned char) command.charAt(2);
+            break;
+          default:
+            seeBallMate = false;
+            break;
+        }
+        ballWidthMate = (unsigned char) command.charAt(3) + 256 * (unsigned char) command.charAt(4);
+        usMate[0] = (unsigned char) command.charAt(5);
+        usMate[1] = (unsigned char) command.charAt(6);
+        usMate[2] = (unsigned char) command.charAt(7);
+        usMate[3] = (unsigned char) command.charAt(8);
         break;
       case 's': // start
         start = true;
         break;
       case 'b': // brake
-        m.brake(true);
-        start = false;
         break;
       case 'd': // brake
         for (int i = 0; i < 4; i++) {
