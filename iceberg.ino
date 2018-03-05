@@ -170,7 +170,7 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  debugln("loop");
+  debug("[" + String(millis()) + "]");
   rotaryEncoder.tick(); // update rotary encoder
 
   // remote start when keeper aktiviert
@@ -301,6 +301,8 @@ void loop() {
   // bluetooth auslesen
   command = receiveBluetooth();
   if (command != "") {
+    debug(command);
+    debug(".");
     switch (command.charAt(0)) {
       case 'h': // heartbeat
         heartbeatTimer = millis();
@@ -456,6 +458,7 @@ void loop() {
   }
 
   rotaryEncoder.tick(); // update rotary encoder
+  debugln();
 
 }
 
@@ -732,7 +735,7 @@ boolean getUs() {
            3
       gibt zurück, ob Daten empfangen wurden
   */
-  /*digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
+  digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
     usTimer = millis();
     while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
@@ -744,7 +747,7 @@ boolean getUs() {
     }
     }
     digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-    return false; // keine Daten konnten emopfangen werden*/
+    return false; // keine Daten konnten emopfangen werden
 }
 
 void avoidLine() {

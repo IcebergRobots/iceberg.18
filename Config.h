@@ -45,9 +45,9 @@
 #define DEBUG true
 #define DEBUG_SERIAL Serial
 #define BLUETOOTH true
-#define BLUETOOTH_SERIAL Serial3
+#define BLUETOOTH_SERIAL Serial1
 #define BOTTOM_SERIAL Serial2
-#define US_SERIAL Serial1
+#define US_SERIAL Serial3
 #define START_MARKER '<'
 #define END_MARKER '>'
 
