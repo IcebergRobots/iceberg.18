@@ -65,7 +65,7 @@ unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: US
-int us[] = {255, 255, 255, 255};  // Werte des US-Sensors
+byte us[] = {255, 255, 255, 255};  // Werte des US-Sensors
 unsigned long usTimer = 0;        // wann wurde der Us zuletzt ausgelesen?
 
 // Einstellungen: KICK
@@ -105,12 +105,12 @@ sensors_vec_t   orientation;
 
 void setup() {
   DEBUG_SERIAL.begin(115200);   // Start der Seriellen Kommunikation
-  BLUETOOTH_SERIAL.begin(38400);
-  US_SERIAL.begin(115200);
+  BLUETOOTH_SERIAL.begin(115200); // 38400
+  US_SERIAL.begin(38400); // 115200
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
-  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
+  //  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/9 Pins");
@@ -122,11 +122,7 @@ void setup() {
   pixy.init();          // initialisiere Kamera
   pixy.setLED(0, 0, 0);
   displayMessage("4/9 EEPROM");
-  if (EEPROM.read(0) == 0) {
-    startHeading = -EEPROM.read(1);
-  } else {
-    startHeading = EEPROM.read(1);
-  }
+  startHeading = -EEPROM.read(0) * EEPROM.read(1);
 
   displayMessage("5/9 Accel");
   if (!accel.begin()) {
@@ -201,7 +197,7 @@ void loop() {
     //Torrichtung [-180 bis 179] merken
     startHeading = 0;
     startHeading = getCompassHeading(); //merkt sich Startwert des Kompass
-    EEPROM.write(0, startHeading >= 0); // Vorzeichen
+    EEPROM.write(0, startHeading < 0); // Vorzeichen
     EEPROM.write(1, abs(startHeading)); // Winkel
     heading = 0;
     buzzerTone(200);
@@ -275,11 +271,25 @@ void loop() {
   // bluetooth senden
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
-    bluetooth("h"); // heartbeat
-    if (start) {
-      bluetooth("s"); // game running
+    char data[7];
+    data[0] = 'h';
+    if (!start) {
+      data[1] = 255;  // pause: 255
+    } else if (!seeBall) {
+      data[1] = 2;    // ball blind: 2
+    } else {
+      data[1] = ball < 0;
+      // ball < 0: 0
+      // ball >= 0: 1
     }
-
+    data[2] = constrain(abs(ball), 0, 255); // 0: not negativ, 1: negativ
+    data[3] = ballWidth % 256;
+    data[4] = ballWidth / 256;
+    data[3] = us[0];
+    data[4] = us[1];
+    data[5] = us[2];
+    data[6] = us[3];
+    bluetooth(data); // heartbeat
   }
 
   // bluetooth auslesen
@@ -295,6 +305,11 @@ void loop() {
       case 'b': // brake
         m.brake(true);
         start = false;
+        break;
+      case 'd': // brake
+        for (int i = 0; i < 4; i++) {
+          us[i] = (unsigned char) command.charAt(i + 1);
+        }
         break;
     }
   }
@@ -659,9 +674,9 @@ boolean getUs() {
            3
       gibt zurück, ob Daten empfangen wurden
   */
-  digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
-  usTimer = millis();
-  while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
+  /*digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
+    usTimer = millis();
+    while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
       for (int i = 0; i < 4; i++) {
         us[i] = US_SERIAL.read();
@@ -669,9 +684,9 @@ boolean getUs() {
       digitalWrite(INT_US, 0);  // beende das Interrupt Signal
       return true;
     }
-  }
-  digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-  return false; // keine Daten konnten emopfangen werden
+    }
+    digitalWrite(INT_US, 0);  // beende das Interrupt Signal
+    return false; // keine Daten konnten emopfangen werden*/
 }
 
 void avoidLine() {
