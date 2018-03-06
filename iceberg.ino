@@ -296,6 +296,9 @@ void loop() {
     data[6] = (byte) 56; //us[1];
     data[7] = (byte) 150; //us[2];
     data[8] = (byte) 25; //us[3];
+    for(int i=0;i<9;i++) {
+      data[i]=constrain(data[i],0,253);
+    }
     bluetooth(data); // heartbeat
   }
 
