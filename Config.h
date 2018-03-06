@@ -48,8 +48,9 @@
 #define BLUETOOTH_SERIAL Serial1
 #define BOTTOM_SERIAL Serial2
 #define US_SERIAL Serial3
-#define START_MARKER '<'
-#define END_MARKER '>'
+#define START_MARKER 254
+#define END_MARKER 255
+#define CACHE_SIZE 10
 
 // Zeitumwandlung
 #define MILS_PER_SEC  (1000UL)

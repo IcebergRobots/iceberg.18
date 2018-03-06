@@ -37,9 +37,8 @@ Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(30301);
 Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
 
 // Einstellungen: BLUETOOTH
-String bluetoothBuffer = "";
-String command = "";
-bool  activeListening = false;
+byte cache[CACHE_SIZE];
+byte cacheIndex = 255;
 bool startLast = false;
 unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
@@ -91,7 +90,7 @@ int rotaryPosition = 0;
 // Einstellungen: MATE
 bool seeBallMate = false;
 int ballMate = 0;
-int ballWidthMate = 0;
+unsigned int ballWidthMate = 0;
 byte usMate[] = {0, 0, 0, 0};
 
 // DEBUG
@@ -197,7 +196,6 @@ void loop() {
     buzzerTone(50);
   }
   rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;
-  displayDebug = rotaryPosition;
 
   // kompass kalibrieren
   if (!digitalRead(BUTTON_2)) {
@@ -231,7 +229,7 @@ void loop() {
   }
 
   // prüfe, ob Boden-Leds an sein sollen
-  for (int i = 0; i < 16; i++) {
+  for (byte i = 0; i < 16; i++) {
     if (!digitalRead(SWITCH_BODENS)) {
       bottom.setPixelColor(i, 0, 0, 0);
     } else if (!digitalRead(SWITCH_A)) {
@@ -262,10 +260,12 @@ void loop() {
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
     if (!startLast || millis() - startTimer < 100) {
-      bluetooth('s');
+      byte data[1] = {'s'};
+      sendBluetooth(data, 1);
       start = true;
     } else if (millis() - startTimer > 1000) {
-      bluetooth('b');
+      byte data[1] = {'b'};
+      sendBluetooth(data, 1);
       m.brake(true);
       start = false;
     }
@@ -278,88 +278,69 @@ void loop() {
   // bluetooth senden
   if (millis() - bluetoothTimer > 100) {
     bluetoothTimer = millis();
-    char data[9];
+    byte data[9];
     data[0] = 'h';
     if (!start) {
-      data[1] = (byte) 255;  // pause: 255
+      data[1] = 253;  // pause: 255
     } else if (!seeBall) {
-      data[1] = (byte) 2;    // ball blind: 2
+      data[1] = 2;    // ball blind: 2
     } else {
-      data[1] = (byte) ball < 0;
+      data[1] = ball < 0;
       // ball < 0: 0
       // ball >= 0: 1
     }
-    data[2] = (byte) 12; //constrain(abs(ball), 0, 255); // 0: not negativ, 1: negativ
-    data[3] = (byte) 23; //ballWidth % 256;
-    data[4] = (byte) 34; //ballWidth / 256;
-    data[5] = (byte) 45; //us[0];
-    data[6] = (byte) 56; //us[1];
-    data[7] = (byte) 150; //us[2];
-    data[8] = (byte) 25; //us[3];
-    for(int i=0;i<9;i++) {
-      data[i]=constrain(data[i],0,253);
-    }
-    bluetooth(data); // heartbeat
+    data[2] = abs(ball);
+    data[3] = ballWidth % 254;
+    data[4] = ballWidth / 254;
+    data[5] = us[0];
+    data[6] = us[1];
+    data[7] = us[2];
+    data[8] = us[3];
+    sendBluetooth(data, 9); // heartbeat
   }
 
   // bluetooth auslesen
-  command = receiveBluetooth();
-  if (command != "") {
-    debug(command.charAt(0));
-    debug(".");
-    debug((byte)command.charAt(1));
-    debug(".");
-    debug((byte)command.charAt(2));
-    debug(".");
-    debug((byte)command.charAt(3));
-    debug(".");
-    debug((byte)command.charAt(4));
-    debug(".");
-    debug((byte)command.charAt(5));
-    debug(".");
-    debug((byte)command.charAt(6));
-    debug(".");
-    debug((byte)command.charAt(7));
-    debug(".");
-    debug((byte)command.charAt(8));
-    switch (command.charAt(0)) {
+  byte messageLength = receiveBluetooth();
+  if (messageLength > 0) {
+    for (byte i = 0; i < messageLength; i++) {
+      debug(String(cache[i]) + ".");
+    }
+    switch (cache[0]) {
       case 'h': // heartbeat
-        heartbeatTimer = millis();
-        switch ((byte) command.charAt(1)) {
-          case 255:
-            m.brake(true);
-            start = false;
-            break;
-          case 2:
-            seeBallMate = false;
-            break;
-          case 1:
-            seeBallMate = true;
-            ballMate = -(byte) command.charAt(2);
-            break;
-          case 0:
-            seeBallMate = true;
-            ballMate = (byte) command.charAt(2);
-            break;
-          default:
-            seeBallMate = false;
-            break;
+        if (messageLength == 9) {
+          debug('h');
+          heartbeatTimer = millis();
+          switch (cache[1]) {
+            case 255:
+              m.brake(true);
+              start = false;
+              break;
+            case 2:
+              seeBallMate = false;
+              break;
+            case 1:
+              seeBallMate = true;
+              if (cache[2] != 255) ballMate = -cache[2];
+              break;
+            case 0:
+              seeBallMate = true;
+              if (cache[2] != 255) ballMate = cache[2];
+              break;
+            default:
+              seeBallMate = false;
+              break;
+          }
+          if (cache[3] != 255 && cache[4] != 255) ballWidthMate = cache[3] + 254 * cache[4];
+          if (cache[5] != 255) usMate[0] = cache[5];
+          if (cache[6] != 255) usMate[1] = cache[6];
+          if (cache[7] != 255) usMate[2] = cache[7];
+          if (cache[8] != 255) usMate[3] = cache[8];
+          break;
         }
-        ballWidthMate = (byte) command.charAt(3) + 256 * (byte) command.charAt(4);
-        usMate[0] = (byte) command.charAt(5);
-        usMate[1] = (byte) command.charAt(6);
-        usMate[2] = (byte) command.charAt(7);
-        usMate[3] = (byte) command.charAt(8);
-        break;
       case 's': // start
         start = true;
         break;
       case 'b': // brake
-        break;
-      case 'd': // brake
-        for (int i = 0; i < 4; i++) {
-          us[i] = (byte) command.charAt(i + 1);
-        }
         break;
     }
   }
@@ -605,7 +586,7 @@ void updateDisplay() {
       break;
     case 5:
       name1 = "bluet-c:";
-      value1 = String(command);  // bluetooth command
+      value1 = String(""/*command*/);  // bluetooth command
       name2 = "start:";
       value2 = String(start);      // start
       break;
@@ -690,7 +671,7 @@ void readPixy() {
 
   blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
 
-  for (int j = 0; j < blocks; j++) {                                  //geht alle erkannten Bloecke durch
+  for (byte j = 0; j < blocks; j++) {                                  //geht alle erkannten Bloecke durch
     if (pixy.blocks[j].signature == PIXY_BALL_NUMMER) {               //Überprueft, ob es sich bei dem Block um den Ball handelt
       if (pixy.blocks[j].height * pixy.blocks[j].width > greatestBlock) { //Wenn der Block der aktuell groesste ist
         greatestBlock = pixy.blocks[j].height * pixy.blocks[j].width;
@@ -710,28 +691,44 @@ void readPixy() {
   }
 }
 
+void sendBluetooth(byte *data, byte numberOfElements) {
+  BLUETOOTH_SERIAL.write(START_MARKER);
+  for (byte i = 0; i < numberOfElements; i++) {
+    BLUETOOTH_SERIAL.write(constrain(data[i], 0, 253));
+  }
+  BLUETOOTH_SERIAL.write(END_MARKER);
+}
+
 // Bluetooth auswerten
-String receiveBluetooth() {
-  if (BLUETOOTH_SERIAL.available() > 0) {
-    char c = BLUETOOTH_SERIAL.read();
-    if ( activeListening) {
-      if (c == START_MARKER) {
-        bluetoothBuffer = "";
-      } else if (c == END_MARKER) {
-        activeListening = false;
-        return (bluetoothBuffer);
+byte receiveBluetooth() {
+  // returns length of incomming message
+  while (BLUETOOTH_SERIAL.available() > 0) {
+    byte b = BLUETOOTH_SERIAL.read();
+    if (cacheIndex != 255) { // aktives Zuhören?
+      if (b == START_MARKER) {
+        cacheIndex = 0;  // aktiviere Zuhören
+        for (byte i = 0; i < CACHE_SIZE; i++) {
+          cache[i] = 255; // überschreibe den Cache
+        }
+      } else if (b == END_MARKER) {
+        byte messageLength = cacheIndex;
+        cacheIndex = 255; // deaktiviere Zuhören
+        return messageLength; // Befehl empfangen!
       } else {
-        bluetoothBuffer += c;
+        cache[cacheIndex] = b;  // speichere in Cache
+        cacheIndex = constrain(cacheIndex + 1, 0, CACHE_SIZE); // speichere index
       }
     } else {
-      if (c == START_MARKER) {
-        bluetoothBuffer = "";
-        activeListening = true;
+      if (b == START_MARKER) {
+        cacheIndex = 0; // aktiviere Zuhören
+        for (byte i = 0; i < CACHE_SIZE; i++) {
+          cache[i] = 255; // überschreibe den Cache
+        }
       }
     }
 
   }
-  return ("");
+  return 0;
 }
 
 // Status-Led zeigt Boolean-Wert rot oder gruen an
@@ -755,18 +752,18 @@ boolean getUs() {
       gibt zurück, ob Daten empfangen wurden
   */
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
-    usTimer = millis();
-    while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
+  usTimer = millis();
+  while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
-      for (int i = 0; i < 4; i++) {
+      for (byte i = 0; i < 4; i++) {
         us[i] = US_SERIAL.read();
       }
       digitalWrite(INT_US, 0);  // beende das Interrupt Signal
       return true;
     }
-    }
-    digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-    return false; // keine Daten konnten emopfangen werden
+  }
+  digitalWrite(INT_US, 0);  // beende das Interrupt Signal
+  return false; // keine Daten konnten emopfangen werden
 }
 
 void avoidLine() {
