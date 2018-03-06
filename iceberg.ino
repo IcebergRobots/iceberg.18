@@ -51,13 +51,16 @@ double pidOut;            // Rotationsstärke [-255 bis 255]
 PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_D, DIRECT); // OBJEKTINITIALISIERUNG
 
 // Einstellungen: PIXY
-uint16_t blocks;              // hier werden die erkannten Bloecke gespeichert
-int greatestBlock;
-
-int ball;                     // Abweichung der Ball X-Koordinate
-int ballWidth;                // Breite der Ballbox
-boolean seeBall = false;      // sehen wir den ball?
-unsigned long seeBallTimer = 0;   // Zeitpunkt des letzten Ball Sehens
+int ball = 0;           // Abweichung der Ball X-Koordinate
+int ballWidth = 0;      // Ballbreite
+int ballSize = 0;       // Ballgröße (Flächeninhalt)
+int goal = 0;           // Abweichung der Tor X-Koordinate
+int goalWidth = 0;      // Torbreite
+int goalSize = 0;       // Torgröße (Flächeninhalt)
+unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
+unsigned long seeGoalTimer = 0; // Zeitpunkt des letzen Tor Sehens
+boolean seeBall = false;      // sehen wir den Ball?
+boolean seeGoal = false;      // sehen wir das Tor?
 unsigned long ballRightTimer = 0; // Zeitpunkt der letzten Ballsicht über 15°
 unsigned long ballLeftTimer = 0;  // Zeitpunkt der letzten Ballsicht unter -15
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
@@ -165,6 +168,11 @@ void setup() {
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 200) {}
+
+  debugln("pixy min:"+String(PIXY_MIN_X));
+  debugln("pixy max:"+String(PIXY_MAX_X));
+  debugln("pixy c:"+String(X_CENTER));
+
 }
 
 //###################################################################################################
@@ -302,13 +310,9 @@ void loop() {
   // bluetooth auslesen
   byte messageLength = receiveBluetooth();
   if (messageLength > 0) {
-    for (byte i = 0; i < messageLength; i++) {
-      debug(String(cache[i]) + ".");
-    }
     switch (cache[0]) {
       case 'h': // heartbeat
         if (messageLength == 9) {
-          debug('h');
           heartbeatTimer = millis();
           switch (cache[1]) {
             case 255:
@@ -575,7 +579,7 @@ void updateDisplay() {
     case 3:
       name1 = "rotMp:";
       value1 = intToStr(rotMulti);  // ratation multiplier
-      name2 = "ball:";
+      name2 = "balX:";
       value2 = intToStr(ball);   // ball angle
       break;
     case 4:
@@ -594,19 +598,34 @@ void updateDisplay() {
       name1 = "bWid:";
       value1 = String(ballWidth);  // ball box width
       name2 = "bSiz:";
-      value2 = String(greatestBlock);  // ball box height*width
+      value2 = String(ballSize);  // ball box height*width
       break;
     case 7:
+      name1 = "gWid";
+      value1 = String(goalWidth);
+      name2 = "gSiz";
+      value2 = String(goalSize);
+      break;
+    case 8:
+      name1 = "gX:";
+      value1 = intToStr(goal);
+      // 3 - 123
+      int goalLeft;
+      goalLeft = X_CENTER + goal - goalWidth / 2;
+      goalLeft = constrain(map(goalLeft, PIXY_MIN_X, PIXY_MAX_X, 3, 123), 3, 123);
+      d.fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X-PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
+      break;
+    case 9:
       name1 = "Mball:";
       if (seeBallMate) {
         value1 = intToStr(ballMate);
       } else {
         value1 = "blind";
       }
-      name2 = "Msiz:";
+      name2 = "Mwid:";
       value2 = String(ballWidthMate);
       break;
-    case 8:
+    case 10:
       name1 = "^";
       value1 = ">";
       name2 = "<";
@@ -662,33 +681,40 @@ int ausrichten() {
 
 // Pixy auslesen: sucht groesten Block in der Farbe des Balls
 void readPixy() {
-  pixy.setLED(0, 0, 0);
-  greatestBlock = 0; //hier wird die Groeße des groeßten Blocks gespeichert
-  int highX = 0;             //Position des Balls (X)
-  int highY = 0;             //Position des Balls (Y)
-  int blockAnzahl = 0;       //Anzahl der Bloecke
-  ballWidth = 0;
+  pixy.setLED(0, 0, 0); // schalte die Front-LED aus
+  int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
+  int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 
-  blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
+  uint16_t blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
 
-  for (byte j = 0; j < blocks; j++) {                                  //geht alle erkannten Bloecke durch
-    if (pixy.blocks[j].signature == PIXY_BALL_NUMMER) {               //Überprueft, ob es sich bei dem Block um den Ball handelt
-      if (pixy.blocks[j].height * pixy.blocks[j].width > greatestBlock) { //Wenn der Block der aktuell groesste ist
-        greatestBlock = pixy.blocks[j].height * pixy.blocks[j].width;
-        highX = pixy.blocks[j].x;
-        highY = pixy.blocks[j].y;
-        ball = highX - X_CENTER;    // neue Ballposition wird gesetzt
-        ballWidth = pixy.blocks[j].width;
-      }
-      blockAnzahl++;        //Anzahl wird hochgezaehlt
+  for (byte i = 0; i < blocks; i++) { // geht alle erkannten Bloecke durch
+    int height = pixy.blocks[i].height;
+    int width = pixy.blocks[i].width;
+    int x = pixy.blocks[i].x - X_CENTER;
+    switch (pixy.blocks[i].signature) { // Was sehe ich?
+      case SIGNATURE_BALL:
+        ballSizeMax = max(ballSizeMax, height * width);
+        ball = x;           // merke Ballwinkel
+        ballWidth = width;  // merke Ballbreite
+        break;
+      case SIGNATURE_GOAL:
+        goalSizeMax = max(goalSizeMax, height * width);
+        goal = x;           // merke Torwinkel
+        goalWidth = width;  // merke Torbreite
+        break;
     }
   }
 
-  pixyTimer = millis();         //Timer wird gesetzt, da Pixy nur alle 25ms ausgelesen werden darf
-
-  if (blockAnzahl > 0) { //wenn Bloecke in der Farbe des Balls erkannt wurden, dann sehen wir den Ball
+  pixyTimer = millis();
+  if (ballSizeMax > 0) {
+    ballSize = ballSizeMax;
     seeBallTimer = millis();
   }
+  if (goalSizeMax > 0) {
+    goalSize = goalSizeMax;
+    seeGoalTimer = millis();
+  }
+
 }
 
 void sendBluetooth(byte *data, byte numberOfElements) {
