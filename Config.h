@@ -21,8 +21,8 @@
 #define SPEED_KEEPER 70         // [0 bis 255] default=40
 
 // Feld
-#define COURT_WIDTH 120
-#define COURT_GOAL_TO_BORDER 60
+#define COURT_WIDTH 165         // Summe der Abstände nach rechts und links
+#define COURT_GOAL_TO_BORDER 60 // Abstand nach rechts bzw. links am Torpfosten
 
 // PID-Regler
 #define PID_FILTER_P 0.27 //.52 // p:proportional

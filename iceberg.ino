@@ -225,9 +225,20 @@ void loop() {
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
-  batLow = batVol > 40 && batVol < 108;
-  if(batLow) buzzerTone(20);
-  debug(batVol);
+  if(batVol > 40) {
+    if(m.getMotEn() && start) {
+      batLow = batVol < 100;
+    } else{
+      batLow = batVol < 108;
+    }
+  } else {
+    batLow = false;
+  }
+  
+  if(batLow) {
+    buzzerTone(20);
+    displayMessage("lowVoltage");
+  }
 
   showLed(info, 0, stateFine);
   showLed(info, 1, !batLow);
@@ -430,15 +441,17 @@ void loop() {
 
         if (us[3] < 50 && us[3] > 0 && abs(heading) < 40) {
           drivePwr = SPEED_KEEPER;
-          if (us[0] == 0 && us[2] == 0) {
+          byte usRight = us[0];
+          byte usLeft = us[2];
+          if (usRight == 0 && usLeft == 0) {
             // beide Ultraschallsensoren kaputt
             stateFine = false;
           } else {
-            if (us[0] == 0) us[0] = COURT_WIDTH - us[2];  // ersetze kaputte US-Sensoren mit sinvollen Werten
-            if (us[2] == 0) us[2] = COURT_WIDTH - us[2];  // ersetze kaputte US-Sensoren mit sinvollen Werten
+            if (usRight == 0) usRight = COURT_WIDTH - usLeft;  // ersetze kaputte US-Sensoren mit sinvollen Werten
+            if (usLeft == 0) usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
             if (lastKeeperLeft) {
               // zuletzt bewegten wir uns nach links
-              if (us[2] > COURT_GOAL_TO_BORDER) {
+              if (usLeft > COURT_GOAL_TO_BORDER) {
                 driveDir = ANGLE_SIDEWAY;
               } else {
                 driveDir = -ANGLE_SIDEWAY;
@@ -446,7 +459,7 @@ void loop() {
               }
             } else {
               // zuletzt bewegten wir uns nach rechts
-              if (us[0] > COURT_GOAL_TO_BORDER) {
+              if (usRight > COURT_GOAL_TO_BORDER) {
                 driveDir = -ANGLE_SIDEWAY;
               } else {
                 driveDir = ANGLE_SIDEWAY;
