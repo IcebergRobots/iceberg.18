@@ -123,7 +123,7 @@ void setup() {
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
-  //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
+  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/9 Pins");
@@ -823,12 +823,12 @@ boolean getUs() {
 }
 
 void avoidLine() {
-  buzzerTone(50);
-  while (BOTTOM_SERIAL.available() > 1) {
+  digitalWrite(BUZZER_AKTIV,HIGH);
+  while(BOTTOM_SERIAL.available() > 1){
     BOTTOM_SERIAL.read();
   }
   if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 50) {
-    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
+    lineDir = BOTTOM_SERIAL.read()*90 + 90;
     driveDir = lineDir;
     m.drive(driveDir, 255, 0);
     lineTimer = millis();
