@@ -95,6 +95,7 @@ RotaryEncoder rotaryEncoder(ROTARY_B, ROTARY_A);
 int rotaryPosition = 0;
 
 // Einstellungen: MATE
+bool isConnected = false;
 bool seeBallMate = false;
 int ballMate = 0;
 unsigned int ballWidthMate = 0;
@@ -224,18 +225,19 @@ void loop() {
 
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
+  isConnected = millis() - heartbeatTimer < 500;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
-  if(batVol > 40) {
-    if(m.getMotEn()) {
+  if (batVol > 40) {
+    if (m.getMotEn()) {
       batLow = batVol < 98;
-    } else{
+    } else {
       batLow = batVol < 108;
     }
   } else {
     batLow = false;
   }
-  
-  if(batLow) {
+
+  if (batLow) {
     buzzerTone(20);
     displayMessage("lowVoltage");
   }
@@ -247,11 +249,11 @@ void loop() {
   showLed(matrix, 1, m.getMotEn());
   showLed(matrix, 2, seeBall);
   showLed(matrix, 3, hasBall);
-  showLed(matrix, 4, millis() - heartbeatTimer < 500);
+  showLed(matrix, 4, isConnected);
   showLed(matrix, 11, ballWidth > 15);
 
   // schieße
-  if (hasBall || !digitalRead(SCHUSS_BUTTON)) {
+  if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) {
     kick();
   }
 
@@ -364,6 +366,9 @@ void loop() {
         start = true;
         break;
       case 'b': // brake
+        start = false;
+        if()
+        m.break
         break;
     }
   }
@@ -394,7 +399,7 @@ void loop() {
       drivePwr = 255;
     } else {
       //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
-      if (seeBall) {
+      if (seeBall && !(isConnected && seeBallMate && ballWidthMate > ballWidth)) {
         // merke Zeitpunkte, wenn sich Ball rechts oder links befindet
         if (ball > 50) {
           ballRightTimer = millis();
@@ -403,15 +408,15 @@ void loop() {
           ballLeftTimer = millis();
         }
         /*
-                // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
-                if (millis() - ballRightTimer < 500 && ball < 10) {
-                  rotMulti = ROTATION_TOUCH;
-                  drivePwr = SPEED_AVOID_DRIFT;
-                }
-                if (millis() - ballLeftTimer < 500 && ball > 10) {
-                  rotMulti = ROTATION_TOUCH;
-                  drivePwr = SPEED_AVOID_DRIFT;
-                }
+          // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
+          if (millis() - ballRightTimer < 500 && ball < 10) {
+          rotMulti = ROTATION_TOUCH;
+          drivePwr = SPEED_AVOID_DRIFT;
+          }
+          if (millis() - ballLeftTimer < 500 && ball > 10) {
+          rotMulti = ROTATION_TOUCH;
+          drivePwr = SPEED_AVOID_DRIFT;
+          }
         */
         // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
         if (ball > 100) {
@@ -423,15 +428,18 @@ void loop() {
           driveDir = ANGLE_SIDEWAY;
           drivePwr = SPEED_SIDEWAY;
         } else {
-
-          // fahre in Richtung des Balls
-          driveDir = constrain(map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti), -120, 120);
-          if (-15 < ball && ball < 15) {
-            // fahre geradeaus
-            drivePwr = SPEED_BALL_IN_FRONT;
+          if (hasBall) {
+            driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), 50, -50);
           } else {
-            // drehe dich zum Ball
-            drivePwr = SPEED;
+            // fahre in Richtung des Balls
+            driveDir = constrain(map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti), -120, 120);
+            if (-15 < ball && ball < 15) {
+              // fahre geradeaus
+              drivePwr = SPEED_BALL_IN_FRONT;
+            } else {
+              // drehe dich zum Ball
+              drivePwr = SPEED;
+            }
           }
         }
       } else {
@@ -823,12 +831,12 @@ boolean getUs() {
 }
 
 void avoidLine() {
-  digitalWrite(BUZZER_AKTIV,HIGH);
-  while(BOTTOM_SERIAL.available() > 1){
+  digitalWrite(BUZZER_AKTIV, HIGH);
+  while (BOTTOM_SERIAL.available() > 1) {
     BOTTOM_SERIAL.read();
   }
   if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 50) {
-    lineDir = BOTTOM_SERIAL.read()*90 + 90;
+    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
     driveDir = lineDir;
     m.drive(driveDir, 255, 0);
     lineTimer = millis();
@@ -863,7 +871,7 @@ int getCompassHeading() {
 
 String intToStr(int number) {
   if (number < 0) {
-    return String(number);
+  return String(number);
   } else {
     return "+" + String(number);
   }
