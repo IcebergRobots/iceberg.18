@@ -18,7 +18,7 @@
 #define SPEED_BALL_IN_FRONT 150 // [0 bis 255] default=255
 #define SPEED_BACKWARDS 70      // [0 bis 255] default=40
 #define SPEED_AVOID_DRIFT 200   // [0 bis 255] default=100
-#define SPEED_KEEPER 70         // [0 bis 255] default=40
+#define SPEED_KEEPER 40         // [0 bis 255] default=40
 
 // Feld
 #define COURT_WIDTH 165         // Summe der Abstände nach rechts und links
