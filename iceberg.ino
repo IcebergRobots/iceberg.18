@@ -24,7 +24,7 @@ int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
 int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
 int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
-int lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
+unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
 boolean lastKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
 Pilot m;                // OBJEKTINITIALISIERUNG
 
