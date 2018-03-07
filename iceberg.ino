@@ -50,6 +50,10 @@ double pidIn;             // Kompasswert [-180 bis 180]
 double pidOut;            // Rotationsstärke [-255 bis 255]
 PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_D, DIRECT); // OBJEKTINITIALISIERUNG
 
+// Einstellungen: BATTERY
+int batVol = 0;   // SPANNUNG MAL 10!
+bool batLow = false;  // ist du spannung zu gering?
+
 // Einstellungen: PIXY
 int ball = 0;           // Abweichung der Ball X-Koordinate
 int ballWidth = 0;      // Ballbreite
@@ -220,9 +224,13 @@ void loop() {
 
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
+  batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
+  batLow = batVol > 40 && batVol < 108;
+  if(batLow) buzzerTone(20);
+  debug(batVol);
 
   showLed(info, 0, stateFine);
-  showLed(info, 1, !battLow());
+  showLed(info, 1, !batLow);
   showLed(info, 2, millis() % 1000 < 200, true);
 
   showLed(matrix, 1, m.getMotEn());
@@ -598,8 +606,8 @@ void updateDisplay() {
       value2 = intToStr(heading);  // heading
       break;
     case 5:
-      name1 = "bluet-c:";
-      value1 = String(""/*command*/);  // bluetooth command
+      name1 = "batVo:";
+      value1 = String(batVol / 10) + "." + String(batVol % 10); // bluetooth command
       name2 = "start:";
       value2 = String(start);      // start
       break;

@@ -6,7 +6,6 @@
 #include "Pilot.h"
 #include "Pin.h"
 
-boolean battLow();
 void startSound();
 
 #endif
