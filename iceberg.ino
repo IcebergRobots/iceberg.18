@@ -18,14 +18,14 @@
 #include <Adafruit_L3GD20_U.h>
 
 // Einstellungen: FAHREN
-int rotMulti;
-boolean start = false;
+int rotMulti;           // Scalar, um die Rotationswerte zu verstärken
+bool start = false;     // ist der funkstart aktiviert
 int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
 int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
 int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
-boolean lastKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
+bool lastKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
 Pilot m;                // OBJEKTINITIALISIERUNG
 
 // Einstellungen: KOMPASS
@@ -35,11 +35,14 @@ int rotation = 0;                   // rotationswert für die Motoren
 Adafruit_9DOF                 dof   = Adafruit_9DOF();
 Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(30301);
 Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
+sensors_event_t accel_event;
+sensors_event_t mag_event;
+sensors_vec_t   orientation;
 
 // Einstellungen: BLUETOOTH
-byte cache[CACHE_SIZE];
-byte cacheIndex = 255;
-bool startLast = false;
+byte cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
+byte cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
+bool startLast = false; // war zuletzt der Funktstart aktiviert
 unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
 unsigned long heartbeatTimer = 0; // Zeitpunkt des letzten empfangenen Heartbeat
@@ -51,8 +54,8 @@ double pidOut;            // Rotationsstärke [-255 bis 255]
 PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_D, DIRECT); // OBJEKTINITIALISIERUNG
 
 // Einstellungen: BATTERY
-int batVol = 0;   // SPANNUNG MAL 10!
-bool batLow = false;  // ist du spannung zu gering?
+int batVol = 0;       // Spannung MAL 10!
+bool batLow = false;  // ist du Spannung zu gering?
 
 // Einstellungen: PIXY
 int ball = 0;           // Abweichung der Ball X-Koordinate
@@ -63,60 +66,58 @@ int goalWidth = 0;      // Torbreite
 int goalSize = 0;       // Torgröße (Flächeninhalt)
 unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
 unsigned long seeGoalTimer = 0; // Zeitpunkt des letzen Tor Sehens
-boolean seeBall = false;      // sehen wir den Ball?
-boolean seeGoal = false;      // sehen wir das Tor?
+bool seeBall = false;      // sehen wir den Ball?
+bool seeGoal = false;      // sehen wir das Tor?
 unsigned long ballRightTimer = 0; // Zeitpunkt der letzten Ballsicht über 15°
 unsigned long ballLeftTimer = 0;  // Zeitpunkt der letzten Ballsicht unter -15
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: US
-byte us[] = {255, 255, 255, 255};  // Werte des US-Sensors
-unsigned long usTimer = 0;        // wann wurde der Us zuletzt ausgelesen?
+byte us[] = {0, 0, 0, 0};   // Werte des US-Sensors
+unsigned long usTimer = 0;  // wann wurde der Us zuletzt ausgelesen?
 
 // Einstellungen: KICK
-unsigned long kickTimer = 0;    // Zeitpunkt des letzten Schießens
+unsigned long kickTimer = 0;  // Zeitpunkt des letzten Schießens
 
 // Einstellungen: DISPLAY
-unsigned long lastDisplay = 0;
-String displayDebug = "";     // unterste Zeile des Bildschirms;
-Adafruit_SSD1306 d(PIN_4);    // OBJEKTINITIALISIERUNG
+unsigned long lastDisplay = 0; // Zeitpunkt des letzten Displayaktualisierens
+String displayDebug = "";      // unterste Zeile des Bildschirms;
+Adafruit_SSD1306 d(PIN_4);     // OBJEKTINITIALISIERUNG
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
-boolean stateFine = true;     // liegt kein Fehler vor?
-boolean hasBall = false;  // besitzen der Roboter den Ball?
-boolean showBottom = true;    // sollen die Boden-Leds an sein?
+bool stateFine = true;  // liegt kein Fehler vor?
+bool hasBall = false;   // besitzen der Roboter den Ball?
+bool showBottom = true; // sollen die Boden-Leds an sein?
 
 // Einstellungen: BUZZER
 unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 
 // Einstellungen: ROTARY-ENCODER
-RotaryEncoder rotaryEncoder(ROTARY_B, ROTARY_A);
-int rotaryPosition = 0;
+RotaryEncoder rotaryEncoder(ROTARY_B, ROTARY_A);  // OBJEKTINITIALISIERUNG
+int rotaryPosition = 0; // Zustand, der vom Regler eingestellt ist
 
 // Einstellungen: MATE
-bool isConnected = false;
+bool isConnected = false; // besteht eine Bluetooth Verbindung zum Parter
 bool seeBallMate = false;
 int ballMate = 0;
 unsigned int ballWidthMate = 0;
 byte usMate[] = {0, 0, 0, 0};
 
-// DEBUG
-boolean isTypeA;
-String messageLog = "";
-unsigned long moveTimer = 0;
+// Einstellungen: DEBUG
+bool isTypeA; // ist das Roboter A?
+String messageLog = ""; // Protokoll der Display-Benachrihtigungen
 
-Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
+Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800);  // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
-Adafruit_NeoPixel info = Adafruit_NeoPixel(3, INFO_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (STATUS-LEDS)
-
-sensors_event_t accel_event;
-sensors_event_t mag_event;
-sensors_vec_t   orientation;
+Adafruit_NeoPixel info = Adafruit_NeoPixel(3, INFO_LED, NEO_GRB + NEO_KHZ800);      // OBJEKTINITIALISIERUNG (STATUS-LEDS)
 
 //###################################################################################################
 
 void setup() {
+  // Roboter bremst aktiv
+  m.brake(true);
+
   // Start der Seriellen Kommunikation
   DEBUG_SERIAL.begin(115200);
   BLUETOOTH_SERIAL.begin(115200);
@@ -124,45 +125,57 @@ void setup() {
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
-  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
+  // weiche den Linien aus
+  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
 
-  setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
+  // initialisiere Display mit Iceberg Schriftzug
+  setupDisplay();
+
+  // setzte die PinModes
   displayMessage("1/9 Pins");
-  pinModes();           // setzt die PinModes
-  isTypeA = digitalRead(TYPE);
+  pinModes();
+  isTypeA = digitalRead(TYPE); // lies den Hardware Jumper aus
+
+  // setzte Pins und Winkel des Pilot Objekts
   displayMessage("2/9 Motoren");
-  setupMotor();         // setzt Pins und Winkel des Pilot Objekts
+  setupMotor();
+
+  // initialisiere Kamera
   displayMessage("3/9 Pixy");
-  pixy.init();          // initialisiere Kamera
-  pixy.setLED(0, 0, 0);
+  pixy.init();
+  pixy.setLED(0, 0, 0); // schalte die Hauptled der Pixy aus
+
+  // lies EEPROM aus
   displayMessage("4/9 EEPROM");
   startHeading = -EEPROM.read(0) * EEPROM.read(1);
 
+  // initialisiere Beschleunigungssensor
   displayMessage("5/9 Accel");
   if (!accel.begin()) {
     stateFine = false;
     displayMessage("5/9 Accel failed");
   }
 
+  // initialisiere Magnetfeldsensor
   displayMessage("6/9 Mag");
   if (!mag.begin()) {
     stateFine = false;
     displayMessage("6/9 Mag failed");
   }
-
   delay(1);
 
+  // initialisiere Kompasssensor
   displayMessage("7/9 Kompass");
-  mag.enableAutoRange(true);
-  heading = getCompassHeading();
+  mag.enableAutoRange(true);  // aktiviere automatisches Messen
+  heading = getCompassHeading();  // lies Kompassrichtung aus
 
-  displayMessage("8/9 Tor");
-  // merke Torrichtung
-  m.brake(true);        // Roboter bremst aktiv
+  // initialisiere PID-Regler
+  displayMessage("8/9 PID");
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
 
+  // initialisiere Leds
   displayMessage("9/9 Leds");
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
@@ -173,20 +186,15 @@ void setup() {
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 200) {}
-
-  debugln("pixy min:" + String(PIXY_MIN_X));
-  debugln("pixy max:" + String(PIXY_MAX_X));
-  debugln("pixy c:" + String(X_CENTER));
-
 }
 
 //###################################################################################################
 
 void loop() {
   debug("[" + String(millis()) + "]");
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  // remote start when keeper aktiviert
+  // starte über Funk wenn Schalter Keeper aktiviert
   if (!digitalRead(SWITCH_MOTOR)) {
     m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
   } else {
@@ -194,7 +202,7 @@ void loop() {
     start = false;
   }
 
-  // schuß wieder aus machen
+  // schuß wieder ausschalten
   if (millis() - kickTimer > 30) {
     digitalWrite(SCHUSS, 0);
   }
@@ -202,27 +210,27 @@ void loop() {
   // buzzer anschalten bzw. wieder ausschalten
   digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);
 
-  // read rotary encoder
-  rotaryEncoder.tick(); // update rotary encoder
+  // regler auslesen
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
   if (!digitalRead(ROTARY_BUTTON)) {
-    rotaryEncoder.setPosition(0);
+    rotaryEncoder.setPosition(0); // setze Regler zurück
     buzzerTone(50);
   }
-  rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;
+  rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
 
-  // kompass kalibrieren
+  // Torrichtung speichern
   if (!digitalRead(BUTTON_2)) {
-    //Torrichtung [-180 bis 179] merken
     startHeading = 0;
-    startHeading = getCompassHeading(); //merkt sich Startwert des Kompass
-    EEPROM.write(0, startHeading < 0); // Vorzeichen
-    EEPROM.write(1, abs(startHeading)); // Winkel
+    startHeading = getCompassHeading(); //merke Torrichtung [-180 bis 179]
+    EEPROM.write(0, startHeading < 0);  // speichere Vorzeichen
+    EEPROM.write(1, abs(startHeading)); // speichere Winkel
     heading = 0;
     buzzerTone(200);
   }
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
+  // ermittle Statuswerte für Leds
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
   isConnected = millis() - heartbeatTimer < 500;
@@ -236,12 +244,12 @@ void loop() {
   } else {
     batLow = false;
   }
-
   if (batLow) {
     buzzerTone(20);
     displayMessage("lowVoltage");
   }
 
+  // zeige Statuswerte an
   showLed(info, 0, stateFine);
   showLed(info, 1, !batLow);
   showLed(info, 2, millis() % 1000 < 200, true);
@@ -257,7 +265,7 @@ void loop() {
     kick();
   }
 
-  // prüfe, ob Boden-Leds an sein sollen
+  // konfiguriere Boden Leds
   for (byte i = 0; i < 16; i++) {
     if (!digitalRead(SWITCH_BODENS)) {
       bottom.setPixelColor(i, 0, 0, 0);
@@ -269,22 +277,22 @@ void loop() {
   }
   bottom.show();
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  // aktualisiere Pixywerte (max. alle 30ms)
+  // aktualisiere Pixywerte (max. alle 50ms)
   if (millis() - pixyTimer > 50) {
     readPixy();
   }
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  // lese die US maximal alle 30ms aus
+  // lese die Ultraschall Sensoren aus (max. alle 100ms)
   if (millis() - usTimer > 100) {
     getUs();
     usTimer = millis();
   }
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
@@ -367,13 +375,13 @@ void loop() {
         break;
       case 'b': // brake
         start = false;
-        if()
-        m.break
-        break;
+        if ()
+          m.break
+          break;
     }
   }
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // Fahre
   if (!seeBall) {
@@ -388,11 +396,11 @@ void loop() {
     rotMulti = ROTATION_AWAY;
   }
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
   //displayDebug = String(rotMulti) + "," + String(ballWidth);
   driveRot = ausrichten();
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   if (m.getMotEn() || true) {
     if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
@@ -484,14 +492,14 @@ void loop() {
     }
     drivePwr = max(drivePwr - abs(driveRot), 0);
 
-    rotaryEncoder.tick(); // update rotary encoder
+    rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
     if (millis() - lineTimer > 50) {
       m.drive(driveDir, drivePwr, driveRot);
     }
   }
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   //displayDebug = driveRot;
   // aktualisiere Bildschirm und LEDs
@@ -499,7 +507,7 @@ void loop() {
     updateDisplay();
   }
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
   debugln();
 
 }
@@ -704,7 +712,7 @@ int ausrichten() {
   // Misst die Kompassabweichung vom Tor [-180 bis 179]
   heading = getCompassHeading();
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   if (m.getMotEn()) {
     pidIn = (double) heading;
@@ -795,16 +803,16 @@ byte receiveBluetooth() {
   return 0;
 }
 
-// Status-Led zeigt Boolean-Wert rot oder gruen an
-void showLed(Adafruit_NeoPixel & board, byte pos, boolean state, boolean showRed) {
+// Status-Led zeigt bool-Wert rot oder gruen an
+void showLed(Adafruit_NeoPixel & board, byte pos, bool state, bool showRed) {
   board.setPixelColor(pos, bottom.Color((!showRed) * (!state) * PWR_LED, state * PWR_LED, 0));
 }
 
-void showLed(Adafruit_NeoPixel & board, byte pos, boolean state) {
+void showLed(Adafruit_NeoPixel & board, byte pos, bool state) {
   showLed(board, pos, state, false);
 }
 
-boolean getUs() {
+bool getUs() {
   /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
       empfängt und speichern diese Werte im globalen Array us[]:
           1
@@ -852,16 +860,16 @@ void kick() {
 
 int getCompassHeading() {
   // kompasswert [-180 bis 180]
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
   accel.getEvent(&accel_event);
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   mag.getEvent(&mag_event);
 
-  rotaryEncoder.tick(); // update rotary encoder
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
-    rotaryEncoder.tick(); // update rotary encoder
+    rotaryEncoder.tick(); // erkenne Reglerdrehungen
     return (((int)orientation.heading - startHeading + 720) % 360) - 180;
   } else {
     stateFine = false;
@@ -871,7 +879,7 @@ int getCompassHeading() {
 
 String intToStr(int number) {
   if (number < 0) {
-  return String(number);
+    return String(number);
   } else {
     return "+" + String(number);
   }
