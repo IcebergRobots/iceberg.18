@@ -226,8 +226,8 @@ void loop() {
   seeBall = millis() - seeBallTimer < 50;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
   if(batVol > 40) {
-    if(m.getMotEn() && start) {
-      batLow = batVol < 100;
+    if(m.getMotEn()) {
+      batLow = batVol < 98;
     } else{
       batLow = batVol < 108;
     }
@@ -447,7 +447,7 @@ void loop() {
             // beide Ultraschallsensoren kaputt
             stateFine = false;
           } else {
-            if (usRight == 0) usRight = COURT_WIDTH - usLeft;  // ersetze kaputte US-Sensoren mit sinvollen Werten
+            if (usRight == 0) usRight = COURT_WIDTH - usLeft; // ersetze kaputte US-Sensoren mit sinvollen Werten
             if (usLeft == 0) usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
             if (lastKeeperLeft) {
               // zuletzt bewegten wir uns nach links
