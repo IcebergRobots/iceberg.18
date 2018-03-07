@@ -119,7 +119,7 @@ void setup() {
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
-  //  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
+  //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);     //erstellt den Interrupt -> wenn das Signal am Interruptpin ansteigt, dann wird die Methode usAusgeben ausgeführt
 
   setupDisplay();       // initialisiere Display mit Iceberg Schriftzug
   displayMessage("1/9 Pins");
@@ -169,9 +169,9 @@ void setup() {
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 200) {}
 
-  debugln("pixy min:"+String(PIXY_MIN_X));
-  debugln("pixy max:"+String(PIXY_MAX_X));
-  debugln("pixy c:"+String(X_CENTER));
+  debugln("pixy min:" + String(PIXY_MIN_X));
+  debugln("pixy max:" + String(PIXY_MAX_X));
+  debugln("pixy c:" + String(X_CENTER));
 
 }
 
@@ -422,19 +422,28 @@ void loop() {
 
         if (us[3] < 50 && us[3] > 0 && abs(heading) < 40) {
           drivePwr = SPEED_KEEPER;
-          if (lastKeeperLeft) {
-            if (us[2] > COURT_GOAL_TO_BORDER) {
-              driveDir = ANGLE_SIDEWAY;
-            } else {
-              driveDir = -ANGLE_SIDEWAY;
-              lastKeeperLeft = false;
-            }
+          if (us[0] == 0 && us[2] == 0) {
+            // beide Ultraschallsensoren kaputt
+            stateFine = false;
           } else {
-            if (us[0] > COURT_GOAL_TO_BORDER) {
-              driveDir = -ANGLE_SIDEWAY;
+            if (us[0] == 0) us[0] = COURT_WIDTH - us[2];  // ersetze kaputte US-Sensoren mit sinvollen Werten
+            if (us[2] == 0) us[2] = COURT_WIDTH - us[2];  // ersetze kaputte US-Sensoren mit sinvollen Werten
+            if (lastKeeperLeft) {
+              // zuletzt bewegten wir uns nach links
+              if (us[2] > COURT_GOAL_TO_BORDER) {
+                driveDir = ANGLE_SIDEWAY;
+              } else {
+                driveDir = -ANGLE_SIDEWAY;
+                lastKeeperLeft = false;
+              }
             } else {
-              driveDir = ANGLE_SIDEWAY;
-              lastKeeperLeft = true;
+              // zuletzt bewegten wir uns nach rechts
+              if (us[0] > COURT_GOAL_TO_BORDER) {
+                driveDir = -ANGLE_SIDEWAY;
+              } else {
+                driveDir = ANGLE_SIDEWAY;
+                lastKeeperLeft = true;
+              }
             }
           }
         }
@@ -613,7 +622,7 @@ void updateDisplay() {
       int goalLeft;
       goalLeft = X_CENTER + goal - goalWidth / 2;
       goalLeft = constrain(map(goalLeft, PIXY_MIN_X, PIXY_MAX_X, 3, 123), 3, 123);
-      d.fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X-PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
+      d.fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
       break;
     case 9:
       name1 = "Mball:";
@@ -717,7 +726,7 @@ void readPixy() {
 
 }
 
-void sendBluetooth(byte *data, byte numberOfElements) {
+void sendBluetooth(byte * data, byte numberOfElements) {
   BLUETOOTH_SERIAL.write(START_MARKER);
   for (byte i = 0; i < numberOfElements; i++) {
     BLUETOOTH_SERIAL.write(constrain(data[i], 0, 253));
@@ -758,11 +767,11 @@ byte receiveBluetooth() {
 }
 
 // Status-Led zeigt Boolean-Wert rot oder gruen an
-void showLed(Adafruit_NeoPixel &board, byte pos, boolean state, boolean showRed) {
+void showLed(Adafruit_NeoPixel & board, byte pos, boolean state, boolean showRed) {
   board.setPixelColor(pos, bottom.Color((!showRed) * (!state) * PWR_LED, state * PWR_LED, 0));
 }
 
-void showLed(Adafruit_NeoPixel &board, byte pos, boolean state) {
+void showLed(Adafruit_NeoPixel & board, byte pos, boolean state) {
   showLed(board, pos, state, false);
 }
 
