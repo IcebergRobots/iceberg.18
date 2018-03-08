@@ -25,6 +25,7 @@ int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
 int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
+unsigned long headstartTimer = 0; // Zeitpunkt des Betätigen des Headstarts
 bool isKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 Pilot m;                // OBJEKTINITIALISIERUNG
@@ -220,6 +221,11 @@ void loop() {
   // buzzer anschalten bzw. wieder ausschalten
   digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);
 
+  // schneller vorstoß
+  if (!digitalRead(BUTTON_3)) {
+    headstartTimer = millis() + 2000;
+  }
+
   // regler auslesen
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
   if (!digitalRead(ROTARY_BUTTON)) {
@@ -410,122 +416,123 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (m.getMotEn() || true) {
-    if (lineDir >= 0 && millis() - lineTimer < 20) { // anfangs ist lineDir negativ, beim einem Interrupt immer positiv
-      drivePwr = 255;
-    } else {
-      //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
-      if (seeBall && !(isConnected && seeBallMate && ballWidthMate > ballWidth)) {
-        // merke Zeitpunkte, wenn sich Ball rechts oder links befindet
-        if (ball > 50) {
-          ballRightTimer = millis();
+  if ((lineDir >= 0 && millis() - lineTimer < 20) || millis() <= headstartTimer) {
+    drivePwr = 255;
+    if (millis() <= headstartTimer) {
+      driveDir = 0;
+    }
+  } else {
+    //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
+    if (seeBall && !(isConnected && seeBallMate && ballWidthMate > ballWidth)) {
+      // merke Zeitpunkte, wenn sich Ball rechts oder links befindet
+      if (ball > 50) {
+        ballRightTimer = millis();
+      }
+      if (ball < -50 ) {
+        ballLeftTimer = millis();
+      }
+      /*
+        // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
+        if (millis() - ballRightTimer < 500 && ball < 10) {
+        rotMulti = ROTATION_TOUCH;
+        drivePwr = SPEED_AVOID_DRIFT;
         }
-        if (ball < -50 ) {
-          ballLeftTimer = millis();
+        if (millis() - ballLeftTimer < 500 && ball > 10) {
+        rotMulti = ROTATION_TOUCH;
+        drivePwr = SPEED_AVOID_DRIFT;
         }
-        /*
-          // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
-          if (millis() - ballRightTimer < 500 && ball < 10) {
-          rotMulti = ROTATION_TOUCH;
-          drivePwr = SPEED_AVOID_DRIFT;
-          }
-          if (millis() - ballLeftTimer < 500 && ball > 10) {
-          rotMulti = ROTATION_TOUCH;
-          drivePwr = SPEED_AVOID_DRIFT;
-          }
-        */
-        // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
-        if (ball > 100) {
-          // fahre seitwärts nach links
-          driveDir = -ANGLE_SIDEWAY;
-          drivePwr = SPEED_SIDEWAY;
-        } else if (ball < -100) {
-          // fahre seitwärts nach rechts
-          driveDir = ANGLE_SIDEWAY;
-          drivePwr = SPEED_SIDEWAY;
-        } else {
-          if (hasBall) {
-            driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), 50, -50);
-          } else {
-            // fahre in Richtung des Balls
-            driveDir = constrain(map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti), -120, 120);
-            if (-15 < ball && ball < 15) {
-              // fahre geradeaus
-              drivePwr = SPEED_BALL_IN_FRONT;
-            } else {
-              // drehe dich zum Ball
-              drivePwr = SPEED;
-            }
-          }
-        }
+      */
+      // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+      if (ball > 100) {
+        // fahre seitwärts nach links
+        driveDir = -ANGLE_SIDEWAY;
+        drivePwr = SPEED_SIDEWAY;
+      } else if (ball < -100) {
+        // fahre seitwärts nach rechts
+        driveDir = ANGLE_SIDEWAY;
+        drivePwr = SPEED_SIDEWAY;
       } else {
-        // fahre nach hinten
-        driveDir = 180;
-        drivePwr = SPEED_BACKWARDS;
-
-        if (us[3] < 50 && us[3] > 0 && abs(heading) < 40) {
-          drivePwr = SPEED_KEEPER;
-          byte usRight = us[0];
-          byte usLeft = us[2];
-          if (usRight == 0 && usLeft == 0) {
-            // beide Ultraschallsensoren kaputt
-            stateFine = false;
+        if (hasBall) {
+          driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), 50, -50);
+        } else {
+          // fahre in Richtung des Balls
+          driveDir = constrain(map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti), -120, 120);
+          if (-15 < ball && ball < 15) {
+            // fahre geradeaus
+            drivePwr = SPEED_BALL_IN_FRONT;
           } else {
-            if (usRight == 0) {
-              usRight = COURT_WIDTH - usLeft; // ersetze kaputte US-Sensoren mit sinvollen Werten
+            // drehe dich zum Ball
+            drivePwr = SPEED;
+          }
+        }
+      }
+    } else {
+      // fahre nach hinten
+      driveDir = 180;
+      drivePwr = SPEED_BACKWARDS;
+
+      if (us[3] < 50 && us[3] > 0 && abs(heading) < 40) {
+        drivePwr = SPEED_KEEPER;
+        byte usRight = us[0];
+        byte usLeft = us[2];
+        if (usRight == 0 && usLeft == 0) {
+          // beide Ultraschallsensoren kaputt
+          stateFine = false;
+        } else {
+          if (usRight == 0) {
+            usRight = COURT_WIDTH - usLeft; // ersetze kaputte US-Sensoren mit sinvollen Werten
+          }
+          if (usLeft == 0) {
+            usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
+          }
+          if (millis() - lastKeeperToggle > 3000) {
+            // toggle
+            if (isKeeperLeft) {
+              driveDir = -ANGLE_SIDEWAY;
+              isKeeperLeft = false;
+              lastKeeperToggle = millis();
+            } else {
+              driveDir = ANGLE_SIDEWAY;
+              isKeeperLeft = true;
+              lastKeeperToggle = millis();
             }
-            if (usLeft == 0) {
-              usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
-            }
-            if (millis() - lastKeeperToggle > 3000) {
-              // toggle
-              if (isKeeperLeft) {
+          } else if (millis() - lastKeeperToggle > 2000) {
+            if (isKeeperLeft) {
+              // wir fahren gerade nach links
+              if (usLeft < COURT_GOAL_TO_BORDER) {
                 driveDir = -ANGLE_SIDEWAY;
                 isKeeperLeft = false;
                 lastKeeperToggle = millis();
-              } else {
+              }
+            } else {
+              // wir fahren gerade nach rechts
+              if (usRight < COURT_GOAL_TO_BORDER) {
                 driveDir = ANGLE_SIDEWAY;
                 isKeeperLeft = true;
                 lastKeeperToggle = millis();
               }
-            } else if (millis() - lastKeeperToggle > 2000) {
-              if (isKeeperLeft) {
-                // wir fahren gerade nach links
-                if (usLeft < COURT_GOAL_TO_BORDER) {
-                  driveDir = -ANGLE_SIDEWAY;
-                  isKeeperLeft = false;
-                  lastKeeperToggle = millis();
-                }
-              } else {
-                // wir fahren gerade nach rechts
-                if (usRight < COURT_GOAL_TO_BORDER) {
-                  driveDir = ANGLE_SIDEWAY;
-                  isKeeperLeft = true;
-                  lastKeeperToggle = millis();
-                }
-              }
+            }
+          } else {
+            if (isKeeperLeft) {
+              driveDir = ANGLE_SIDEWAY;
             } else {
-              if (isKeeperLeft) {
-                driveDir = ANGLE_SIDEWAY;
-              } else {
-                driveDir = -ANGLE_SIDEWAY;
-              }
+              driveDir = -ANGLE_SIDEWAY;
             }
           }
         }
-
       }
-      if (ballWidth > 32) {
-        drivePwr /= 2;
-      }
-    }
-    drivePwr = max(drivePwr - abs(driveRot), 0);
 
-    rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
-    if (millis() - lineTimer > 50) {
-      m.drive(driveDir, drivePwr, driveRot);
     }
+    if (ballWidth > 32) {
+      drivePwr /= 2;
+    }
+  }
+  drivePwr = max(drivePwr - abs(driveRot), 0);
+
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+
+  if (millis() - lineTimer > 50) {
+    m.drive(driveDir, drivePwr, driveRot);
   }
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
