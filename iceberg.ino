@@ -191,10 +191,15 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  debug("[" + String(millis()) + "]");
+  //debug("[" + String(millis()) + "]");
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // starte über Funk wenn Schalter Keeper aktiviert
+  if (digitalRead(SWITCH_KEEPER)) {
+    displayDebug = "on";
+  } else {
+    displayDebug = "off";
+  }
   if (!digitalRead(SWITCH_MOTOR)) {
     m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
   } else {
@@ -295,6 +300,7 @@ void loop() {
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // remote start
+  debugln(start);
   if (!digitalRead(BIG_BUTTON)) {
     if (!startLast || millis() - startTimer < 100) {
       byte data[1] = {'s'};
@@ -339,45 +345,42 @@ void loop() {
   // bluetooth auslesen
   byte messageLength = receiveBluetooth();
   if (messageLength > 0) {
+    debug("[" + String(millis()) + "]");
+    for (int i = 0; i < messageLength; i++) {
+      debug(String(cache[i]) + ".");
+    }
+    debugln();
     switch (cache[0]) {
-      case 'h': // heartbeat
+      case 104: // heartbeat
         if (messageLength == 9) {
           heartbeatTimer = millis();
-          switch (cache[1]) {
-            case 255:
-              m.brake(true);
-              start = false;
-              break;
-            case 2:
+          if (cache[1] < 3) {
+            start = true;
+            if (cache[1] == 2) {
               seeBallMate = false;
-              break;
-            case 1:
+            } else {
               seeBallMate = true;
-              if (cache[2] != 255) ballMate = -cache[2];
-              break;
-            case 0:
-              seeBallMate = true;
-              if (cache[2] != 255) ballMate = cache[2];
-              break;
-            default:
-              seeBallMate = false;
-              break;
+              if (cache[2] != 255) {
+                ballMate = -(cache[1] == 1) * cache[2];
+              }
+            }
           }
           if (cache[3] != 255 && cache[4] != 255) ballWidthMate = cache[3] + 254 * cache[4];
           if (cache[5] != 255) usMate[0] = cache[5];
           if (cache[6] != 255) usMate[1] = cache[6];
           if (cache[7] != 255) usMate[2] = cache[7];
           if (cache[8] != 255) usMate[3] = cache[8];
-          break;
         }
-      case 's': // start
+        break;
+      case 115: // start
         start = true;
         break;
-      case 'b': // brake
+      case 98: // brake
         start = false;
-        if ()
-          m.break
-          break;
+        if (digitalRead(SWITCH_KEEPER)) {
+          m.brake(true);
+        }
+        break;
     }
   }
 
@@ -508,7 +511,7 @@ void loop() {
   }
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
-  debugln();
+  //debugln();
 
 }
 
@@ -787,8 +790,12 @@ byte receiveBluetooth() {
         cacheIndex = 255; // deaktiviere Zuhören
         return messageLength; // Befehl empfangen!
       } else {
-        cache[cacheIndex] = b;  // speichere in Cache
-        cacheIndex = constrain(cacheIndex + 1, 0, CACHE_SIZE); // speichere index
+        if (cacheIndex >= CACHE_SIZE) {
+          cacheIndex = 255; // deaktiviere Zuhören
+        } else {
+          cache[cacheIndex] = b;  // speichere in Cache
+          cacheIndex += 1;  // speichere index
+        }
       }
     } else {
       if (b == START_MARKER) {
