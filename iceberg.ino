@@ -25,7 +25,8 @@ int driveRot = 0;       // korrigiere Kompass
 int driveDir = 0;       // Zielrichtung
 int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
-bool lastKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
+bool isKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
+unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 Pilot m;                // OBJEKTINITIALISIERUNG
 
 // Einstellungen: KOMPASS
@@ -147,7 +148,11 @@ void setup() {
 
   // lies EEPROM aus
   displayMessage("4/9 EEPROM");
-  startHeading = -EEPROM.read(0) * EEPROM.read(1);
+  if (EEPROM.read(0) == 0) {
+    startHeading = EEPROM.read(1);
+  } else {
+    startHeading = -EEPROM.read(1);
+  }
 
   // initialisiere Beschleunigungssensor
   displayMessage("5/9 Accel");
@@ -323,8 +328,8 @@ void loop() {
     bluetoothTimer = millis();
     byte data[9];
     data[0] = 'h';
-    if (!start) {
-      data[1] = 253;  // pause: 255
+    if (!m.getMotEn()) {
+      data[1] = 253;  // pause: 253
     } else if (!seeBall) {
       data[1] = 2;    // ball blind: 2
     } else {
@@ -466,23 +471,44 @@ void loop() {
             // beide Ultraschallsensoren kaputt
             stateFine = false;
           } else {
-            if (usRight == 0) usRight = COURT_WIDTH - usLeft; // ersetze kaputte US-Sensoren mit sinvollen Werten
-            if (usLeft == 0) usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
-            if (lastKeeperLeft) {
-              // zuletzt bewegten wir uns nach links
-              if (usLeft > COURT_GOAL_TO_BORDER) {
-                driveDir = ANGLE_SIDEWAY;
-              } else {
+            if (usRight == 0) {
+              usRight = COURT_WIDTH - usLeft; // ersetze kaputte US-Sensoren mit sinvollen Werten
+            }
+            if (usLeft == 0) {
+              usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
+            }
+            if (millis() - lastKeeperToggle > 3000) {
+              // toggle
+              if (isKeeperLeft) {
                 driveDir = -ANGLE_SIDEWAY;
-                lastKeeperLeft = false;
+                isKeeperLeft = false;
+                lastKeeperToggle = millis();
+              } else {
+                driveDir = ANGLE_SIDEWAY;
+                isKeeperLeft = true;
+                lastKeeperToggle = millis();
+              }
+            } else if (millis() - lastKeeperToggle > 2000) {
+              if (isKeeperLeft) {
+                // wir fahren gerade nach links
+                if (usLeft < COURT_GOAL_TO_BORDER) {
+                  driveDir = -ANGLE_SIDEWAY;
+                  isKeeperLeft = false;
+                  lastKeeperToggle = millis();
+                }
+              } else {
+                // wir fahren gerade nach rechts
+                if (usRight < COURT_GOAL_TO_BORDER) {
+                  driveDir = ANGLE_SIDEWAY;
+                  isKeeperLeft = true;
+                  lastKeeperToggle = millis();
+                }
               }
             } else {
-              // zuletzt bewegten wir uns nach rechts
-              if (usRight > COURT_GOAL_TO_BORDER) {
-                driveDir = -ANGLE_SIDEWAY;
-              } else {
+              if (isKeeperLeft) {
                 driveDir = ANGLE_SIDEWAY;
-                lastKeeperLeft = true;
+              } else {
+                driveDir = -ANGLE_SIDEWAY;
               }
             }
           }
