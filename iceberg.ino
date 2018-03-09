@@ -26,6 +26,7 @@ int driveDir = 0;       // Zielrichtung
 int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0; // Zeitpunkt des Betätigen des Headstarts
+bool headstartStraigth = true;  // fahren wir genau gerade aus oder leicht nacht links?
 bool isKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 Pilot m;                // OBJEKTINITIALISIERUNG
@@ -221,9 +222,16 @@ void loop() {
   // buzzer anschalten bzw. wieder ausschalten
   digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);
 
-  // schneller vorstoß
+  // schneller vorstoß gerade
+  if (!digitalRead(BUTTON_1)) {
+    headstartStraigth = false;
+    headstartTimer = millis() + 1500;
+  }
+
+  // schneller vorstoß nacht links
   if (!digitalRead(BUTTON_3)) {
-    headstartTimer = millis() + 2000;
+    headstartStraigth = true;
+    headstartTimer = millis() + 1500;
   }
 
   // regler auslesen
@@ -420,6 +428,9 @@ void loop() {
     drivePwr = 255;
     if (millis() <= headstartTimer) {
       driveDir = 0;
+      if (!headstartStraigth) {
+         driveRot = 5;
+      }
     }
   } else {
     //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
@@ -496,7 +507,7 @@ void loop() {
               isKeeperLeft = true;
               lastKeeperToggle = millis();
             }
-          } else if (millis() - lastKeeperToggle > 2000) {
+          } else if (millis() - lastKeeperToggle > 1500) {
             if (isKeeperLeft) {
               // wir fahren gerade nach links
               if (usLeft < COURT_GOAL_TO_BORDER) {
