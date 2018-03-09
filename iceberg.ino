@@ -196,9 +196,9 @@ void loop() {
 
   // starte über Funk wenn Schalter Keeper aktiviert
   if (digitalRead(SWITCH_KEEPER)) {
-    displayDebug = "on";
+    //displayDebug = "on";
   } else {
-    displayDebug = "off";
+    //displayDebug = "off";
   }
   if (!digitalRead(SWITCH_MOTOR)) {
     m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
@@ -851,10 +851,16 @@ void avoidLine() {
     BOTTOM_SERIAL.read();
   }
   if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 50) {
-    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
-    driveDir = lineDir;
+    byte input = BOTTOM_SERIAL.read();
+    if(input >= 8){
+      //manuelles Ausweichen hier einfuegen
+      return;
+    }
+    lineDir = (input+2)%8;
+    driveDir = lineDir*45;
     m.drive(driveDir, 255, 0);
     lineTimer = millis();
+    displayDebug = driveDir;
   }
 }
 
