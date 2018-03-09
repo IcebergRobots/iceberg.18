@@ -17,12 +17,11 @@
 #define SPEED_SIDEWAY 60        // [0 bis 255] default=60
 #define SPEED_BALL_IN_FRONT 150 // [0 bis 255] default=255
 #define SPEED_BACKWARDS 50      // [0 bis 255] default=40
-#define SPEED_AVOID_DRIFT 200   // [0 bis 255] default=100
 #define SPEED_KEEPER 40         // [0 bis 255] default=40
 
 // Feld
 #define COURT_WIDTH 140         // Summe der Abstände nach rechts und links
-#define COURT_GOAL_TO_BORDER 60 // Abstand nach rechts bzw. links am Torpfosten
+#define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
 
 // PID-Regler
 #define PID_FILTER_P 0.27 //.52 // p:proportional
