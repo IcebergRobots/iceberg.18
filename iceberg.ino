@@ -276,7 +276,7 @@ void loop() {
   showLed(info, 2, millis() % 1000 < 200, true);
 
   showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
-  showLed(matrix, 1, digitalRead(SWITCH_MOTOR));
+  showLed(matrix, 1, !digitalRead(SWITCH_MOTOR));
   showLed(matrix, 2, seeBall, true);
   showLed(matrix, 3, hasBall, true);
   showLed(matrix, 4, isConnected);
