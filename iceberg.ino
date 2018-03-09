@@ -424,7 +424,7 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if ((lineDir >= 0 && millis() - lineTimer < 20) || millis() <= headstartTimer) {
+  if ((lineDir >= 0 && millis() - lineTimer < 100) || millis() <= headstartTimer) {
     drivePwr = 255;
     if (millis() <= headstartTimer) {
       driveDir = 0;
@@ -542,7 +542,7 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (millis() - lineTimer > 50) {
+  if (millis() - lineTimer > 100) {
     m.drive(driveDir, drivePwr, driveRot);
   }
 
@@ -894,7 +894,7 @@ void avoidLine() {
   while (BOTTOM_SERIAL.available() > 1) {
     BOTTOM_SERIAL.read();
   }
-  if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 50) {
+  if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 100) {
     byte input = BOTTOM_SERIAL.read();
     if(input >= 8){
       //manuelles Ausweichen hier einfuegen
