@@ -19,6 +19,10 @@
 #define SPEED_BACKWARDS 50      // [0 bis 255] default=40
 #define SPEED_KEEPER 40         // [0 bis 255] default=40
 
+// TIMES
+#define LINE_DELAY 100
+#define HEADSTART_DELAY 1000
+
 // Feld
 #define COURT_WIDTH 140         // Summe der Abstände nach rechts und links
 #define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
