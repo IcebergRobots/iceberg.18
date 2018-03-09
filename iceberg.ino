@@ -26,7 +26,6 @@ int driveDir = 0;       // Zielrichtung
 int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0; // Zeitpunkt des Betätigen des Headstarts
-bool headstartStraigth = true;  // fahren wir genau gerade aus oder leicht nacht links?
 bool isKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 Pilot m;                // OBJEKTINITIALISIERUNG
@@ -222,18 +221,6 @@ void loop() {
   // buzzer anschalten bzw. wieder ausschalten
   digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);
 
-  // schneller vorstoß gerade
-  if (!digitalRead(BUTTON_1)) {
-    headstartStraigth = false;
-    headstartTimer = millis() + 1500;
-  }
-
-  // schneller vorstoß nacht links
-  if (!digitalRead(BUTTON_3)) {
-    headstartStraigth = true;
-    headstartTimer = millis() + 1500;
-  }
-
   // regler auslesen
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
   if (!digitalRead(ROTARY_BUTTON)) {
@@ -278,11 +265,18 @@ void loop() {
   showLed(info, 1, !batLow);
   showLed(info, 2, millis() % 1000 < 200, true);
 
+  showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
   showLed(matrix, 1, m.getMotEn());
   showLed(matrix, 2, seeBall);
   showLed(matrix, 3, hasBall);
   showLed(matrix, 4, isConnected);
-  showLed(matrix, 11, ballWidth > 15);
+  //showLed(matrix, 5, bodensensor verfügbar);
+  //showLed(matrix, 6, lift);
+  //showLed(matrix, 7, pixy);
+  showLed(matrix, 8, millis() - lineTimer < 100);
+  //showLed(matrix, 4, free);
+  //showLed(matrix, 4, free);
+  showLed(matrix, 11, true);
 
   // schieße
   if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) {
@@ -319,12 +313,14 @@ void loop() {
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // remote start
-  debugln(start);
   if (!digitalRead(BIG_BUTTON)) {
     if (!startLast || millis() - startTimer < 100) {
       byte data[1] = {'s'};
       sendBluetooth(data, 1);
       start = true;
+      if (millis() >= headstartTimer && digitalRead(SWITCH_B)) {
+      headstartTimer = millis() + 400;
+    }
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
       sendBluetooth(data, 1);
@@ -375,6 +371,9 @@ void loop() {
           heartbeatTimer = millis();
           if (cache[1] < 3) {
             start = true;
+            if (millis() >= headstartTimer && digitalRead(SWITCH_B)) {
+              headstartTimer = millis() + 400;
+            }
             if (cache[1] == 2) {
               seeBallMate = false;
             } else {
@@ -428,9 +427,6 @@ void loop() {
     drivePwr = 255;
     if (millis() <= headstartTimer) {
       driveDir = 0;
-      if (!headstartStraigth) {
-         driveRot = 5;
-      }
     }
   } else {
     //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
@@ -896,12 +892,12 @@ void avoidLine() {
   }
   if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer + 100) {
     byte input = BOTTOM_SERIAL.read();
-    if(input >= 8){
+    if (input >= 8) {
       //manuelles Ausweichen hier einfuegen
       return;
     }
-    lineDir = (input+2)%8;
-    driveDir = lineDir*45;
+    lineDir = (input + 2) % 8;
+    driveDir = lineDir * 45;
     m.drive(driveDir, 255, 0);
     lineTimer = millis();
     displayDebug = driveDir;
