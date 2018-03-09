@@ -1,14 +1,3 @@
-/***
- *     _____ _______ _______ ______  _______  ______  ______
- *       |   |       |______ |_____] |______ |_____/ |  ____
- *     __|__ |_____  |______ |_____] |______ |    \_ |_____|
- *                                                          
- *      ______  _____  ______   _____  _______ _______      
- *     |_____/ |     | |_____] |     |    |    |______      
- *     |    \_ |_____| |_____] |_____|    |    ______|           
- *                                                           
- */
-
 #include "Config.h"
 #include "Pin.h"
 #include "Pilot.h"
@@ -275,11 +264,18 @@ void loop() {
   showLed(info, 1, !batLow);
   showLed(info, 2, millis() % 1000 < 200, true);
 
-  showLed(matrix, 1, m.getMotEn());
-  showLed(matrix, 2, seeBall);
-  showLed(matrix, 3, hasBall);
+  showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
+  showLed(matrix, 1, digitalRead(SWITCH_MOTOR));
+  showLed(matrix, 2, seeBall, true);
+  showLed(matrix, 3, hasBall, true);
   showLed(matrix, 4, isConnected);
-  showLed(matrix, 11, ballWidth > 15);
+  //showLed(matrix, 5, bodensensor verfügbar);
+  //showLed(matrix, 6, lift);
+  //showLed(matrix, 7, pixy);
+  showLed(matrix, 8, !onLine, true);
+  //showLed(matrix, 9, free);
+  showLed(matrix, 10, isHeadstart, true);
+  showLed(matrix, 11, true);
 
   // schieße
   if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) {
@@ -321,6 +317,9 @@ void loop() {
       byte data[1] = {'s'};
       sendBluetooth(data, 1);
       start = true;
+      if (!isHeadstart && digitalRead(SWITCH_B)) {
+        headstartTimer = millis();
+      }
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
       sendBluetooth(data, 1);
@@ -371,6 +370,9 @@ void loop() {
           heartbeatTimer = millis();
           if (cache[1] < 3) {
             start = true;
+            if (!isHeadstart && digitalRead(SWITCH_B)) {
+              headstartTimer = millis();
+            }
             if (cache[1] == 2) {
               seeBallMate = false;
             } else {
@@ -940,21 +942,3 @@ void buzzerTone(int duration) {
   buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
 }
 
-
-  showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
-  showLed(matrix, 1, digitalRead(SWITCH_MOTOR));
-  showLed(matrix, 2, seeBall, true);
-  showLed(matrix, 3, hasBall, true);
-  //showLed(matrix, 5, bodensensor verfügbar);
-  //showLed(matrix, 6, lift);
-  //showLed(matrix, 7, pixy);
-  showLed(matrix, 8, !onLine, true);
-  //showLed(matrix, 9, free);
-  showLed(matrix, 10, isHeadstart, true);
-  showLed(matrix, 11, true);
-      if (!isHeadstart && digitalRead(SWITCH_B)) {
-        headstartTimer = millis();
-      }
-            if (!isHeadstart && digitalRead(SWITCH_B)) {
-              headstartTimer = millis();
-            }
