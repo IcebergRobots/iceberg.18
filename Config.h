@@ -22,7 +22,7 @@
 
 // TIMES
 #define LINE_DELAY 100
-#define HEADSTART_DELAY 500
+#define HEADSTART_DELAY 700
 #define DRIFT_DELAY 200
 
 // Feld
