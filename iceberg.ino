@@ -289,7 +289,7 @@ void loop() {
   showLed(matrix, 10, isHeadstart, true);
   showLed(matrix, 11, true);
 
-  // schieße
+  // schieße 
   if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) {
     kick();
   }
