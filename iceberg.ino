@@ -147,7 +147,7 @@ void setup() {
   myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
 
   // weiche den Linien aus
-  //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
+  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
 
   // initialisiere Display mit Iceberg Schriftzug
   setupDisplay();
@@ -251,6 +251,11 @@ void loop() {
     EEPROM.write(1, abs(startHeading)); // speichere Winkel
     heading = 0;
     buzzerTone(200);
+  }
+
+  // lösche Bodensensor Cache
+  while (BOTTOM_SERIAL > 1) {
+    BOTTOM_SERIAL.read();
   }
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
@@ -787,18 +792,22 @@ void updateDisplay() {
 
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten() {
-  // Misst die Kompassabweichung vom Tor [-180 bis 179]
-  heading = getCompassHeading();
+  if (onLine) {
+    return 0;
+  } else {
+    // Misst die Kompassabweichung vom Tor [-180 bis 179]
+    heading = getCompassHeading();
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+    rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (m.getMotEn()) {
-    pidIn = (double) heading;
+    if (m.getMotEn()) {
+      pidIn = (double) heading;
 
-    double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
-    myPID.Compute();
+      double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
+      myPID.Compute();
 
-    return -pidOut; // [-255 bis 255]
+      return -pidOut; // [-255 bis 255]
+    }
   }
 }
 
@@ -919,31 +928,30 @@ bool getUs() {
   return false; // keine Daten konnten emopfangen werden
 }
 
+
+
 void avoidLine() {
   digitalWrite(BUZZER_AKTIV, HIGH);
   while (BOTTOM_SERIAL.available() > 1) {
     BOTTOM_SERIAL.read();
   }
-  if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer) {
-    byte input = BOTTOM_SERIAL.read();
-    if (input >= 8) {
-      //manuelles Ausweichen hier einfuegen
-      return;
-    }
-    lineDir = (input + 2) % 8;
-    driveDir = lineDir * 45;
+  if (BOTTOM_SERIAL.available() > 0) {
+    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
+    driveDir = lineDir;
     m.drive(driveDir, SPEED_HEADSTART, 0);
+    lineTimer = millis();
     headstartTimer = 0;
     if (drivePwr > 200) {
-      lineTimer = millis() + 8 * LINE_DELAY;
+      lineTimer = millis() + (2 * LINE_DELAY);
     } else if (drivePwr > 100) {
-      lineTimer = millis() + 4 * LINE_DELAY;
+      lineTimer = millis() + (1.5 * LINE_DELAY);
     } else {
       lineTimer = millis() + LINE_DELAY;
     }
+    displayDebug = driveDir;
   }
 
-  displayDebug = driveDir;
+
 }
 
 void kick() {
