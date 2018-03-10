@@ -448,6 +448,7 @@ void loop() {
       driveDir = 0;
     }
   } else if (isDrift) {
+    drivePwr = SPEED_HEADSTART;
     debugln("drift");
     // steuere gegen
     if (driftLeft) {
