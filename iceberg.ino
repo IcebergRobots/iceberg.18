@@ -472,13 +472,13 @@ void loop() {
         driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       } else {
         // verhindere das Driften
-        if (ball > 10 && millis() - ballRightTimer < 500 && millis() > driftTimer) {
-          buzzerTone(100);
+        if (ball > 0 && millis() - ballRightTimer < 500) {
+          buzzerTone(500);
           driftTimer = millis();
           driftLeft = false;
         }
-        if (ball < -10 && millis() - ballLeftTimer < 500 && millis() > driftTimer) {
-          buzzerTone(100);
+        if (ball < 0 && millis() - ballLeftTimer < 500) {
+          buzzerTone(500);
           driftTimer = millis();
           driftLeft = true;
         }
