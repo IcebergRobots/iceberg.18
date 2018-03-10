@@ -906,7 +906,7 @@ void avoidLine() {
   while (BOTTOM_SERIAL.available() > 1) {
     BOTTOM_SERIAL.read();
   }
-  if (BOTTOM_SERIAL.available() > 0 && !onLine) {
+  if (BOTTOM_SERIAL.available() > 0 && millis() > lineTimer) {
     byte input = BOTTOM_SERIAL.read();
     if (input >= 8) {
       //manuelles Ausweichen hier einfuegen
