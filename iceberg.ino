@@ -80,12 +80,12 @@ int goalSize = 0;       // Torgröße (Flächeninhalt)
 unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
 unsigned long seeGoalTimer = 0; // Zeitpunkt des letzen Tor Sehens
 unsigned long driftTimer = 0; // Zeitpunkt seit wann wir gegensteuern
+unsigned long ballLeftTimer = 0;     // Zeitpunkt wann der Ball zuletzt links war
+unsigned long ballRightTimer = 0;    // Zeitpunkt wann der Ball zuletzt rechts war
 bool driftLeft = false; // steuern wir nach links gegen
 bool isDrift = false;   // driften wir
 bool seeBall = false;      // sehen wir den Ball?
 bool seeGoal = false;      // sehen wir das Tor?
-bool ballLeftTimer = 0;     // Zeitpunkt wann der Ball zuletzt links war
-bool ballRightTimer = 0;    // Zeitpunkt wann der Ball zuletzt rechts war
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
@@ -448,6 +448,7 @@ void loop() {
       driveDir = 0;
     }
   } else if (isDrift) {
+    debugln("drift");
     // steuere gegen
     if (driftLeft) {
       driveDir = 90;
@@ -459,10 +460,12 @@ void loop() {
     drivePwr = SPEED;
     if (seeBall && !(isConnected && seeBallMate && ballWidthMate > ballWidth)) {
       // fahre in Richtung des Balls
-      if (ball > 20) {
+      if (ball > 50) {
+        debugln("setLeft");
         ballLeftTimer = millis();
       }
-      if (ball < -20) {
+      if (ball < -50) {
+        debugln("setRight");
         ballRightTimer = millis();
       }
       if (hasBall) {
@@ -472,12 +475,14 @@ void loop() {
         driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       } else {
         // verhindere das Driften
-        if (ball > 0 && millis() - ballRightTimer < 500) {
+        if (ball > 0 && millis() - ballRightTimer < DRIFT_DELAY) {
+          debugln("runRight");
           buzzerTone(500);
           driftTimer = millis();
           driftLeft = false;
         }
-        if (ball < 0 && millis() - ballLeftTimer < 500) {
+        if (ball < 0 && millis() - ballLeftTimer < DRIFT_DELAY) {
+          debugln("runLeft");
           buzzerTone(500);
           driftTimer = millis();
           driftLeft = true;

@@ -23,6 +23,7 @@
 // TIMES
 #define LINE_DELAY 100
 #define HEADSTART_DELAY 500
+#define DRIFT_DELAY 200
 
 // Feld
 #define COURT_WIDTH 140         // Summe der Abstände nach rechts und links
@@ -47,7 +48,7 @@
 #define ROTARY_RANGE 11  // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
 
 // Serielle Kommunikationen
-#define DEBUG true
+#define DEBUG false
 #define DEBUG_SERIAL Serial
 #define BLUETOOTH true
 #define BLUETOOTH_SERIAL Serial1
