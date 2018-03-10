@@ -140,6 +140,9 @@ void setup() {
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
+  // konfiguriere PID-Regler
+  myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
+
   // weiche den Linien aus
   //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
 
@@ -289,7 +292,7 @@ void loop() {
   showLed(matrix, 10, isHeadstart, true);
   showLed(matrix, 11, true);
 
-  // schieße 
+  // schieße
   if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) {
     kick();
   }
@@ -471,7 +474,7 @@ void loop() {
         drivePwr = SPEED_SIDEWAY;
       } else {
         if (hasBall) {
-          if(seeGoal) {
+          if (seeGoal) {
             drivePwr = SPEED_HEADSTART;
           } else {
             drivePwr = SPEED;
@@ -777,7 +780,6 @@ int ausrichten() {
     pidIn = (double) heading;
 
     double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
-    myPID.SetTunings(PID_FILTER_P, PID_FILTER_I, PID_FILTER_D);
     myPID.Compute();
 
     return -pidOut; // [-255 bis 255]
