@@ -12,12 +12,13 @@
 #define ROTATION_AWAY 40        // [0 bis *] default=40
 #define ROTATION_18CM 70        // [0 bis *] default=70
 #define ROTATION_10CM 90        // [0 bis *] default=90
-#define ROTATION_TOUCH 20       // [0 bis *] default=20
+#define ROTATION_TOUCH 40       // [0 bis *] default=20
 #define SPEED 60                // [0 bis 255] default=60
 #define SPEED_SIDEWAY 60        // [0 bis 255] default=60
-#define SPEED_BALL_IN_FRONT 150 // [0 bis 255] default=255
+#define SPEED_BALL_IN_FRONT 120 // [0 bis 255] default=255
 #define SPEED_BACKWARDS 50      // [0 bis 255] default=40
 #define SPEED_KEEPER 40         // [0 bis 255] default=40
+#define SPEED_HEADSTART 120     // [0 bis 255] default=120
 
 // TIMES
 #define LINE_DELAY 100

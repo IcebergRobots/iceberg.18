@@ -141,7 +141,7 @@ void setup() {
   Wire.begin();         // Start der I2C-Kommunikation
 
   // weiche den Linien aus
-  attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
+  //attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
 
   // initialisiere Display mit Iceberg Schriftzug
   setupDisplay();
@@ -435,7 +435,7 @@ void loop() {
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   if ((lineDir >= 0 && onLine) || isHeadstart) {
-    drivePwr = 255;
+    drivePwr = SPEED_HEADSTART;
     if (isHeadstart) {
       driveDir = 0;
     }
@@ -472,7 +472,7 @@ void loop() {
       } else {
         if (hasBall) {
           if(seeGoal) {
-            drivePwr = 255;
+            drivePwr = SPEED_HEADSTART;
           } else {
             drivePwr = SPEED;
           }
@@ -914,7 +914,7 @@ void avoidLine() {
     }
     lineDir = (input + 2) % 8;
     driveDir = lineDir * 45;
-    m.drive(driveDir, 255, 0);
+    m.drive(driveDir, SPEED_HEADSTART, 0);
     headstartTimer = 0;
     if (drivePwr > 200) {
       lineTimer = millis() + 8 * LINE_DELAY;
