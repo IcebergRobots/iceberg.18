@@ -471,7 +471,7 @@ void loop() {
       } else {
         if (hasBall) {
           if(seeGoal) {
-            drivePwr = 150;
+            drivePwr = 255;
           } else {
             drivePwr = SPEED;
           }
