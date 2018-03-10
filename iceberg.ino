@@ -283,7 +283,7 @@ void loop() {
   //showLed(matrix, 5, bodensensor verfügbar);
   //showLed(matrix, 6, lift);
   //showLed(matrix, 7, pixy);
-  showLed(matrix, 8, !onLine, true);
+  showLed(matrix, 8, !onLine);
   //showLed(matrix, 9, free);
   showLed(matrix, 10, isHeadstart, true);
   showLed(matrix, 11, true);
