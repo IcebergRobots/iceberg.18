@@ -520,9 +520,6 @@ void loop() {
       if (us[3] == 0) {
         // us-Sensor kaputt
         stateFine = false;
-      } else if (us[3] < 15) {
-        driveDir = 0;
-        drivePwr = SPEED_KEEPER;
       } else if (us[3] < 50 && abs(heading) < 40) {
         drivePwr = SPEED_KEEPER;
         byte usRight = us[0];
@@ -541,10 +538,16 @@ void loop() {
             // force toggle
             if (isKeeperLeft) {
               driveDir = -ANGLE_SIDEWAY;
+              if (us[3] < 15) {
+                driveDir *= 0.8;
+              }
               isKeeperLeft = false;
               lastKeeperToggle = millis();
             } else {
               driveDir = ANGLE_SIDEWAY;
+              if (us[3] < 15) {
+                driveDir *= 0.8;
+              }
               isKeeperLeft = true;
               lastKeeperToggle = millis();
             }
@@ -554,6 +557,9 @@ void loop() {
               // wir fahren gerade nach links
               if (usLeft < COURT_GOAL_TO_BORDER) {
                 driveDir = -ANGLE_SIDEWAY;
+                if (us[3] < 15) {
+                  driveDir *= 0.8;
+                }
                 isKeeperLeft = false;
                 lastKeeperToggle = millis();
               }
@@ -561,6 +567,9 @@ void loop() {
               // wir fahren gerade nach rechts
               if (usRight < COURT_GOAL_TO_BORDER) {
                 driveDir = ANGLE_SIDEWAY;
+                if (us[3] < 15) {
+                  driveDir *= 0.8;
+                }
                 isKeeperLeft = true;
                 lastKeeperToggle = millis();
               }
@@ -569,8 +578,14 @@ void loop() {
             // do nothing
             if (isKeeperLeft) {
               driveDir = ANGLE_SIDEWAY;
+              if (us[3] < 15) {
+                driveDir *= 0.8;
+              }
             } else {
               driveDir = -ANGLE_SIDEWAY;
+              if (us[3] < 15) {
+                driveDir *= 0.8;
+              }
             }
           }
         }
