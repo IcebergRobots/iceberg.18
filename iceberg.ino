@@ -470,6 +470,11 @@ void loop() {
         drivePwr = SPEED_SIDEWAY;
       } else {
         if (hasBall) {
+          if(seeGoal) {
+            drivePwr = 150;
+          } else {
+            drivePwr = SPEED;
+          }
           driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), 50, -50);
         } else {
           // fahre in Richtung des Balls
