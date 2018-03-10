@@ -81,8 +81,6 @@ unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
 unsigned long seeGoalTimer = 0; // Zeitpunkt des letzen Tor Sehens
 bool seeBall = false;      // sehen wir den Ball?
 bool seeGoal = false;      // sehen wir das Tor?
-unsigned long ballRightTimer = 0; // Zeitpunkt der letzten Ballsicht über 15°
-unsigned long ballLeftTimer = 0;  // Zeitpunkt der letzten Ballsicht unter -15
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
@@ -437,62 +435,42 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if ((lineDir >= 0 && onLine) || isHeadstart) {
+  if (onLine || isHeadstart) {
     drivePwr = SPEED_HEADSTART;
-    if (isHeadstart) {
+    if (!onLine && isHeadstart) {
       driveDir = 0;
     }
   } else {
     //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
+    drivePwr = SPEED;
     if (seeBall && !(isConnected && seeBallMate && ballWidthMate > ballWidth)) {
-      // merke Zeitpunkte, wenn sich Ball rechts oder links befindet
-      if (ball > 50) {
-        ballRightTimer = millis();
-      }
-      if (ball < -50 ) {
-        ballLeftTimer = millis();
-      }
-      /*
-        // gegensteuern, um zu verhindern, dass man am Ball vorbeidriftet
-        if (millis() - ballRightTimer < 500 && ball < 10) {
-        rotMulti = ROTATION_TOUCH;
-        drivePwr = SPEED_AVOID_DRIFT;
+      // fahre in Richtung des Balls
+      if (hasBall) {
+        if (seeGoal && abs(heading < 20)) {
+          drivePwr = SPEED_HEADSTART;
         }
-        if (millis() - ballLeftTimer < 500 && ball > 10) {
-        rotMulti = ROTATION_TOUCH;
-        drivePwr = SPEED_AVOID_DRIFT;
-        }
-      */
-      // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
-      if (ball > 100) {
-        // fahre seitwärts nach links
-        driveDir = -ANGLE_SIDEWAY;
-        drivePwr = SPEED_SIDEWAY;
-      } else if (ball < -100) {
-        // fahre seitwärts nach rechts
-        driveDir = ANGLE_SIDEWAY;
-        drivePwr = SPEED_SIDEWAY;
+        driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       } else {
-        if (hasBall) {
-          if (seeGoal) {
-            drivePwr = SPEED_HEADSTART;
-          } else {
-            drivePwr = SPEED;
-          }
-          driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), 50, -50);
-        } else {
-          // fahre in Richtung des Balls
-          driveDir = constrain(map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti), -120, 120);
-          if (-15 < ball && ball < 15) {
-            // fahre geradeaus
-            drivePwr = SPEED_BALL_IN_FRONT;
-          } else {
-            // drehe dich zum Ball
-            drivePwr = SPEED;
-          }
+        // fahre in Richtung des Balls
+        driveDir = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
+        if (driveDir > 60) {
+          // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+          driveDir = 100;
+          drivePwr = SPEED_SIDEWAY;
+        }
+        if (driveDir < -60) {
+          // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+          driveDir = -100;
+          drivePwr = SPEED_SIDEWAY;
+        }
+        if (-15 < ball && ball < 15 && abs(heading) < 20) {
+          // fahre geradeaus
+          drivePwr = SPEED_BALL_IN_FRONT;
         }
       }
     } else {
+      // sehen den Ball nicht bzw. sollen ihn nicht sehen
+
       // fahre nach hinten
       driveDir = 180;
       drivePwr = SPEED_BACKWARDS;
@@ -512,7 +490,7 @@ void loop() {
             usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
           }
           if (millis() - lastKeeperToggle > 3000) {
-            // toggle
+            // force toggle
             if (isKeeperLeft) {
               driveDir = -ANGLE_SIDEWAY;
               isKeeperLeft = false;
@@ -523,6 +501,7 @@ void loop() {
               lastKeeperToggle = millis();
             }
           } else if (millis() - lastKeeperToggle > 1500) {
+            // eventuell toggeln
             if (isKeeperLeft) {
               // wir fahren gerade nach links
               if (usLeft < COURT_GOAL_TO_BORDER) {
@@ -539,6 +518,7 @@ void loop() {
               }
             }
           } else {
+            // do nothing
             if (isKeeperLeft) {
               driveDir = ANGLE_SIDEWAY;
             } else {
@@ -547,23 +527,16 @@ void loop() {
           }
         }
       }
-
-    }
-    if (ballWidth > 32) {
-      drivePwr /= 2;
     }
   }
   drivePwr = max(drivePwr - abs(driveRot), 0);
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (!onLine) {
-    m.drive(driveDir, drivePwr, driveRot);
-  }
+  m.drive(driveDir, drivePwr, driveRot);
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  //displayDebug = driveRot;
   // aktualisiere Bildschirm und LEDs
   if (millis() - lastDisplay > 40) {
     updateDisplay();
