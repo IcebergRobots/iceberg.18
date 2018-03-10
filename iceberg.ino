@@ -79,6 +79,9 @@ int goalWidth = 0;      // Torbreite
 int goalSize = 0;       // Torgröße (Flächeninhalt)
 unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
 unsigned long seeGoalTimer = 0; // Zeitpunkt des letzen Tor Sehens
+unsigned long driftTimer = 0; // Zeitpunkt seit wann wir gegensteuern
+bool driftLeft = false; // steuern wir nach links gegen
+bool isDrift = false;   // driften wir
 bool seeBall = false;      // sehen wir den Ball?
 bool seeGoal = false;      // sehen wir das Tor?
 bool ballLeftTimer = 0;     // Zeitpunkt wann der Ball zuletzt links war
@@ -256,6 +259,7 @@ void loop() {
   hasBall = digitalRead(SWITCH_SCHUSS) && analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
   seeGoal = millis() - seeGoalTimer < 1200;
+  isDrift = millis() - driftTimer < 100;
   isConnected = millis() - heartbeatTimer < 500;
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DELAY;
@@ -438,21 +442,44 @@ void loop() {
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   if (onLine || isHeadstart) {
+    // reagiere auf Linie bzw. Headstart
     drivePwr = SPEED_HEADSTART;
     if (!onLine && isHeadstart) {
       driveDir = 0;
+    }
+  } else if (isDrift) {
+    // steuere gegen
+    if (driftLeft) {
+      driveDir = 90;
+    } else {
+      driveDir = -90;
     }
   } else {
     //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
     drivePwr = SPEED;
     if (seeBall && !(isConnected && seeBallMate && ballWidthMate > ballWidth)) {
       // fahre in Richtung des Balls
+      if (ball > 20) {
+        ballLeftTimer = millis();
+      }
+      if (ball < -20) {
+        ballRightTimer = millis();
+      }
       if (hasBall) {
         if (seeGoal && abs(heading < 20)) {
           drivePwr = SPEED_HEADSTART;
         }
         driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       } else {
+        // verhindere das Driften
+        if (ball > 10 && millis() - ballRightTimer < 200 && millis() > driftTimer) {
+          driftTimer = millis();
+          driftLeft = false;
+        }
+        if (ball < -10 && millis() - ballLefttTimer < 200 && millis() > driftTimer) {
+          driftTimer = millis();
+          driftLeft = true;
+        }
         // fahre in Richtung des Balls
         driveDir = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
         if (driveDir > 60) {
@@ -476,7 +503,7 @@ void loop() {
       // fahre nach hinten
       driveDir = 180;
       drivePwr = SPEED_BACKWARDS;
-      
+
       if (us[3] == 0) {
         // us-Sensor kaputt
         stateFine = false;
