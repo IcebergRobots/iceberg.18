@@ -21,7 +21,7 @@
 
 // TIMES
 #define LINE_DELAY 100
-#define HEADSTART_DELAY 1000
+#define HEADSTART_DELAY 500
 
 // Feld
 #define COURT_WIDTH 140         // Summe der Abstände nach rechts und links
