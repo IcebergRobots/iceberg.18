@@ -252,6 +252,7 @@ void loop() {
   // ermittle Statuswerte für Leds
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
+  seeGoal = millis() - seeGoalTimer < 1200;
   isConnected = millis() - heartbeatTimer < 500;
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DELAY;
