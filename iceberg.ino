@@ -81,6 +81,8 @@ unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
 unsigned long seeGoalTimer = 0; // Zeitpunkt des letzen Tor Sehens
 bool seeBall = false;      // sehen wir den Ball?
 bool seeGoal = false;      // sehen wir das Tor?
+bool ballLeftTimer = 0;     // Zeitpunkt wann der Ball zuletzt links war
+bool ballRightTimer = 0;    // Zeitpunkt wann der Ball zuletzt rechts war
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
@@ -474,8 +476,14 @@ void loop() {
       // fahre nach hinten
       driveDir = 180;
       drivePwr = SPEED_BACKWARDS;
-
-      if (us[3] < 50 && us[3] > 0 && abs(heading) < 40) {
+      
+      if (us[3] == 0) {
+        // us-Sensor kaputt
+        stateFine = false;
+      } else if (us[3] < 15) {
+        driveDir = 0;
+        drivePwr = SPEED_KEEPER;
+      } else if (us[3] < 50 && abs(heading) < 40) {
         drivePwr = SPEED_KEEPER;
         byte usRight = us[0];
         byte usLeft = us[2];
