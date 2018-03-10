@@ -1,13 +1,13 @@
-/*** 
- *     _____ _______ _______ ______  _______  ______  ______ 
- *       |   |       |______ |_____] |______ |_____/ |  ____ 
- *     __|__ |_____  |______ |_____] |______ |    \_ |_____| 
- *                                                           
- *      ______  _____  ______   _____  _______ _______       
- *     |_____/ |     | |_____] |     |    |    |______       
- *     |    \_ |_____| |_____] |_____|    |    ______|            
- *                                                            
- */ 
+/***
+       _____ _______ _______ ______  _______  ______  ______
+         |   |       |______ |_____] |______ |_____/ |  ____
+       __|__ |_____  |______ |_____] |______ |    \_ |_____|
+
+        ______  _____  ______   _____  _______ _______
+       |_____/ |     | |_____] |     |    |    |______
+       |    \_ |_____| |_____] |_____|    |    ______|
+
+*/
 
 #include "Config.h"
 #include "Pin.h"
@@ -253,7 +253,7 @@ void loop() {
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
   seeBall = millis() - seeBallTimer < 50;
   isConnected = millis() - heartbeatTimer < 500;
-  onLine = millis() - lineTimer < LINE_DELAY;
+  onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DELAY;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
   if (batVol > 40) {
@@ -909,9 +909,17 @@ void avoidLine() {
     lineDir = (input + 2) % 8;
     driveDir = lineDir * 45;
     m.drive(driveDir, 255, 0);
-    lineTimer = millis();
-    displayDebug = driveDir;
+    headstartTimer = 0;
+    if (drivePwr > 200) {
+      lineTimer = millis() + 8 * LINE_DELAY;
+    } else if (drivePwr > 100) {
+      lineTimer = millis() + 4 * LINE_DELAY;
+    } else {
+      lineTimer = millis() + LINE_DELAY;
+    }
   }
+
+  displayDebug = driveDir;
 }
 
 void kick() {
