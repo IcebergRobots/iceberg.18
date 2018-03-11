@@ -205,6 +205,9 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
+  for(byte i=0; i<12; i++) {
+    showLed(matrix,i,0,true);
+  }
 
   displayMessage("setup done");
   debugln("setup done");
