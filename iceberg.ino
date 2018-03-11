@@ -441,7 +441,7 @@ void loop() {
   }
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
-  //displayDebug = String(rotMulti) + "," + String(ballWidth);
+  
   driveRot = ausrichten();
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
@@ -508,6 +508,8 @@ void loop() {
         if (-15 < ball && ball < 15 && abs(heading) < 20) {
           // fahre geradeaus
           drivePwr = SPEED_BALL_IN_FRONT;
+        } else if(ballWidth > 30) {
+          drivePwr *= 0.6;
         }
       }
     } else {
