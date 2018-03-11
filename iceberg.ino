@@ -448,8 +448,9 @@ void loop() {
 
   if (onLine || isHeadstart) {
     // reagiere auf Linie bzw. Headstart
-    drivePwr = SPEED_HEADSTART;
+    drivePwr = SPEED_LINE;
     if (!onLine && isHeadstart) {
+      drivePwr = SPEED_HEADSTART;
       driveDir = 0;
     }
   } else if (isDrift) {
@@ -976,7 +977,7 @@ void avoidLine() {
   if (BOTTOM_SERIAL.available() > 0) {
     lineDir = BOTTOM_SERIAL.read() * 90 + 90;
     driveDir = lineDir;
-    m.drive(driveDir, SPEED_HEADSTART, 0);
+    m.drive(driveDir, SPEED_LINE, 0);
     lineTimer = millis();
     headstartTimer = 0;
     if (drivePwr > 200) {
