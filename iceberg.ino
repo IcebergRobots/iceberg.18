@@ -951,6 +951,10 @@ bool getUs() {
   usTimer = millis();
   while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
+      while(US_SERIAL.available() > 4){
+        US_SERIAL.read();
+        
+      }
       for (byte i = 0; i < 4; i++) {
         us[i] = US_SERIAL.read();
       }
