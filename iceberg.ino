@@ -2,7 +2,7 @@
    _____ _______ _______ ______  _______  ______  ______
      |   |       |______ |_____] |______ |_____/ |  ____
    __|__ |_____  |______ |_____] |______ |    \_ |_____|
-  
+
     ______  _____  ______   _____  _______ _______
    |_____/ |     | |_____] |     |    |    |______
    |    \_ |_____| |_____] |_____|    |    ______|
@@ -441,7 +441,7 @@ void loop() {
   }
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
-  
+
   driveRot = ausrichten();
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
@@ -508,7 +508,7 @@ void loop() {
         if (-15 < ball && ball < 15 && abs(heading) < 20) {
           // fahre geradeaus
           drivePwr = SPEED_BALL_IN_FRONT;
-        } else if(ballWidth > 30) {
+        } else if (ballWidth > 50) {
           drivePwr *= 0.6;
         }
       }
