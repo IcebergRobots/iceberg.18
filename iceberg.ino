@@ -211,6 +211,7 @@ void setup() {
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 200) {}
+  rainbowCycle(50);
 }
 
 //###################################################################################################
@@ -1060,5 +1061,43 @@ String intToStr(int number) {
 void buzzerTone(int duration) {
   digitalWrite(BUZZER_AKTIV, 1);
   buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
+}
+
+void rainbowCycle(uint8_t wait) {
+  for(int j=0; j<16; j++) { // 5 cycles of all colors on wheel
+    for(int i=0; i< 16; i++) {
+      bottom.setPixelColor(i, Wheel((((i-j) * 16)) & 255));
+    }
+    
+
+    for(int i = 0; i<12; i++){
+      matrix.setPixelColor(i, Wheel((((i-j) * 16)) & 255));
+    }
+
+    for(int i = 0; i<3; i++){
+      info.setPixelColor(i, Wheel((((i-j) * 16)) & 255));
+    }
+    
+    info.show();
+    matrix.show();
+    bottom.show();
+    delay(wait);
+  }
+  info.begin();
+  matrix.begin();
+  bottom.begin();
+}
+
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return bottom.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return bottom.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return bottom.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
