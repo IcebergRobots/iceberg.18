@@ -68,7 +68,7 @@ PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_
 
 // Einstellungen: BATTERY
 int batVol = 0;       // Spannung MAL 10!
-bool batLow = false;  // ist du Spannung zu gering?
+byte batState = 0;  // ist du Spannung zu gering?
 
 // Einstellungen: PIXY
 int ball = 0;           // Abweichung der Ball X-Koordinate
@@ -269,23 +269,46 @@ void loop() {
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DELAY;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
+
   if (batVol > 40) {
+    batState = 0; // ok
     if (m.getMotEn()) {
-      batLow = batVol < 98;
+      if (batVol < VOLTAGE_MOTOR_CRIT) {
+        batState = 2; // kritisch
+      } else if (batVol < VOLTAGE_MOTOR_LOW) {
+        batState = 1; // gering
+      }
     } else {
-      batLow = batVol < 108;
+      if (batVol < VOLTAGE__CRIT) {
+        batState = 2; // kritisch
+      } else if (batVol < VOLTAGE__LOW) {
+        batState = 1; // gering
+      }
     }
   } else {
-    batLow = false;
-  }
-  if (batLow) {
-    buzzerTone(20);
-    displayMessage("lowVoltage");
+    batState = 255; // no battery
   }
 
   // zeige Statuswerte an
   showLed(info, 0, stateFine);
-  showLed(info, 1, !batLow);
+  switch (batState) {
+    case 0:
+      // ok
+      bottom.setPixelColor(1, bottom.Color(0, PWR_LED, 0));
+      break;
+    case 1:
+      // gering
+      bottom.setPixelColor(1, bottom.Color(PWR_LED, 0, PWR_LED));
+      break;
+    case 2:
+      // kritisch
+      bottom.setPixelColor(1, bottom.Color(PWR_LED, 0, 0));
+      break;
+    default:
+      // nicht angeschlossen
+      bottom.setPixelColor(1, bottom.Color(0, 0, 0));
+      break;
+  }
   showLed(info, 2, millis() % 1000 < 200, true);
 
   showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
@@ -719,8 +742,12 @@ void updateDisplay() {
   switch (rotaryPosition) {
     case 0:
       name1 = "Dir:";
-      name2 = String(displayDebug);
       value1 = String(driveDir);
+      if (batVol == 1) {
+        name2 = "lowVoltage";
+      } else {
+        name2 = String(displayDebug);
+      }
       break;
     case 1:
       name1 = "^";
@@ -813,6 +840,9 @@ void updateDisplay() {
   name1 = String(name1 + value1).substring(0, 10);
   name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
   name2 = String(name2 + value2).substring(0, 10);
+  if (batState == 2) {
+    name2 = "critVoltag";
+  }
   d.setCursor(3, 30);
   d.println(name1);
   d.setCursor(3, 46);
@@ -952,9 +982,9 @@ bool getUs() {
   usTimer = millis();
   while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
-      while(US_SERIAL.available() > 4){
+      while (US_SERIAL.available() > 4) {
         US_SERIAL.read();
-        
+
       }
       for (byte i = 0; i < 4; i++) {
         us[i] = US_SERIAL.read();

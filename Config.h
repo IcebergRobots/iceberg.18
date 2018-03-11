@@ -59,6 +59,12 @@
 #define END_MARKER 255
 #define CACHE_SIZE 10
 
+// BATTERY_VOLTAGE
+#define VOLTAGE_MOTOR_CRIT 90
+#define VOLTAGE_MOTOR_LOW 108
+#define VOLTAGE_CRIT 90
+#define VOLTAGE_LOW 105
+
 // Zeitumwandlung
 #define MILS_PER_SEC  (1000UL)
 #define MILS_PER_MIN  (60000UL)
