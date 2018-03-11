@@ -205,16 +205,13 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  for(byte i=0; i<12; i++) {
-    showLed(matrix,i,0,true);
-  }
+  rainbowCycle(50);
 
   displayMessage("setup done");
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 200) {}
-  rainbowCycle(50);
 }
 
 //###################################################################################################
@@ -1067,36 +1064,42 @@ void buzzerTone(int duration) {
 }
 
 void rainbowCycle(uint8_t wait) {
-  for(int j=0; j<16; j++) { // 5 cycles of all colors on wheel
-    for(int i=0; i< 16; i++) {
-      bottom.setPixelColor(i, Wheel((((i-j) * 16)) & 255));
-    }
-    
-
-    for(int i = 0; i<12; i++){
-      matrix.setPixelColor(i, Wheel((((i-j) * 16)) & 255));
+  for (int j = 0; j < 16; j++) { // 5 cycles of all colors on wheel
+    for (int i = 0; i < 16; i++) {
+      bottom.setPixelColor(i, Wheel((((i - j) * 16)) & 255));
     }
 
-    for(int i = 0; i<3; i++){
-      info.setPixelColor(i, Wheel((((i-j) * 16)) & 255));
+
+    for (int i = 0; i < 12; i++) {
+      matrix.setPixelColor(i, Wheel((((i - j) * 16)) & 255));
     }
-    
+
+    for (int i = 0; i < 3; i++) {
+      info.setPixelColor(i, Wheel((((i - j) * 16)) & 255));
+    }
+
     info.show();
     matrix.show();
     bottom.show();
     delay(wait);
   }
-  info.begin();
-  matrix.begin();
-  bottom.begin();
+  for (byte i = 0; i < 12; i++) {
+      showLed(bottom, i, 0, true);
+    }
+    for (byte i = 0; i < 12; i++) {
+      showLed(matrix, i, 0, true);
+    }
+    for (byte i = 0; i < 12; i++) {
+      showLed(info, i, 0, true);
+    }
 }
 
 uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
-  if(WheelPos < 85) {
+  if (WheelPos < 85) {
     return bottom.Color(255 - WheelPos * 3, 0, WheelPos * 3);
   }
-  if(WheelPos < 170) {
+  if (WheelPos < 170) {
     WheelPos -= 85;
     return bottom.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
