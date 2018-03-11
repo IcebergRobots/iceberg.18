@@ -743,7 +743,7 @@ void updateDisplay() {
     case 0:
       name1 = "Dir:";
       value1 = String(driveDir);
-      if (batVol == 1) {
+      if (batState == 1) {
         name2 = "lowVoltage";
       } else {
         name2 = String(displayDebug);
