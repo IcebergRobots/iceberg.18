@@ -10,8 +10,8 @@
 #define ANGLE_SIDEWAY 100       // [0 bis 180] default=100
 #define ROTATION_SIDEWAY 100    // [0 bis *] default=100
 #define ROTATION_AWAY 40        // [0 bis *] default=40
-#define ROTATION_18CM 70        // [0 bis *] default=70
-#define ROTATION_10CM 90        // [0 bis *] default=90
+#define ROTATION_18CM 50        // [0 bis *] default=70
+#define ROTATION_10CM 70        // [0 bis *] default=90
 #define ROTATION_TOUCH 40       // [0 bis *] default=20
 #define SPEED 60                // [0 bis 255] default=60
 #define SPEED_SIDEWAY 60        // [0 bis 255] default=60
