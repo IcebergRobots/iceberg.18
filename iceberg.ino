@@ -536,7 +536,24 @@ void loop() {
           if (usLeft == 0) {
             usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
           }
-          if (millis() - lastKeeperToggle > 3000) {
+          if(seeBall) { 
+            if(ball > 0 && usLeft > COURT_GOAL_TO_BORDER) { 
+              driveDir = ANGLE_SIDEWAY; 
+              if (us[3] < 15) { 
+                driveDir *= 0.8; 
+              } 
+              isKeeperLeft = true; 
+              lastKeeperToggle = millis(); 
+            } 
+            if(ball < 0 && usRight > COURT_GOAL_TO_BORDER) { 
+              driveDir = -ANGLE_SIDEWAY; 
+              if (us[3] < 15) { 
+                driveDir *= 0.8; 
+              } 
+              isKeeperLeft = false; 
+              lastKeeperToggle = millis(); 
+            } 
+          } else if (millis() - lastKeeperToggle > 3000) { 
             // force toggle
             if (isKeeperLeft) {
               driveDir = -ANGLE_SIDEWAY;
