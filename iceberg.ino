@@ -553,7 +553,7 @@ void loop() {
               isKeeperLeft = false;
               lastKeeperToggle = millis();
             }
-          } else if (millis() - lastKeeperToggle > 3000) {
+          } else if (millis() - lastKeeperToggle > 4000) {
             // force toggle
             if (isKeeperLeft) {
               driveDir = -ANGLE_SIDEWAY;
