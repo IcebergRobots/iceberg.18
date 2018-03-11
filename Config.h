@@ -63,7 +63,7 @@
 #define VOLTAGE_MOTOR_CRIT 90
 #define VOLTAGE_MOTOR_LOW 108
 #define VOLTAGE_CRIT 90
-#define VOLTAGE_LOW 105
+#define VOLTAGE_LOW 110
 
 // Zeitumwandlung
 #define MILS_PER_SEC  (1000UL)

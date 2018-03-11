@@ -279,9 +279,9 @@ void loop() {
         batState = 1; // gering
       }
     } else {
-      if (batVol < VOLTAGE__CRIT) {
+      if (batVol < VOLTAGE_CRIT) {
         batState = 2; // kritisch
-      } else if (batVol < VOLTAGE__LOW) {
+      } else if (batVol < VOLTAGE_LOW) {
         batState = 1; // gering
       }
     }
@@ -294,19 +294,19 @@ void loop() {
   switch (batState) {
     case 0:
       // ok
-      bottom.setPixelColor(1, bottom.Color(0, PWR_LED, 0));
+      info.setPixelColor(1, info.Color(0, PWR_LED, 0));
       break;
     case 1:
       // gering
-      bottom.setPixelColor(1, bottom.Color(PWR_LED, 0, PWR_LED));
+      info.setPixelColor(1, info.Color(PWR_LED, 0, PWR_LED));
       break;
     case 2:
       // kritisch
-      bottom.setPixelColor(1, bottom.Color(PWR_LED, 0, 0));
+      info.setPixelColor(1, info.Color(PWR_LED, 0, 0));
       break;
     default:
       // nicht angeschlossen
-      bottom.setPixelColor(1, bottom.Color(0, 0, 0));
+      info.setPixelColor(1, info.Color(0, 0, 0));
       break;
   }
   showLed(info, 2, millis() % 1000 < 200, true);
