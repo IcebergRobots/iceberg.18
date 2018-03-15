@@ -203,7 +203,7 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  rainbowCycle(50);
+  ledAnimation(10);
 
   displayMessage("setup done");
   debugln("setup done");
@@ -986,47 +986,61 @@ void buzzerTone(int duration) {
   buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
 }
 
-void rainbowCycle(uint8_t wait) {
-  for (int j = 0; j < 16; j++) { // 5 cycles of all colors on wheel
-    for (int i = 0; i < 16; i++) {
-      bottom.setPixelColor(i, Wheel((((i - j) * 16)) & 255));
+void ledAnimation(uint8_t wait) {
+  for (int i = 0; i < 256; i++) { // 5 cycles of all colors on wheel
+    for (int j = 0; j < 16; j++) {
+      bottom.setPixelColor(j, posToColor(i));
     }
-
-
-    for (int i = 0; i < 12; i++) {
-      matrix.setPixelColor(i, Wheel((((i - j) * 16)) & 255));
+    for (int j = 0; j < 12; j++) {
+      matrix.setPixelColor(j, posToColor(i));
     }
-
-    for (int i = 0; i < 3; i++) {
-      info.setPixelColor(i, Wheel((((i - j) * 16)) & 255));
+    for (int j = 0; j < 3; j++) {
+      info.setPixelColor(j, posToColor(i));
     }
-
     info.show();
     matrix.show();
     bottom.show();
     delay(wait);
   }
-  for (byte i = 0; i < 12; i++) {
-    showLed(bottom, i, 0, true);
-  }
-  for (byte i = 0; i < 12; i++) {
-    showLed(matrix, i, 0, true);
-  }
-  for (byte i = 0; i < 12; i++) {
-    showLed(info, i, 0, true);
+  // schalte alle Leds langsam aus
+  for (int i = 0; i <= 64; i++) { // 5 cycles of all colors on wheel
+    for (int j = 0; j < 16; j++) {
+      bottom.setPixelColor(j, bottom.Color(255 - 4 * i, 0, 0));
+    }
+    for (int j = 0; j < 12; j++) {
+      matrix.setPixelColor(j, bottom.Color(255 - 4 * i, 0, 0));
+    }
+    for (int j = 0; j < 3; j++) {
+      info.setPixelColor(j, bottom.Color(255 - 4 * i, 0, 0));
+    }
+    info.show();
+    matrix.show();
+    bottom.show();
+    delay(wait);
   }
 }
 
-uint32_t Wheel(byte WheelPos) {
-  WheelPos = 255 - WheelPos;
-  if (WheelPos < 85) {
-    return bottom.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+/*****************************************************
+  wandle Zustand in Farbe eines Farbkreises um
+  0:    rot
+  85:   grün
+  170:  blau
+  255:  rot
+  pos: [0 bis 255]
+*****************************************************/
+uint32_t posToColor(byte pos) {
+  //pos = (pos % 255 + 255) % 255; // Eingabekorrektur
+  if (pos < 85) {
+    // rot bis grün
+    return bottom.Color(255 - pos * 3, pos * 3, 0);
+  } else if (pos < 170) {
+    // grün bis blau
+    pos -= 85;
+    return bottom.Color(0, 255 - pos * 3, pos * 3);
+  } else {
+    // blau bis rot
+    pos -= 170;
+    return bottom.Color(pos * 3, 0, 255 - pos * 3);
   }
-  if (WheelPos < 170) {
-    WheelPos -= 85;
-    return bottom.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  WheelPos -= 170;
-  return bottom.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
