@@ -15,13 +15,14 @@ class Mate
   public:
     Mate();
   
-    void sendBluetooth(byte * data, byte numberOfElements);
-    byte receiveBluetooth();
+    void send(byte * data, byte numberOfElements);
+    byte cache();
+    byte receive();
     bool motEn;
     bool seeBall = false;
     int ball = 0;
     unsigned int ballWidth = 0;
-    byte us[] = {0, 0, 0, 0};
+    byte us[4] = {0, 0, 0, 0};
 
   private:
     byte _cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten

@@ -361,14 +361,14 @@ void loop() {
   if (!digitalRead(BIG_BUTTON)) {
     if (!startLast || millis() - startTimer < 100) {
       byte data[1] = {'s'};
-      mate.sendBluetooth(data, 1);
+      mate.send(data, 1);
       start = true;
       if (!isHeadstart && digitalRead(SWITCH_B)) {
         headstartTimer = millis();
       }
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
-      mate.sendBluetooth(data, 1);
+      mate.send(data, 1);
       m.brake(true);
       start = false;
     }
@@ -399,11 +399,11 @@ void loop() {
     data[6] = us[1];
     data[7] = us[2];
     data[8] = us[3];
-    mate.sendBluetooth(data, 9); // heartbeat
+    mate.send(data, 9); // heartbeat
   }
 
   // bluetooth auslesen
-  byte command = receiveBluetooth();
+  byte command = mate.receive();
   switch (command) {
     case 104: // heartbeat
       heartbeatTimer = millis();
@@ -462,7 +462,7 @@ void loop() {
   } else {
     //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
     drivePwr = SPEED;
-    if (seeBall && !(isConnected && seeBallMate && ballWidthMate > ballWidth)) {
+    if (seeBall && !(isConnected && mate.seeBall && mate.ballWidth > ballWidth)) {
       // fahre in Richtung des Balls
       if (ball > 50) {
         debugln("setLeft");
@@ -782,13 +782,13 @@ void updateDisplay() {
       break;
     case 9:
       name1 = "Mball:";
-      if (seeBallMate) {
-        value1 = intToStr(ballMate);
+      if (mate.seeBall) {
+        value1 = intToStr(mate.ball);
       } else {
         value1 = "blind";
       }
       name2 = "Mwid:";
-      value2 = String(ballWidthMate);
+      value2 = String(mate.ballWidth);
       break;
     case 10:
       name1 = "^";
@@ -796,19 +796,13 @@ void updateDisplay() {
       name2 = "<";
       value2 = "v";
       d.setCursor(21, 30);
-      d.print(usMate[1] + String("   ").substring(0, 3 - String(usMate[1]).length() ));
-      d.print(String("M   ").substring(0, 4 - String(usMate[0]).length()) + String(usMate[0]) );
+      d.print(mate.us[1] + String("   ").substring(0, 3 - String(mate.us[1]).length() ));
+      d.print(String("M   ").substring(0, 4 - String(mate.us[0]).length()) + String(mate.us[0]) );
       d.setCursor(21, 46);
-      d.print(usMate[2] + String("   ").substring(0, 3 - String(usMate[2]).length() ));
-      d.print(String("M   ").substring(0, 4 - String(usMate[3]).length()) + String(usMate[3]));
+      d.print(mate.us[2] + String("   ").substring(0, 3 - String(mate.us[2]).length() ));
+      d.print(String("M   ").substring(0, 4 - String(mate.us[3]).length()) + String(mate.us[3]));
       break;
   }
-
-  bool seeBallMate = false;
-  int ballMate = 0;
-  int ballWidthMate = 0;
-  byte usMate[] = {0, 0, 0, 0};
-
 
   name1 += String("          ").substring(0, max(0, 10 - name1.length() - value1.length()));
   name1 = String(name1 + value1).substring(0, 10);

@@ -9,7 +9,7 @@ Mate::Mate() {
 /*****************************************************
   übertrage Daten an den Patner
 *****************************************************/
-void Mate::sendBluetooth(byte * data, byte numberOfElements) {
+void Mate::send(byte * data, byte numberOfElements) {
   BLUETOOTH_SERIAL.write(START_MARKER);
   for (byte i = 0; i < numberOfElements; i++) {
     BLUETOOTH_SERIAL.write(constrain(data[i], 0, 253));
@@ -58,9 +58,9 @@ byte Mate::cache() {
 /*****************************************************
   übertrage Daten an den Patner
 *****************************************************/
-byte Mate::receiveBluetooth() {
+byte Mate::receive() {
   byte messageLength = cache(); // aktualisiere den Cache
-  if (messageLength == 9 && _chache[0] == 104) {
+  if (messageLength == 9 && _cache[0] == 104) {
     // cache ist 9 zeilen lang und vom Typ Heartbeat
     motEn = _cache[1] < 3; // speichere Motorzustand
     if (motEn) {
@@ -71,7 +71,7 @@ byte Mate::receiveBluetooth() {
       } else {
         // Partner sieht den Ball
         seeBall = true;
-        ball = -(cache[1] == 1) * cache[2]; // speichere die Ballabweichung
+        ball = -(_cache[1] == 1) * _cache[2]; // speichere die Ballabweichung
       }
     }
     ballWidth = _cache[3] + 254 * _cache[4];  // speichere die Ballbreite
