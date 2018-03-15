@@ -3,8 +3,10 @@
 
 #include "Arduino.h"
 #include "Config.h"
-#include "Utility.h"
 #include "Pin.h"
+//#include "Pilot.h"
+#include "Mate.h"
+#include "Utility.h"
 
 class Pilot
 {

@@ -9,9 +9,11 @@
 
 */
 
+//#include "Arduino.h"
 #include "Config.h"
 #include "Pin.h"
 #include "Pilot.h"
+#include "Mate.h"
 #include "Utility.h"
 
 #include <SPI.h>
@@ -27,6 +29,9 @@
 #include <Adafruit_LSM303_U.h>
 #include <Adafruit_9DOF.h>
 #include <Adafruit_L3GD20_U.h>
+
+bool onLine = false;
+bool isHeadstart = false;
 
 // Einstellungen: FAHREN
 int rotMulti;           // Scalar, um die Rotationswerte zu verstärken
@@ -53,8 +58,6 @@ sensors_event_t mag_event;
 sensors_vec_t   orientation;
 
 // Einstellungen: BLUETOOTH
-byte cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
-byte cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
 bool startLast = false; // war zuletzt der Funktstart aktiviert
 unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
@@ -115,12 +118,6 @@ int rotaryPosition = 0; // Zustand, der vom Regler eingestellt ist
 
 // Einstellungen: MATE
 bool isConnected = false; // besteht eine Bluetooth Verbindung zum Parter
-bool onLine = false;
-bool isHeadstart = false;
-bool seeBallMate = false;
-int ballMate = 0;
-unsigned int ballWidthMate = 0;
-byte usMate[] = {0, 0, 0, 0};
 Mate mate;  // OBJEKTINITIALISIERUNG
 
 // Einstellungen: DEBUG
@@ -139,6 +136,7 @@ void setup() {
 
   // Start der Seriellen Kommunikation
   DEBUG_SERIAL.begin(115200);
+  BLUETOOTH_SERIAL.begin(115200);
   US_SERIAL.begin(115200);
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
@@ -363,14 +361,14 @@ void loop() {
   if (!digitalRead(BIG_BUTTON)) {
     if (!startLast || millis() - startTimer < 100) {
       byte data[1] = {'s'};
-      sendBluetooth(data, 1);
+      mate.sendBluetooth(data, 1);
       start = true;
       if (!isHeadstart && digitalRead(SWITCH_B)) {
         headstartTimer = millis();
       }
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
-      sendBluetooth(data, 1);
+      mate.sendBluetooth(data, 1);
       m.brake(true);
       start = false;
     }
@@ -401,52 +399,23 @@ void loop() {
     data[6] = us[1];
     data[7] = us[2];
     data[8] = us[3];
-    sendBluetooth(data, 9); // heartbeat
+    mate.sendBluetooth(data, 9); // heartbeat
   }
 
-  // bluetooth auslesen
-  byte messageLength = receiveBluetooth();
-  if (messageLength > 0) {
-    debug("[" + String(millis()) + "]");
-    for (int i = 0; i < messageLength; i++) {
-      debug(String(cache[i]) + ".");
-    }
-    debugln();
-    switch (cache[0]) {
-      case 104: // heartbeat
-        if (messageLength == 9) {
-          heartbeatTimer = millis();
-          if (cache[1] < 3) {
-            start = true;
-            if (!isHeadstart && digitalRead(SWITCH_B)) {
-              headstartTimer = millis();
-            }
-            if (cache[1] == 2) {
-              seeBallMate = false;
-            } else {
-              seeBallMate = true;
-              if (cache[2] != 255) {
-                ballMate = -(cache[1] == 1) * cache[2];
-              }
-            }
-          }
-          if (cache[3] != 255 && cache[4] != 255) ballWidthMate = cache[3] + 254 * cache[4];
-          if (cache[5] != 255) usMate[0] = cache[5];
-          if (cache[6] != 255) usMate[1] = cache[6];
-          if (cache[7] != 255) usMate[2] = cache[7];
-          if (cache[8] != 255) usMate[3] = cache[8];
-        }
-        break;
-      case 115: // start
-        start = true;
-        break;
-      case 98: // brake
-        start = false;
-        if (digitalRead(SWITCH_KEEPER)) {
-          m.brake(true);
-        }
-        break;
-    }
+  byte command = mate.receiveBluetooth();
+  switch (command) {
+    case 104: // heartbeat
+      heartbeatTimer = millis();
+      break;
+    case 115: // start
+      start = true;
+      break;
+    case 98: // brake
+      start = false;
+      if (digitalRead(SWITCH_KEEPER)) {
+        m.brake(true);
+      }
+      break;
   }
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
@@ -915,50 +884,6 @@ void readPixy() {
 
 }
 
-void sendBluetooth(byte * data, byte numberOfElements) {
-  BLUETOOTH_SERIAL.write(START_MARKER);
-  for (byte i = 0; i < numberOfElements; i++) {
-    BLUETOOTH_SERIAL.write(constrain(data[i], 0, 253));
-  }
-  BLUETOOTH_SERIAL.write(END_MARKER);
-}
-
-// Bluetooth auswerten
-byte receiveBluetooth() {
-  // returns length of incomming message
-  while (BLUETOOTH_SERIAL.available() > 0) {
-    byte b = BLUETOOTH_SERIAL.read();
-    if (cacheIndex != 255) { // aktives Zuhören?
-      if (b == START_MARKER) {
-        cacheIndex = 0;  // aktiviere Zuhören
-        for (byte i = 0; i < CACHE_SIZE; i++) {
-          cache[i] = 255; // überschreibe den Cache
-        }
-      } else if (b == END_MARKER) {
-        byte messageLength = cacheIndex;
-        cacheIndex = 255; // deaktiviere Zuhören
-        return messageLength; // Befehl empfangen!
-      } else {
-        if (cacheIndex >= CACHE_SIZE) {
-          cacheIndex = 255; // deaktiviere Zuhören
-        } else {
-          cache[cacheIndex] = b;  // speichere in Cache
-          cacheIndex += 1;  // speichere index
-        }
-      }
-    } else {
-      if (b == START_MARKER) {
-        cacheIndex = 0; // aktiviere Zuhören
-        for (byte i = 0; i < CACHE_SIZE; i++) {
-          cache[i] = 255; // überschreibe den Cache
-        }
-      }
-    }
-
-  }
-  return 0;
-}
-
 // Status-Led zeigt bool-Wert rot oder gruen an
 void showLed(Adafruit_NeoPixel & board, byte pos, bool state, bool showRed) {
   board.setPixelColor(pos, bottom.Color((!showRed) * (!state) * PWR_LED, state * PWR_LED, 0));
@@ -1084,14 +1009,14 @@ void rainbowCycle(uint8_t wait) {
     delay(wait);
   }
   for (byte i = 0; i < 12; i++) {
-      showLed(bottom, i, 0, true);
-    }
-    for (byte i = 0; i < 12; i++) {
-      showLed(matrix, i, 0, true);
-    }
-    for (byte i = 0; i < 12; i++) {
-      showLed(info, i, 0, true);
-    }
+    showLed(bottom, i, 0, true);
+  }
+  for (byte i = 0; i < 12; i++) {
+    showLed(matrix, i, 0, true);
+  }
+  for (byte i = 0; i < 12; i++) {
+    showLed(info, i, 0, true);
+  }
 }
 
 uint32_t Wheel(byte WheelPos) {

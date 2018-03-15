@@ -2,8 +2,10 @@
 #define Config_h
 
 #include "Arduino.h"
+//#include "Config.h"
 #include "Pin.h"
 #include "Pilot.h"
+#include "Mate.h"
 #include "Utility.h"
 
 // Fahren
@@ -57,7 +59,6 @@
 #define US_SERIAL Serial3
 #define START_MARKER 254
 #define END_MARKER 255
-#define CACHE_SIZE 10
 
 // BATTERY_VOLTAGE
 #define VOLTAGE_MOTOR_CRIT 90
