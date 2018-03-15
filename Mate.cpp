@@ -59,8 +59,8 @@ byte Mate::cache() {
   übertrage Daten an den Patner
 *****************************************************/
 byte Mate::receiveBluetooth() {
-  // aktualisiere den Cache
-  if (cache() == 9 && _chache[0] == 104) {
+  byte messageLength = cache(); // aktualisiere den Cache
+  if (messageLength == 9 && _chache[0] == 104) {
     // cache ist 9 zeilen lang und vom Typ Heartbeat
     motEn = _cache[1] < 3; // speichere Motorzustand
     if (motEn) {
@@ -80,6 +80,10 @@ byte Mate::receiveBluetooth() {
     us[2] = _cache[7];
     us[3] = _cache[8];
   }
-  return _cache[0];
+  if (messageLength > 0) {
+    return _cache[0];
+  } else {
+    return 255;
+  }
 }
 

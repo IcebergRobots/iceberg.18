@@ -402,10 +402,14 @@ void loop() {
     mate.sendBluetooth(data, 9); // heartbeat
   }
 
-  byte command = mate.receiveBluetooth();
+  // bluetooth auslesen
+  byte command = receiveBluetooth();
   switch (command) {
     case 104: // heartbeat
       heartbeatTimer = millis();
+      if (mate.motEn) {
+        start = true;
+      }
       break;
     case 115: // start
       start = true;
