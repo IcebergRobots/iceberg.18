@@ -121,6 +121,7 @@ bool seeBallMate = false;
 int ballMate = 0;
 unsigned int ballWidthMate = 0;
 byte usMate[] = {0, 0, 0, 0};
+Mate mate;  // OBJEKTINITIALISIERUNG
 
 // Einstellungen: DEBUG
 bool isTypeA; // ist das Roboter A?
@@ -138,7 +139,6 @@ void setup() {
 
   // Start der Seriellen Kommunikation
   DEBUG_SERIAL.begin(115200);
-  BLUETOOTH_SERIAL.begin(115200);
   US_SERIAL.begin(115200);
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
