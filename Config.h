@@ -55,8 +55,9 @@
 #define SIGNATURE_BALL 1  // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
 
-// ROTARY-ENCODER
-#define ROTARY_RANGE 11   // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
+// DISPLAY
+#define ROTARY_RANGE 11        // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
+#define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup
 
 // Serielle Kommunikationen
 #define DEBUG true                // soll eine Usb-Kommunikation bestehen?

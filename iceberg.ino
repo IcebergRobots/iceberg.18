@@ -125,7 +125,6 @@ Mate mate;  // OBJEKTINITIALISIERUNG
 
 // Einstellungen: DEBUG
 bool isTypeA; // ist das Roboter A?
-String messageLog = ""; // Protokoll der Display-Benachrihtigungen
 
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800);  // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(MATRIX_LENGTH, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
@@ -158,21 +157,21 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
 
   // setzte die PinModes
-  displayMessage("1/9 Pins");
+  setupMessage(1, "PIN", "pinModes");
   pinModes();
   isTypeA = digitalRead(TYPE); // lies den Hardware Jumper aus
 
   // setzte Pins und Winkel des Pilot Objekts
-  displayMessage("2/9 Motoren");
+  setupMessage(2, "MOTOR", "setPins");
   setupMotor();
 
   // initialisiere Kamera
-  displayMessage("3/9 Pixy");
+  setupMessage(3, "PIXY", "Kamera");
   pixy.init();
   pixy.setLED(0, 0, 0); // schalte die Hauptled der Pixy aus
 
   // lies EEPROM aus
-  displayMessage("4/9 EEPROM");
+  setupMessage(4, "EEPROM", "auslesen");
   if (EEPROM.read(0) == 0) {
     startHeading = EEPROM.read(1);
   } else {
@@ -180,37 +179,37 @@ void setup() {
   }
 
   // initialisiere Beschleunigungssensor
-  displayMessage("5/9 Accel");
+  setupMessage(5, "ACCEL", "Beschleunigungssensor");
   if (!accel.begin()) {
     stateFine = false;
-    displayMessage("5/9 Accel failed");
+    setupMessage(5, "ACCEL", "failed");
   }
 
   // initialisiere Magnetfeldsensor
-  displayMessage("6/9 Mag");
+  setupMessage(6, "MAG", "Magnetfeldsensor");
   if (!mag.begin()) {
     stateFine = false;
-    displayMessage("6/9 Mag failed");
+    setupMessage(6, "MAG", "failed");
   }
   delay(1);
 
   // initialisiere Kompasssensor
-  displayMessage("7/9 Kompass");
+  setupMessage(7, "COMPASS", "Orientierung");
   mag.enableAutoRange(true);  // aktiviere automatisches Messen
   heading = getCompassHeading();  // lies Kompassrichtung aus
 
   // initialisiere PID-Regler
-  displayMessage("8/9 PID");
+  setupMessage(8, "PID", "Rotation");
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
 
   // initialisiere Leds
-  displayMessage("9/9 Leds");
+  setupMessage(9, "LED", "Animation");
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  displayMessage("setup done");
+  setupMessage(10, "DONE", "");
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
@@ -640,24 +639,22 @@ void setupDisplay() {
   d.begin(SSD1306_SWITCHCAPVCC, 0x3C);  //Initialisieren des Displays
   d.clearDisplay();
   d.drawBitmap(0, 0, logo, 114, 64, WHITE);
-  d.drawRect(46,29,82,2,WHITE);
-  d.display();
-  while (digitalRead(BUTTON_2)) {}
-  d.clearDisplay();     //leert das Display
-  d.setTextSize(2);     //setzt Textgroesse
-  d.setTextColor(WHITE);//setzt Textfarbe
-  d.setCursor(0, 0);    //positioniert Cursor
-  d.println("ICEBERG");  //schreibt Text auf das Display
-  d.println("ROBOTS");
   d.display();          //wendet Aenderungen an
 }
 
-void displayMessage(String str) {
-  messageLog += START_MARKER + String(str) + END_MARKER + "\n";
-  d.setCursor(3, 46);
-  d.fillRect(3, 46, 123, 16, false); // lösche das Textfeld
-  d.setTextSize(2);     //setzt Textgroesse
-  d.println(str.substring(0, 10));
+void setupMessage(byte pos, String title, String description) {
+  d.fillRect(47, 0, 81, 31, BLACK); // lösche das Textfeld
+  d.drawRect(46, 29, map(pos, 0, SETUP_MESSAGE_RANGE, 0, 82), 2, WHITE);
+  d.setTextColor(WHITE);
+
+  d.setTextSize(2);
+  d.setCursor(47, 0);
+  d.print(title.substring(0, 6));
+
+  d.setTextSize(1);
+  d.setCursor(47, 17);
+  d.print(description.substring(0, 13));
+
   d.display();
 }
 
@@ -1001,7 +998,6 @@ int getCompassHeading() {
     return (((int)orientation.heading - startHeading + 720) % 360) - 180;
   } else {
     stateFine = false;
-    displayMessage("E: Com:read");
   }
 }
 
