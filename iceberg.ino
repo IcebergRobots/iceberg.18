@@ -105,8 +105,7 @@ String displayDebug = "";      // unterste Zeile des Bildschirms;
 Adafruit_SSD1306 d(PIN_4);     // OBJEKTINITIALISIERUNG
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
-unsigned long animationTickTimer = 0; // Zeitpunkt der letzten Animationsaktualisierung
-unsigned int animationState = 0;  // Position in der Animation
+unsigned int animationPos = 1;    // Aktuelle Position in der Animation
 bool stateFine = true;  // liegt kein Fehler vor?
 bool hasBall = false;   // besitzen der Roboter den Ball?
 bool showBottom = true; // sollen die Boden-Leds an sein?
@@ -205,11 +204,6 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  ledAnimation(10); // Startanimation mit Geschwindigkeit
-  bottom.setBrightness(BOTTOM_BRIGHTNESS);
-  matrix.setBrightness(MATRIX_BRIGHTNESS);
-  info.setBrightness(INFO_BRIGHTNESS);
-
   displayMessage("setup done");
   debugln("setup done");
 
@@ -246,6 +240,11 @@ void loop() {
     buzzerTone(50);
   }
   rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
+
+  // Animationsbutton
+  if (!digitalRead(BUTTON_1)) {
+    animationPos = 1; // starte die Animation
+  }
 
   // Torrichtung speichern
   if (!digitalRead(BUTTON_2)) {
@@ -333,17 +332,7 @@ void loop() {
     kick();
   }
 
-  // konfiguriere Boden Leds
-  for (byte i = 0; i < 16; i++) {
-    if (!digitalRead(SWITCH_BODENS)) {
-      bottom.setPixelColor(i, 0, 0, 0);
-    } else if (!digitalRead(SWITCH_A)) {
-      bottom.setPixelColor(i, 255, 0, 0);
-    } else {
-      bottom.setPixelColor(i, 255, 255, 255);
-    }
-  }
-  bottom.show();
+  updateLeds();
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
@@ -823,8 +812,6 @@ void updateDisplay() {
 
   d.invertDisplay(m.getMotEn());
   d.display();      // aktualisiere Display
-  matrix.show();    // aktualisiere Matrix-Leds
-  info.show();  // aktualisiere Status-Leds
   lastDisplay = millis();
 }
 
@@ -991,30 +978,49 @@ void showLed(Adafruit_NeoPixel & board, byte pos, bool state) {
   showLed(board, pos, state, false);
 }
 
-void ledAnimationTick(uint8_t wait) {
-  if(millis() - animationTickTimer < ANIMATION_SPEED) {
-    return;
-  }
-  // setze Helligkeit maximal
-  bottom.setBrightness(255);
-  matrix.setBrightness(255);
-  info.setBrightness(255);
+void updateLeds() {
+  if (animationPos == 0) {
+    // setze Helligkeit zurück
+    bottom.setBrightness(BOTTOM_BRIGHTNESS);
+    matrix.setBrightness(MATRIX_BRIGHTNESS);
+    info.setBrightness(INFO_BRIGHTNESS);
 
-  // 
-  for (int i = 0; i < 4000; i += 1 + i * .01) { // 5 cycles of all colors on wheel
-    wheelBoard(bottom, BOTTOM_LENGTH, i);
-    wheelBoard(matrix, MATRIX_LENGTH, i);
-    wheelBoard(info, INFO_LENGTH, i);
-    delay(wait);
+    // setze Boden-Leds
+    for (byte i = 0; i < BOTTOM_LENGTH; i++) {
+      if (!digitalRead(SWITCH_BODENS)) {
+        bottom.setPixelColor(i, 0, 0, 0);
+      } else if (!digitalRead(SWITCH_A)) {
+        bottom.setPixelColor(i, 255, 0, 0);
+      } else {
+        bottom.setPixelColor(i, 255, 255, 255);
+      }
+    }
+  } else {
+    // setze Helligkeit maximal
+    bottom.setBrightness(255);
+    matrix.setBrightness(255);
+    info.setBrightness(255);
+
+    // setze den Farbkreis
+    wheelBoard(bottom, BOTTOM_LENGTH, animationPos);
+    wheelBoard(matrix, MATRIX_LENGTH, animationPos);
+    wheelBoard(info, INFO_LENGTH, animationPos);
+
+    // erhöhe die Position in der Animation
+    animationPos += 1 + animationPos * ANIMATION_SPEED;
+
+    // beende die Animation
+    if (animationPos > 4000) {
+      turnOffBoard(bottom, BOTTOM_LENGTH);
+      turnOffBoard(matrix, MATRIX_LENGTH);
+      turnOffBoard(info, INFO_LENGTH);
+      animationPos = 0;
+    }
   }
-  turnOffBoard(bottom, BOTTOM_LENGTH);
-  turnOffBoard(matrix, MATRIX_LENGTH);
-  turnOffBoard(info, INFO_LENGTH);
-  
-  // setze Helligkeit zurück
-  bottom.setBrightness(255);
-  matrix.setBrightness(255);
-  info.setBrightness(255);
+  // übernehme alle Änderungen
+  bottom.show();
+  matrix.show();
+  info.show();
 }
 
 void wheelBoard(Adafruit_NeoPixel & board, int boardLength, int offset) {

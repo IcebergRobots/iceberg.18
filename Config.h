@@ -33,7 +33,7 @@
 #define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
 
 // LEDS
-#define ANIMATION_SPEED       // [0 bis *] ungenaue Geschwindigkeit der Animation
+#define ANIMATION_SPEED 0.01  // [0 bis *] Geschwindigkeit der Animation
 #define BOTTOM_LENGTH 16      // [0 bis *] Anzahl der Boden-Leds
 #define BOTTOM_BRIGHTNESS 255 // [0 bis 255] Helligkeit der Boden-Leds
 #define MATRIX_LENGTH  12     // [0 bis *] Anzahl der Matrix-Leds
