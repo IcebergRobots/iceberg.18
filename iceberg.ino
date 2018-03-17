@@ -840,6 +840,8 @@ int ausrichten() {
   Pixy auslesen: sucht groesten Block in der Farbe des Balls
 
   SPI-Protokoll:
+
+  INPUT getBlocks():
   Bytes    16-bit words   Description
   ----------------------------------------------------------------
   0, 1     0              sync (0xaa55)
@@ -849,6 +851,26 @@ int ausrichten() {
   8, 9     4              y center of object
   10, 11   5              width of object
   12, 13   6              height of object
+
+  OUTPUT setServos(servo 0, servo 1):
+  Bytes    16-bit words   Description
+  ----------------------------------------------------------------
+  0, 1     0             sync (0xff00)
+  2, 3     1             servo 0 (pan) position, between 0 and 1000
+  4, 5     2             servo 1 (tilt) position, between 0 and 1000
+
+  OUTPUT setBrightness(brightness)
+  Bytes    16-bit words   Description
+  ----------------------------------------------------------------
+  0, 1     0             sync (0xfe00)
+  2        1             brightness
+
+  OUTPUT setLed(red, green, blue):
+  Bytes    16-bit words   Description
+  ----------------------------------------------------------------
+  0, 1     0              sync (0xfd00)
+  2, 3     1              red, green
+  4        2              blue
 *****************************************************/
 void readPixy() {
   pixy.setLED(0, 0, 0); // schalte die Front-LED aus
