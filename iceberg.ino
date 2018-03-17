@@ -242,7 +242,7 @@ void loop() {
   }
   rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
 
-  // Animationsbutton
+  // starte Animation
   if (!digitalRead(BUTTON_1)) {
     animationPos = 1; // starte die Animation
   }
@@ -255,6 +255,11 @@ void loop() {
     EEPROM.write(1, abs(startHeading)); // speichere Winkel
     heading = 0;
     buzzerTone(200);
+  }
+
+  // starte den Arduino neu
+  if (!digitalRead(BUTTON_3)) {
+    asm ("jmp 0"); // reset Arduino
   }
 
   // lösche Bodensensor Cache
