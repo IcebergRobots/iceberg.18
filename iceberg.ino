@@ -842,9 +842,11 @@ void readPixy() {
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 
-  uint16_t blocks = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
+  uint16_t blockCount = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
+  //debugln("blockCount="+String(blockCount));
+  //debugln("blocks="+String(pixy.blocks));
 
-  for (byte i = 0; i < blocks; i++) { // geht alle erkannten Bloecke durch
+  for (byte i = 0; i < blockCount; i++) { // geht alle erkannten Bloecke durch
     int height = pixy.blocks[i].height;
     int width = pixy.blocks[i].width;
     int x = pixy.blocks[i].x - X_CENTER;
