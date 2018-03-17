@@ -61,7 +61,7 @@
 #define INT_US          3   //  hier kann der Mega einen Interrupt an den Arduino Nano mit den US-Sensoren senden
 
 #define SCHUSS          5   //  Wenn dieser Pin auf HIGH gesetzt wir, fährt der Schuss aus
-#define BODEN_LED       7   //  Hier können die RGB-LEDs des Bodensensors gesteuert werden
+#define BOTTOM_LED       7   //  Hier können die RGB-LEDs des Bodensensors gesteuert werden
 
 #define DRDY            43  //  Hier kann ausgelesen werden, ob der Kompass Werte zur Verfügung stellen kann. (glaube ich)
 #define TILTSWITCH      46  //  Hier kann der TILTSWITCH ausgelesen werden.

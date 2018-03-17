@@ -105,6 +105,8 @@ String displayDebug = "";      // unterste Zeile des Bildschirms;
 Adafruit_SSD1306 d(PIN_4);     // OBJEKTINITIALISIERUNG
 
 // Einstellungen: STATUS-LEDS & LED-MATRIX
+unsigned long animationTickTimer = 0; // Zeitpunkt der letzten Animationsaktualisierung
+unsigned int animationState = 0;  // Position in der Animation
 bool stateFine = true;  // liegt kein Fehler vor?
 bool hasBall = false;   // besitzen der Roboter den Ball?
 bool showBottom = true; // sollen die Boden-Leds an sein?
@@ -124,9 +126,9 @@ Mate mate;  // OBJEKTINITIALISIERUNG
 bool isTypeA; // ist das Roboter A?
 String messageLog = ""; // Protokoll der Display-Benachrihtigungen
 
-Adafruit_NeoPixel bottom = Adafruit_NeoPixel(16, BODEN_LED, NEO_GRB + NEO_KHZ800);  // OBJEKTINITIALISIERUNG (BODEN-LEDS)
-Adafruit_NeoPixel matrix = Adafruit_NeoPixel(12, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
-Adafruit_NeoPixel info = Adafruit_NeoPixel(3, INFO_LED, NEO_GRB + NEO_KHZ800);      // OBJEKTINITIALISIERUNG (STATUS-LEDS)
+Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800);  // OBJEKTINITIALISIERUNG (BODEN-LEDS)
+Adafruit_NeoPixel matrix = Adafruit_NeoPixel(MATRIX_LENGTH, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
+Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_KHZ800);      // OBJEKTINITIALISIERUNG (STATUS-LEDS)
 
 //###################################################################################################
 
@@ -203,7 +205,10 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  ledAnimation(10);
+  ledAnimation(10); // Startanimation mit Geschwindigkeit
+  bottom.setBrightness(BOTTOM_BRIGHTNESS);
+  matrix.setBrightness(MATRIX_BRIGHTNESS);
+  info.setBrightness(INFO_BRIGHTNESS);
 
   displayMessage("setup done");
   debugln("setup done");
@@ -293,19 +298,19 @@ void loop() {
   switch (batState) {
     case 0:
       // ok
-      info.setPixelColor(1, info.Color(0, PWR_LED, 0));
+      info.setPixelColor(1, 0, 255, 0);
       break;
     case 1:
       // gering
-      info.setPixelColor(1, info.Color(PWR_LED, 0, PWR_LED));
+      info.setPixelColor(1, 255, 0, 255);
       break;
     case 2:
       // kritisch
-      info.setPixelColor(1, info.Color(PWR_LED, 0, 0));
+      info.setPixelColor(1, 255, 0, 0);
       break;
     default:
       // nicht angeschlossen
-      info.setPixelColor(1, info.Color(0, 0, 0));
+      info.setPixelColor(1, 0, 0, 0);
       break;
   }
   showLed(info, 2, millis() % 1000 < 200, true);
@@ -882,15 +887,6 @@ void readPixy() {
 
 }
 
-// Status-Led zeigt bool-Wert rot oder gruen an
-void showLed(Adafruit_NeoPixel & board, byte pos, bool state, bool showRed) {
-  board.setPixelColor(pos, bottom.Color((!showRed) * (!state) * PWR_LED, state * PWR_LED, 0));
-}
-
-void showLed(Adafruit_NeoPixel & board, byte pos, bool state) {
-  showLed(board, pos, state, false);
-}
-
 bool getUs() {
   /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
       empfängt und speichern diese Werte im globalen Array us[]:
@@ -986,61 +982,76 @@ void buzzerTone(int duration) {
   buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
 }
 
-void ledAnimation(uint8_t wait) {
-  for (int i = 0; i < 256; i++) { // 5 cycles of all colors on wheel
-    for (int j = 0; j < 16; j++) {
-      bottom.setPixelColor(j, posToColor(i));
-    }
-    for (int j = 0; j < 12; j++) {
-      matrix.setPixelColor(j, posToColor(i));
-    }
-    for (int j = 0; j < 3; j++) {
-      info.setPixelColor(j, posToColor(i));
-    }
-    info.show();
-    matrix.show();
-    bottom.show();
+// Status-Led zeigt bool-Wert rot oder gruen an
+void showLed(Adafruit_NeoPixel & board, byte pos, bool state, bool showRed) {
+  board.setPixelColor(pos, (!showRed) * (!state) * 255, state * 255, 0);
+}
+
+void showLed(Adafruit_NeoPixel & board, byte pos, bool state) {
+  showLed(board, pos, state, false);
+}
+
+void ledAnimationTick(uint8_t wait) {
+  if(millis() - animationTickTimer < ANIMATION_SPEED) {
+    return;
+  }
+  // setze Helligkeit maximal
+  bottom.setBrightness(255);
+  matrix.setBrightness(255);
+  info.setBrightness(255);
+
+  // 
+  for (int i = 0; i < 4000; i += 1 + i * .01) { // 5 cycles of all colors on wheel
+    wheelBoard(bottom, BOTTOM_LENGTH, i);
+    wheelBoard(matrix, MATRIX_LENGTH, i);
+    wheelBoard(info, INFO_LENGTH, i);
     delay(wait);
   }
-  // schalte alle Leds langsam aus
-  for (int i = 0; i <= 64; i++) { // 5 cycles of all colors on wheel
-    for (int j = 0; j < 16; j++) {
-      bottom.setPixelColor(j, bottom.Color(255 - 4 * i, 0, 0));
-    }
-    for (int j = 0; j < 12; j++) {
-      matrix.setPixelColor(j, bottom.Color(255 - 4 * i, 0, 0));
-    }
-    for (int j = 0; j < 3; j++) {
-      info.setPixelColor(j, bottom.Color(255 - 4 * i, 0, 0));
-    }
-    info.show();
-    matrix.show();
-    bottom.show();
-    delay(wait);
+  turnOffBoard(bottom, BOTTOM_LENGTH);
+  turnOffBoard(matrix, MATRIX_LENGTH);
+  turnOffBoard(info, INFO_LENGTH);
+  
+  // setze Helligkeit zurück
+  bottom.setBrightness(255);
+  matrix.setBrightness(255);
+  info.setBrightness(255);
+}
+
+void wheelBoard(Adafruit_NeoPixel & board, int boardLength, int offset) {
+  for (int i = 0; i < boardLength; i++) {
+    board.setPixelColor(i, wheelToColor(board, offset + i * 256 / boardLength));
   }
+  board.show();
+}
+
+void turnOffBoard(Adafruit_NeoPixel & board, int boardLength) {
+  for (int i = 0; i < boardLength; i++) {
+    board.setPixelColor(i, 0);
+  }
+  board.show();
 }
 
 /*****************************************************
   wandle Zustand in Farbe eines Farbkreises um
+  @param pos: [0 bis 255]
   0:    rot
   85:   grün
   170:  blau
   255:  rot
-  pos: [0 bis 255]
 *****************************************************/
-uint32_t posToColor(byte pos) {
-  //pos = (pos % 255 + 255) % 255; // Eingabekorrektur
+uint32_t wheelToColor(Adafruit_NeoPixel & board, byte pos) {
+  pos = (pos % 256 + 256) % 256; // Eingabekorrektur
   if (pos < 85) {
     // rot bis grün
-    return bottom.Color(255 - pos * 3, pos * 3, 0);
+    return board.Color(255 - pos * 3, pos * 3, 0);
   } else if (pos < 170) {
     // grün bis blau
     pos -= 85;
-    return bottom.Color(0, 255 - pos * 3, pos * 3);
+    return board.Color(0, 255 - pos * 3, pos * 3);
   } else {
     // blau bis rot
     pos -= 170;
-    return bottom.Color(pos * 3, 0, 255 - pos * 3);
+    return board.Color(pos * 3, 0, 255 - pos * 3);
   }
 }
 

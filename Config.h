@@ -32,6 +32,15 @@
 #define COURT_WIDTH 140         // Summe der Abstände nach rechts und links
 #define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
 
+// LEDS
+#define ANIMATION_SPEED       // [0 bis *] ungenaue Geschwindigkeit der Animation
+#define BOTTOM_LENGTH 16      // [0 bis *] Anzahl der Boden-Leds
+#define BOTTOM_BRIGHTNESS 255 // [0 bis 255] Helligkeit der Boden-Leds
+#define MATRIX_LENGTH  12     // [0 bis *] Anzahl der Matrix-Leds
+#define MATRIX_BRIGHTNESS 40  // [0 bis 255] Helligkeit der Matrix-Leds
+#define INFO_LENGTH 3         // [0 bis *] Anzahl der Info-Leds
+#define INFO_BRIGHTNESS 100   // [0 bis 255] Helligkeit der Info-Leds
+
 // PID-Regler
 #define PID_FILTER_P 0.27 //.52 // p:proportional
 #define PID_FILTER_I 0 //.03 // i:vorausschauend
@@ -43,9 +52,6 @@
 // PIYX
 #define SIGNATURE_BALL 1    // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2    // Pixy-Signature des Tors
-
-// STATUS-LEDS & LED-MATRIX
-#define PWR_LED 20            // Helligkeit der Status-Leds
 
 // ROTARY-ENCODER
 #define ROTARY_RANGE 11  // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
@@ -71,7 +77,6 @@
 #define MILS_PER_MIN  (60000UL)
 #define SECS_PER_MIN  (60UL)
 #define MINS_PER_HOUR  (60UL)
-
 
 // Makro-Methoden
 #define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2)    // PIXY: Die Mitte des Bildes der Pixy (in Pixeln)
