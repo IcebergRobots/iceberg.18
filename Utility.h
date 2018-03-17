@@ -8,6 +8,8 @@
 #include "Mate.h"
 //#include "Utility.h"
 
+#include <Adafruit_NeoPixel.h>
+
 void startSound();
 void showLed(Adafruit_NeoPixel & board, byte pos, bool state, bool showRed);
 void showLed(Adafruit_NeoPixel & board, byte pos, bool state);
