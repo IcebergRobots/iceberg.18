@@ -877,6 +877,8 @@ void readPixy() {
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 
+  debugln("test=" + String(pixy.link.getByte()));
+
   uint16_t blockCount = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
   // Sendet "cs error" über USB bei Fehler in Prüfsumme eines empfangenen Objekts
 
