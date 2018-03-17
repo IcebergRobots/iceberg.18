@@ -68,9 +68,9 @@
 #define END_MARKER 255            // Endzeichen einer Bluetooth-Nachricht
 
 // BATTERY_VOLTAGE
-#define VOLTAGE_MOTOR_CRIT 90 // [0 bis 126]~90  Kritische Akkuspannung beim Fahren
+#define VOLTAGE_MOTOR_CRIT 95 // [0 bis 126]~90  Kritische Akkuspannung beim Fahren
 #define VOLTAGE_MOTOR_LOW 108 // [0 bis 126]~108 Geringe Akkuspannung beim Fahren
-#define VOLTAGE_CRIT 90       // [0 bis 126]~90  Kritische Akkuspannung
+#define VOLTAGE_CRIT 95       // [0 bis 126]~90  Kritische Akkuspannung
 #define VOLTAGE_LOW 110       // [0 bis 126]~110 Geringe Akkuspannung
 
 // Zeitumwandlung

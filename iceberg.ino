@@ -204,6 +204,7 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
+  info.setBrightness(255);
   displayMessage("setup done");
   debugln("setup done");
 
@@ -293,26 +294,26 @@ void loop() {
   }
 
   // zeige Statuswerte an
-  showLed(info, 0, stateFine);
+  info.setPixelColor(0, (!stateFine) * INFO_BRIGHTNESS, stateFine * INFO_BRIGHTNESS, 0);
   switch (batState) {
     case 0:
       // ok
-      info.setPixelColor(1, 0, 255, 0);
+      info.setPixelColor(1, 0, INFO_BRIGHTNESS, 0);
       break;
     case 1:
       // gering
-      info.setPixelColor(1, 255, 0, 255);
+      info.setPixelColor(1, INFO_BRIGHTNESS, 0, INFO_BRIGHTNESS);
       break;
     case 2:
       // kritisch
-      info.setPixelColor(1, millis() % 250 < 125, 0, 0);
+      info.setPixelColor(1, 255 * (millis() % 250 < 125), 0, 0);
       break;
     default:
       // nicht angeschlossen
       info.setPixelColor(1, 0, 0, 0);
       break;
   }
-  showLed(info, 2, millis() % 1000 < 200, true);
+  info.setPixelColor(2, 0, (millis() % 1000 < 200) * INFO_BRIGHTNESS, 0);
 
   showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
   showLed(matrix, 1, !digitalRead(SWITCH_MOTOR));
@@ -803,12 +804,16 @@ void updateDisplay() {
   name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
   name2 = String(name2 + value2).substring(0, 10);
   if (batState == 2) {
-    name2 = "critVoltag";
+    if(255 * (millis() % 250 < 170)) {
+      name2 = "critVoltag";
+    } else {
+      name2 = "";
+    }
   }
   d.setCursor(3, 30);
-  d.println(name1);
+  d.print(name1);
   d.setCursor(3, 46);
-  d.println(name2);
+  d.print(name2);
 
   d.invertDisplay(m.getMotEn());
   d.display();      // aktualisiere Display
@@ -1014,7 +1019,6 @@ void updateLeds() {
     // setze Helligkeit zurück
     bottom.setBrightness(BOTTOM_BRIGHTNESS);
     matrix.setBrightness(MATRIX_BRIGHTNESS);
-    info.setBrightness(INFO_BRIGHTNESS);
 
     // setze Boden-Leds
     for (byte i = 0; i < BOTTOM_LENGTH; i++) {
@@ -1030,7 +1034,6 @@ void updateLeds() {
     // setze Helligkeit maximal
     bottom.setBrightness(255);
     matrix.setBrightness(255);
-    info.setBrightness(255);
 
     // setze den Farbkreis
     wheelBoard(bottom, BOTTOM_LENGTH, animationPos);
