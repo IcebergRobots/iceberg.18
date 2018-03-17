@@ -10,11 +10,13 @@ Mate::Mate() {
   übertrage Daten an den Patner
 *****************************************************/
 void Mate::send(byte * data, byte numberOfElements) {
-  BLUETOOTH_SERIAL.write(START_MARKER);
-  for (byte i = 0; i < numberOfElements; i++) {
-    BLUETOOTH_SERIAL.write(constrain(data[i], 0, 253));
+  if (BLUETOOTH) {
+    BLUETOOTH_SERIAL.write(START_MARKER);
+    for (byte i = 0; i < numberOfElements; i++) {
+      BLUETOOTH_SERIAL.write(constrain(data[i], 0, 253));
+    }
+    BLUETOOTH_SERIAL.write(END_MARKER);
   }
-  BLUETOOTH_SERIAL.write(END_MARKER);
 }
 
 /*****************************************************

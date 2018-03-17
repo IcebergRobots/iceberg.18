@@ -104,7 +104,7 @@ unsigned long lastDisplay = 0; // Zeitpunkt des letzten Displayaktualisierens
 String displayDebug = "";      // unterste Zeile des Bildschirms;
 Adafruit_SSD1306 d(PIN_4);     // OBJEKTINITIALISIERUNG
 
-// Einstellungen: STATUS-LEDS & LED-MATRIX
+// Einstellungen: LEDS
 unsigned int animationPos = 1;    // Aktuelle Position in der Animation
 bool stateFine = true;  // liegt kein Fehler vor?
 bool hasBall = false;   // besitzen der Roboter den Ball?
@@ -270,7 +270,7 @@ void loop() {
   isDrift = millis() - driftTimer < 100;
   isConnected = millis() - heartbeatTimer < 500;
   onLine = millis() <= lineTimer;
-  isHeadstart = millis() - headstartTimer < HEADSTART_DELAY;
+  isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
 
   if (batVol > 40) {
@@ -305,7 +305,7 @@ void loop() {
       break;
     case 2:
       // kritisch
-      info.setPixelColor(1, 255, 0, 0);
+      info.setPixelColor(1, millis() % 250 < 125, 0, 0);
       break;
     default:
       // nicht angeschlossen
@@ -473,13 +473,13 @@ void loop() {
         driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       } else {
         // verhindere das Driften
-        if (ball > 0 && millis() - ballRightTimer < DRIFT_DELAY) {
+        if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {
           debugln("runRight");
           buzzerTone(500);
           driftTimer = millis();
           driftLeft = false;
         }
-        if (ball < 0 && millis() - ballLeftTimer < DRIFT_DELAY) {
+        if (ball < 0 && millis() - ballLeftTimer < DRIFT_DURATION) {
           debugln("runLeft");
           buzzerTone(500);
           driftTimer = millis();
@@ -918,11 +918,11 @@ void avoidLine() {
     lineTimer = millis();
     headstartTimer = 0;
     if (drivePwr > 200) {
-      lineTimer = millis() + (2 * LINE_DELAY);
+      lineTimer = millis() + (2 * LINE_DURATION);
     } else if (drivePwr > 100) {
-      lineTimer = millis() + (1.5 * LINE_DELAY);
+      lineTimer = millis() + (1.5 * LINE_DURATION);
     } else {
-      lineTimer = millis() + LINE_DELAY;
+      lineTimer = millis() + LINE_DURATION;
     }
     displayDebug = driveDir;
   }
@@ -979,7 +979,7 @@ void showLed(Adafruit_NeoPixel & board, byte pos, bool state) {
 }
 
 void updateLeds() {
-  if (animationPos == 0) {
+  if (animationPos == 0 || !ANIMATION) {
     // setze Helligkeit zurück
     bottom.setBrightness(BOTTOM_BRIGHTNESS);
     matrix.setBrightness(MATRIX_BRIGHTNESS);
