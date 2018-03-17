@@ -16,12 +16,43 @@ void startSound() {
   @param (optional) state: darzustellender Zustand
   0: rot/aus
   1: grün
-  @param showRed: soll rot sichtbar sein?
+  2: magenta
+  3: rot
+  @param hideRed: soll rot unsichtbar sein?
 *****************************************************/
-void showLed(Adafruit_NeoPixel & board, byte pos, bool state, bool showRed) {
-  board.setPixelColor(pos, (!showRed) * (!state) * 255, state * 255, 0);
+void showLed(Adafruit_NeoPixel & board, byte pos, byte state, bool hideRed) {
+  switch (state) {
+    default:  //case: 0
+      /*
+         Information falsch (rot)
+         hideRed=true Information nicht verfügbar (aus)
+         hideRed=true Information nicht relevant (aus)
+      */
+      board.setPixelColor(pos, (!hideRed) * 255, 0, 0);
+      break;
+    case 1:
+      /*
+         Information wahr (grün)
+      */
+      board.setPixelColor(pos, 0, 255, 0);
+      break;
+    case 2:
+      /*
+         Wahrnung (magenta)
+         Information ungewiss (magenta)
+      */
+      board.setPixelColor(pos, 255, 255, 0);
+      break;
+    case 3:
+      /*
+         Kritische Warnung (rot)
+         Information falsch (rot)
+      */
+      board.setPixelColor(pos, 255, 0, 0);
+      break;
+  }
 }
-void showLed(Adafruit_NeoPixel & board, byte pos, bool state) {
+void showLed(Adafruit_NeoPixel & board, byte pos, byte state) {
   showLed(board, pos, state, false);
 }
 

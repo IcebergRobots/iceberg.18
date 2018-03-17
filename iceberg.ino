@@ -109,6 +109,7 @@ unsigned int animationPos = 1;    // Aktuelle Position in der Animation
 bool stateFine = true;  // liegt kein Fehler vor?
 bool hasBall = false;   // besitzen der Roboter den Ball?
 bool showBottom = true; // sollen die Boden-Leds an sein?
+byte pixyState = 0;     // Verbindungsstatus per Pixy
 
 // Einstellungen: BUZZER
 unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
@@ -204,12 +205,15 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  info.setBrightness(255);
   displayMessage("setup done");
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 200) {}
+
+  if (SPI.transfer(0x00) == 255) {
+    pixyState = 1;
+  }
 }
 
 //###################################################################################################
@@ -280,45 +284,28 @@ void loop() {
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
 
   if (batVol > 40) {
-    batState = 0; // ok
+    batState = 1; // ok
     if (m.getMotEn()) {
       if (batVol < VOLTAGE_MOTOR_CRIT) {
-        batState = 2; // kritisch
+        batState = 3; // kritisch
       } else if (batVol < VOLTAGE_MOTOR_LOW) {
-        batState = 1; // gering
+        batState = 2; // gering
       }
     } else {
       if (batVol < VOLTAGE_CRIT) {
-        batState = 2; // kritisch
+        batState = 3; // kritisch
       } else if (batVol < VOLTAGE_LOW) {
-        batState = 1; // gering
+        batState = 2; // gering
       }
     }
   } else {
-    batState = 255; // no battery
+    batState = 0; // no battery
   }
 
   // zeige Statuswerte an
-  info.setPixelColor(0, (!stateFine) * INFO_BRIGHTNESS, stateFine * INFO_BRIGHTNESS, 0);
-  switch (batState) {
-    case 0:
-      // ok
-      info.setPixelColor(1, 0, INFO_BRIGHTNESS, 0);
-      break;
-    case 1:
-      // gering
-      info.setPixelColor(1, INFO_BRIGHTNESS, 0, INFO_BRIGHTNESS);
-      break;
-    case 2:
-      // kritisch
-      info.setPixelColor(1, 255 * (millis() % 250 < 125), 0, 0);
-      break;
-    default:
-      // nicht angeschlossen
-      info.setPixelColor(1, 0, 0, 0);
-      break;
-  }
-  info.setPixelColor(2, 0, (millis() % 1000 < 200) * INFO_BRIGHTNESS, 0);
+  showLed(info, 0, stateFine);
+  showLed(info, 1, batState * (batState != 3 || millis() % 250 < 125), true);
+  showLed(info, 2, millis() % 1000 < 200, true);
 
   showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
   showLed(matrix, 1, !digitalRead(SWITCH_MOTOR));
@@ -327,7 +314,7 @@ void loop() {
   showLed(matrix, 4, isConnected);
   //showLed(matrix, 5, bodensensor verfügbar);
   //showLed(matrix, 6, lift);
-  //showLed(matrix, 7, pixy);
+  showLed(matrix, 7, pixyState, true);
   showLed(matrix, 8, !onLine);
   showLed(matrix, 9, seeGoal, true);
   showLed(matrix, 10, isHeadstart, true);
@@ -717,7 +704,7 @@ void updateDisplay() {
     case 0:
       name1 = "Dir:";
       value1 = String(driveDir);
-      if (batState == 1) {
+      if (batState == 2) {
         name2 = "lowVoltage";
       } else {
         name2 = String(displayDebug);
@@ -808,8 +795,8 @@ void updateDisplay() {
   name1 = String(name1 + value1).substring(0, 10);
   name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
   name2 = String(name2 + value2).substring(0, 10);
-  if (batState == 2) {
-    if(255 * (millis() % 250 < 170)) {
+  if (batState == 3) {
+    if (255 * (millis() % 250 < 170)) {
       name2 = "critVoltag";
     } else {
       name2 = "";
@@ -887,12 +874,9 @@ void readPixy() {
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 
-  debugln("test=" + String(pixy.link.getByte()));
-
-  uint16_t blockCount = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
+  uint16_t blockCount = pixy.getBlocks();
+  // Liest alle Blöcke aus und zählt diese
   // Sendet "cs error" über USB bei Fehler in Prüfsumme eines empfangenen Objekts
-
-  debugln("blockCount=" + String(blockCount));
 
   for (byte i = 0; i < blockCount; i++) { // geht alle erkannten Bloecke durch
     int height = pixy.blocks[i].height;
@@ -1024,6 +1008,7 @@ void updateLeds() {
     // setze Helligkeit zurück
     bottom.setBrightness(BOTTOM_BRIGHTNESS);
     matrix.setBrightness(MATRIX_BRIGHTNESS);
+    info.setBrightness(INFO_BRIGHTNESS);
 
     // setze Boden-Leds
     for (byte i = 0; i < BOTTOM_LENGTH; i++) {
@@ -1039,6 +1024,7 @@ void updateLeds() {
     // setze Helligkeit maximal
     bottom.setBrightness(255);
     matrix.setBrightness(255);
+    info.setBrightness(255);
 
     // setze den Farbkreis
     wheelBoard(bottom, BOTTOM_LENGTH, animationPos);
