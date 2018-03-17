@@ -1,13 +1,12 @@
 #include "Mate.h"
 
-/*****************************************************
-  setze Baudrate für Bluetooth Modul
-*****************************************************/
 Mate::Mate() {
 }
 
 /*****************************************************
   übertrage Daten an den Patner
+  @param data: Datenarray
+  @param numberOfElements: Länge des Arrays
 *****************************************************/
 void Mate::send(byte * data, byte numberOfElements) {
   if (BLUETOOTH) {
@@ -21,6 +20,7 @@ void Mate::send(byte * data, byte numberOfElements) {
 
 /*****************************************************
   empfange Daten an des Patners
+  - speichere diese im Cache
 *****************************************************/
 byte Mate::cache() {
   // returns length of incomming message
@@ -58,7 +58,7 @@ byte Mate::cache() {
 }
 
 /*****************************************************
-  übertrage Daten an den Patner
+  lese Nachrichten aus dem Cache aus
 *****************************************************/
 byte Mate::receive() {
   byte messageLength = cache(); // aktualisiere den Cache

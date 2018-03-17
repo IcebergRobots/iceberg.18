@@ -33,7 +33,7 @@
 #define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
 
 // LEDS
-#define ANIMATION false        // soll die Animation stattfinden?
+#define ANIMATION true        // soll die Animation stattfinden?
 #define ANIMATION_SPEED .01   // [0 bis *] Geschwindigkeit der Animation
 #define BOTTOM_LENGTH 16      // [0 bis *] Anzahl der Boden-Leds
 #define BOTTOM_BRIGHTNESS 255 // [0 bis 255] Helligkeit der Boden-Leds

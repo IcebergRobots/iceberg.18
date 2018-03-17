@@ -969,15 +969,6 @@ void buzzerTone(int duration) {
   buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
 }
 
-// Status-Led zeigt bool-Wert rot oder gruen an
-void showLed(Adafruit_NeoPixel & board, byte pos, bool state, bool showRed) {
-  board.setPixelColor(pos, (!showRed) * (!state) * 255, state * 255, 0);
-}
-
-void showLed(Adafruit_NeoPixel & board, byte pos, bool state) {
-  showLed(board, pos, state, false);
-}
-
 void updateLeds() {
   if (animationPos == 0 || !ANIMATION) {
     // setze Helligkeit zurück
@@ -1022,42 +1013,3 @@ void updateLeds() {
   matrix.show();
   info.show();
 }
-
-void wheelBoard(Adafruit_NeoPixel & board, int boardLength, int offset) {
-  for (int i = 0; i < boardLength; i++) {
-    board.setPixelColor(i, wheelToColor(board, offset + i * 256 / boardLength));
-  }
-  board.show();
-}
-
-void turnOffBoard(Adafruit_NeoPixel & board, int boardLength) {
-  for (int i = 0; i < boardLength; i++) {
-    board.setPixelColor(i, 0);
-  }
-  board.show();
-}
-
-/*****************************************************
-  wandle Zustand in Farbe eines Farbkreises um
-  @param pos: [0 bis 255]
-  0:    rot
-  85:   grün
-  170:  blau
-  255:  rot
-*****************************************************/
-uint32_t wheelToColor(Adafruit_NeoPixel & board, byte pos) {
-  pos = (pos % 256 + 256) % 256; // Eingabekorrektur
-  if (pos < 85) {
-    // rot bis grün
-    return board.Color(255 - pos * 3, pos * 3, 0);
-  } else if (pos < 170) {
-    // grün bis blau
-    pos -= 85;
-    return board.Color(0, 255 - pos * 3, pos * 3);
-  } else {
-    // blau bis rot
-    pos -= 170;
-    return board.Color(pos * 3, 0, 255 - pos * 3);
-  }
-}
-
