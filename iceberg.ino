@@ -74,21 +74,21 @@ int batVol = 0;       // Spannung MAL 10!
 byte batState = 0;  // ist du Spannung zu gering?
 
 // Einstellungen: PIXY
-int ball = 0;           // Abweichung der Ball X-Koordinate
-int ballWidth = 0;      // Ballbreite
-int ballSize = 0;       // Ballgröße (Flächeninhalt)
-int goal = 0;           // Abweichung der Tor X-Koordinate
-int goalWidth = 0;      // Torbreite
-int goalSize = 0;       // Torgröße (Flächeninhalt)
-unsigned long seeBallTimer = 0; // Zeitpunkt des letzten Ball Sehens
-unsigned long seeGoalTimer = 0; // Zeitpunkt des letzen Tor Sehens
-unsigned long driftTimer = 0; // Zeitpunkt seit wann wir gegensteuern
-unsigned long ballLeftTimer = 0;     // Zeitpunkt wann der Ball zuletzt links war
-unsigned long ballRightTimer = 0;    // Zeitpunkt wann der Ball zuletzt rechts war
+int ball = 0;       // Abweichung der Ball X-Koordinate
+int ballWidth = 0;  // Ballbreite
+int ballSize = 0;   // Ballgröße (Flächeninhalt)
+int goal = 0;       // Abweichung der Tor X-Koordinate
+int goalWidth = 0;  // Torbreite
+int goalSize = 0;   // Torgröße (Flächeninhalt)
+unsigned long seeBallTimer = 0;   // Zeitpunkt des letzten Ball Sehens
+unsigned long seeGoalTimer = 0;   // Zeitpunkt des letzen Tor Sehens
+unsigned long driftTimer = 0;     // Zeitpunkt seit wann wir gegensteuern
+unsigned long ballLeftTimer = 0;  // Zeitpunkt wann der Ball zuletzt links war
+unsigned long ballRightTimer = 0; // Zeitpunkt wann der Ball zuletzt rechts war
 bool driftLeft = false; // steuern wir nach links gegen
 bool isDrift = false;   // driften wir
-bool seeBall = false;      // sehen wir den Ball?
-bool seeGoal = false;      // sehen wir das Tor?
+bool seeBall = false;   // sehen wir den Ball?
+bool seeGoal = false;   // sehen wir das Tor?
 unsigned long pixyResponseTimer = 0;  // Zeitpunkt der letzten Antwort der Pixy
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
@@ -138,6 +138,9 @@ void setup() {
   SPI.begin();
   pixyResponseTimer = SPI.transfer(0x00) == 255;
 
+  // initialisiere Display mit Iceberg Schriftzug
+  setupDisplay();
+
   // Roboter bremst aktiv
   m.brake(true);
 
@@ -153,9 +156,6 @@ void setup() {
 
   // weiche den Linien aus
   attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
-
-  // initialisiere Display mit Iceberg Schriftzug
-  setupDisplay();
 
   // setzte die PinModes
   displayMessage("1/9 Pins");
@@ -638,6 +638,11 @@ void setupMotor() {
 // Bildschirm konfigurieren und Startschriftzug zeigen
 void setupDisplay() {
   d.begin(SSD1306_SWITCHCAPVCC, 0x3C);  //Initialisieren des Displays
+  d.clearDisplay();
+  d.drawBitmap(0, 0, logo, 114, 64, WHITE);
+  d.drawRect(46,29,82,2,WHITE);
+  d.display();
+  while (digitalRead(BUTTON_2)) {}
   d.clearDisplay();     //leert das Display
   d.setTextSize(2);     //setzt Textgroesse
   d.setTextColor(WHITE);//setzt Textfarbe
