@@ -58,7 +58,7 @@
 #define ROTARY_RANGE 11   // [0 bis *] Anzahl von Bildschirmseiten, die angezeigt werden können
 
 // Serielle Kommunikationen
-#define DEBUG false               // soll eine Usb-Kommunikation bestehen?
+#define DEBUG true                // soll eine Usb-Kommunikation bestehen?
 #define DEBUG_SERIAL Serial       // Serial der Usb-Schnittstelle
 #define BLUETOOTH true            // soll eine Bluetooth-Kommunikation bestehen?
 #define BLUETOOTH_SERIAL Serial1  // Serial des Bluetooth-Moduls
@@ -81,8 +81,8 @@
 
 // Makro-Methoden
 #define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2)                                  // PIXY: Die Mitte des Bildes der Pixy (in Pixeln)
-#define debug(_str_); if(DEBUG){DEBUG_SERIAL.print(_str_);}                   // SERIAL: sende Text zum PC
-#define debugln(_str_); if(DEBUG){DEBUG_SERIAL.println(_str_);}               // SERIAL: sende Zeile zum PC
+#define debug(_str_); if(DEBUG&&DEBUG_SERIAL){DEBUG_SERIAL.print(_str_);}                   // SERIAL: sende Text zum PC
+#define debugln(_str_); if(DEBUG&&DEBUG_SERIAL){DEBUG_SERIAL.println(_str_);}               // SERIAL: sende Zeile zum PC
 #define numberOfSeconds(_millis_) ((_millis_ / MILS_PER_SEC) % SECS_PER_MIN)  // TIME: wandle Zeit in Sekundenanzeige um
 #define numberOfMinutes(_time_) (_time_ / MILS_PER_MIN) % MINS_PER_HOUR       // TIME: wandle Zeit in Minutenanzeige um
 

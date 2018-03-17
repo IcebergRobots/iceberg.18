@@ -836,15 +836,29 @@ int ausrichten() {
   }
 }
 
-// Pixy auslesen: sucht groesten Block in der Farbe des Balls
+/*****************************************************
+  Pixy auslesen: sucht groesten Block in der Farbe des Balls
+
+  SPI-Protokoll:
+  Bytes    16-bit words   Description
+  ----------------------------------------------------------------
+  0, 1     0              sync (0xaa55)
+  2, 3     1              checksum (sum of all 16-bit words 2-6)
+  4, 5     2              signature number
+  6, 7     3              x center of object
+  8, 9     4              y center of object
+  10, 11   5              width of object
+  12, 13   6              height of object
+*****************************************************/
 void readPixy() {
   pixy.setLED(0, 0, 0); // schalte die Front-LED aus
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 
   uint16_t blockCount = pixy.getBlocks();  //lässt sich die Bloecke ausgeben
-  //debugln("blockCount="+String(blockCount));
-  //debugln("blocks="+String(pixy.blocks));
+  // Sendet "cs error" über USB bei Fehler in Prüfsumme eines empfangenen Objekts
+
+  debugln("blockCount=" + String(blockCount));
 
   for (byte i = 0; i < blockCount; i++) { // geht alle erkannten Bloecke durch
     int height = pixy.blocks[i].height;
