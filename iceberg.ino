@@ -89,6 +89,7 @@ bool driftLeft = false; // steuern wir nach links gegen
 bool isDrift = false;   // driften wir
 bool seeBall = false;      // sehen wir den Ball?
 bool seeGoal = false;      // sehen wir das Tor?
+unsigned long pixyResponseTimer = 0;  // Zeitpunkt der letzten Antwort der Pixy
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
@@ -133,6 +134,10 @@ Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_
 //###################################################################################################
 
 void setup() {
+  // Prüfe, ob die Pixy angeschlossen ist
+  SPI.begin();
+  pixyResponseTimer = SPI.transfer(0x00) == 255;
+
   // Roboter bremst aktiv
   m.brake(true);
 
@@ -209,17 +214,11 @@ void setup() {
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
-  while (millis() < 200) {}
-
-  if (SPI.transfer(0x00) == 255) {
-    pixyState = 1;
-  }
+  while (millis() < 1000) {}
 }
-
 //###################################################################################################
 
 void loop() {
-  //debug("[" + String(millis()) + "]");
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // starte über Funk wenn Schalter Keeper aktiviert
@@ -282,8 +281,7 @@ void loop() {
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
-
-  if (batVol > 40) {
+  if (batVol > VOLTAGE_MIN) {
     batState = 1; // ok
     if (m.getMotEn()) {
       if (batVol < VOLTAGE_MOTOR_CRIT) {
@@ -302,6 +300,17 @@ void loop() {
     batState = 0; // no battery
   }
 
+  if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
+    // Kamera war in den letzen 30 Sekunden bereits aktiv
+    pixyState = 1;
+  } else if (pixyResponseTimer > 0) {
+    // Kamera war seit dem letzten Neustart bereits aktiv
+    pixyState = 2;
+  } else {
+    // Kamera nicht angeschlossen
+    pixyState = 3;
+  }
+
   // zeige Statuswerte an
   showLed(info, 0, stateFine);
   showLed(info, 1, batState * (batState != 3 || millis() % 250 < 125), true);
@@ -312,7 +321,7 @@ void loop() {
   showLed(matrix, 2, seeBall, true);
   showLed(matrix, 3, hasBall, true);
   showLed(matrix, 4, isConnected);
-  //showLed(matrix, 5, bodensensor verfügbar);
+  //showLed(matrix, 5, Bodensensor verfügbar);
   //showLed(matrix, 6, lift);
   showLed(matrix, 7, pixyState, true);
   showLed(matrix, 8, !onLine);
@@ -900,6 +909,7 @@ void readPixy() {
   if (ballSizeMax > 0) {
     ballSize = ballSizeMax;
     seeBallTimer = millis();
+    pixyResponseTimer = millis();
   }
   if (goalSizeMax > 0) {
     goalSize = goalSizeMax;

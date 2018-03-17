@@ -41,7 +41,7 @@ void showLed(Adafruit_NeoPixel & board, byte pos, byte state, bool hideRed) {
          Wahrnung (magenta)
          Information ungewiss (magenta)
       */
-      board.setPixelColor(pos, 255, 255, 0);
+      board.setPixelColor(pos, 255, 0, 255);
       break;
     case 3:
       /*

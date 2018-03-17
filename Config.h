@@ -24,16 +24,17 @@
 #define SPEED_LINE 80           // [0 bis 255]~80
 
 // TIMES
-#define LINE_DURATION 100       // wie lange steuern wir der Linie entgegen
-#define HEADSTART_DURATION 700  // wie lange fahren wir volle Geschwindigkeit
-#define DRIFT_DURATION 200      // wir lange steuern wir einem Drift entgegen
+#define LINE_DURATION 100             // wie lange steuern wir der Linie entgegen?
+#define HEADSTART_DURATION 700        // wie lange fahren wir volle Geschwindigkeit?
+#define DRIFT_DURATION 200            // wie lange steuern wir einem Drift entgegen?
+#define PIXY_RESPONSE_DURATION 20000  // wie lange soll die Pixy-Led grün nachleuchten?
 
 // Feld
 #define COURT_WIDTH 140         // Summe der Abstände nach rechts und links
 #define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
 
 // LEDS
-#define ANIMATION true        // soll die Animation stattfinden?
+#define ANIMATION false    // soll die Animation stattfinden?
 #define ANIMATION_SPEED .01   // [0 bis *] Geschwindigkeit der Animation
 #define BOTTOM_LENGTH 16      // [0 bis *] Anzahl der Boden-Leds
 #define BOTTOM_BRIGHTNESS 255 // [0 bis 255] Helligkeit der Boden-Leds
@@ -68,6 +69,7 @@
 #define END_MARKER 255            // Endzeichen einer Bluetooth-Nachricht
 
 // BATTERY_VOLTAGE
+#define VOLTAGE_MIN 40        // [0 bis 126]~40  Mindestspannung des Akkus
 #define VOLTAGE_MOTOR_CRIT 95 // [0 bis 126]~90  Kritische Akkuspannung beim Fahren
 #define VOLTAGE_MOTOR_LOW 108 // [0 bis 126]~108 Geringe Akkuspannung beim Fahren
 #define VOLTAGE_CRIT 95       // [0 bis 126]~90  Kritische Akkuspannung
