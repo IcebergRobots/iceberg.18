@@ -8,6 +8,20 @@
 #include "Mate.h"
 #include "Utility.h"
 
+#include <SPI.h>
+#include <Wire.h>
+#include <EEPROM.h>
+#include <Pixy.h>
+#include <RotaryEncoder.h>
+#include <PID_v1.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_NeoPixel.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_LSM303_U.h>
+#include <Adafruit_9DOF.h>
+#include <Adafruit_L3GD20_U.h>
+
 // Fahren
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100

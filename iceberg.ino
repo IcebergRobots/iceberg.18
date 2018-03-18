@@ -16,109 +16,67 @@
 #include "Mate.h"
 #include "Utility.h"
 
-#include <SPI.h>
-#include <Pixy.h>
-#include <Wire.h>
-#include <EEPROM.h>
-#include <RotaryEncoder.h>
-#include <PID_v1.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_NeoPixel.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_LSM303_U.h>
-#include <Adafruit_9DOF.h>
-#include <Adafruit_L3GD20_U.h>
-
-// Einstellungen: FAHREN
+// Implementierung: FAHREN
 extern bool start, onLine, isHeadstart, isKeeperLeft;
 extern int rotMulti, drivePwr, driveRot, driveDir, lineDir;
 extern unsigned long lineTimer, headstartTimer, lastKeeperToggle;
-Pilot m;                // OBJEKTINITIALISIERUNG
+extern Pilot m;                // OBJEKTINITIALISIERUNG
 
-// Einstellungen: KOMPASS
-int heading = 0;                    // Wert des Kompass
-int startHeading = 0;               // Startwert des Kompass
-int rotation = 0;                   // rotationswert für die Motoren
-Adafruit_9DOF                 dof   = Adafruit_9DOF();
-Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(30301);
-Adafruit_LSM303_Mag_Unified   mag   = Adafruit_LSM303_Mag_Unified(30302);
-sensors_event_t accel_event;
-sensors_event_t mag_event;
-sensors_vec_t   orientation;
+// Implementierung: KOMPASS
+extern int heading, startHeading,rotation;
+extern Adafruit_9DOF dof;
+extern Adafruit_LSM303_Accel_Unified accel;
+extern Adafruit_LSM303_Mag_Unified mag;
+extern sensors_event_t accel_event;
+extern sensors_event_t mag_event;
+extern sensors_vec_t orientation;
 
-// Einstellungen: BLUETOOTH
-bool startLast = false; // war zuletzt der Funktstart aktiviert
-unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
-unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
-unsigned long heartbeatTimer = 0; // Zeitpunkt des letzten empfangenen Heartbeat
+// Implementierung: BLUETOOTH
+extern bool startLast;
+extern unsigned long startTimer, bluetoothTimer, heartbeatTimer;
 
-// Einstellungen: WICHTUNG DER PID-REGLER
-double pidSetpoint;       // Nulllevel [-180 bis 180]:Winkel des Tours
-double pidIn;             // Kompasswert [-180 bis 180]
-double pidOut;            // Rotationsstärke [-255 bis 255]
-PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_D, DIRECT); // OBJEKTINITIALISIERUNG
+// Implementierung: WICHTUNG DER PID-REGLER
+extern double pidSetpoint, pidIn, pidOut;
+extern PID myPID;
 
-// Einstellungen: BATTERY
-byte batState = 0;  // ist du Spannung zu gering?
-int batVol = 0;       // Spannung MAL 10!
+// Implementierung: BATTERY
+extern byte batState;
+extern int batVol;
 
-// Einstellungen: PIXY
-bool driftLeft = false; // steuern wir nach links gegen
-bool isDrift = false;   // driften wir
-bool seeBall = false;   // sehen wir den Ball?
-bool seeGoal = false;   // sehen wir das Tor?
-int ball = 0;       // Abweichung der Ball X-Koordinate
-int ballWidth = 0;  // Ballbreite
-int ballSize = 0;   // Ballgröße (Flächeninhalt)
-int goal = 0;       // Abweichung der Tor X-Koordinate
-int goalWidth = 0;  // Torbreite
-int goalSize = 0;   // Torgröße (Flächeninhalt)
-unsigned long seeBallTimer = 0;   // Zeitpunkt des letzten Ball Sehens
-unsigned long seeGoalTimer = 0;   // Zeitpunkt des letzen Tor Sehens
-unsigned long driftTimer = 0;     // Zeitpunkt seit wann wir gegensteuern
-unsigned long ballLeftTimer = 0;  // Zeitpunkt wann der Ball zuletzt links war
-unsigned long ballRightTimer = 0; // Zeitpunkt wann der Ball zuletzt rechts war
-unsigned long pixyResponseTimer = 0;  // Zeitpunkt der letzten Antwort der Pixy
-unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
-Pixy pixy;                    // OBJEKTINITIALISIERUNG
+// Implementierung: PIXY
+extern bool driftLeft, isDrift, seeBall, seeGoal;
+extern int ball, ballWidth, ballSize, goal, goalWidth, goalSize;
+extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
+extern Pixy pixy;
 
-// Einstellungen: US
-byte us[] = {255, 255, 255, 255};   // Werte des US-Sensors
-unsigned long usTimer = 0;  // wann wurde der Us zuletzt ausgelesen?
+// Implementierung: ULTRASCHALL
+extern byte us[];
+extern unsigned long usTimer;
 
-// Einstellungen: KICK
-unsigned long kickTimer = 0;  // Zeitpunkt des letzten Schießens
+// Implementierung: KICK
+extern unsigned long kickTimer;
 
-// Einstellungen: DISPLAY
-unsigned long lastDisplay = 0; // Zeitpunkt des letzten Displayaktualisierens
-String displayDebug = "";      // unterste Zeile des Bildschirms;
-Adafruit_SSD1306 d(PIN_4);     // OBJEKTINITIALISIERUNG
+// Implementierung: DISPLAY
+extern bool isTypeA;
+extern unsigned long lastDisplay;
+extern String displayDebug;
+extern Adafruit_SSD1306 d;
 
-// Einstellungen: LEDS
-bool stateFine = true;  // liegt kein Fehler vor?
-bool hasBall = false;   // besitzen der Roboter den Ball?
-bool showBottom = true; // sollen die Boden-Leds an sein?
-byte pixyState = 0;     // Verbindungsstatus per Pixy
-unsigned int animationPos = 1;    // Aktuelle Position in der Animation
+// Implementierung: LEDS
+extern bool stateFine, hasBall, showBottom, pixyState;
+extern unsigned int animationPos;
+extern Adafruit_NeoPixel bottom, matrix, info;
 
-// Einstellungen: BUZZER
-unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
+// Implementierung: BUZZER
+extern unsigned long buzzerStopTimer;
 
-// Einstellungen: ROTARY-ENCODER
-RotaryEncoder rotaryEncoder(ROTARY_B, ROTARY_A);  // OBJEKTINITIALISIERUNG
-int rotaryPosition = 0; // Zustand, der vom Regler eingestellt ist
+// Implementierung: ROTARY-ENCODER
+extern RotaryEncoder rotaryEncoder;
+extern int rotaryPosition;
 
-// Einstellungen: MATE
-bool isConnected = false; // besteht eine Bluetooth Verbindung zum Parter
-Mate mate;  // OBJEKTINITIALISIERUNG
-
-// Einstellungen: DEBUG
-bool isTypeA; // ist das Roboter A?
-
-Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800);  // OBJEKTINITIALISIERUNG (BODEN-LEDS)
-Adafruit_NeoPixel matrix = Adafruit_NeoPixel(MATRIX_LENGTH, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
-Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_KHZ800);      // OBJEKTINITIALISIERUNG (STATUS-LEDS)
+// Implementierung: MATE
+extern bool isConnected;
+extern Mate mate;  // OBJEKTINITIALISIERUNG
 
 //###################################################################################################
 
