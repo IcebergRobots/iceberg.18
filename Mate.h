@@ -1,14 +1,9 @@
 #ifndef Mate_h
 #define Mate_h
 
-#include "Arduino.h"
 #include "Config.h"
-#include "Pin.h"
-#include "Pilot.h"
-//#include "Mate.h"
-#include "Utility.h"
 
-#define CACHE_SIZE 10
+#define CACHE_SIZE 10             // Länge des Input Byte Buffers
 
 class Mate
 {

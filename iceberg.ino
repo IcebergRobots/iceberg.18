@@ -9,12 +9,8 @@
 
 */
 
-//#include "Arduino.h"
+// Implementierung: DATEIEN
 #include "Config.h"
-#include "Pin.h"
-#include "Pilot.h"
-#include "Mate.h"
-#include "Utility.h"
 
 // Implementierung: FAHREN
 extern bool start, onLine, isHeadstart, isKeeperLeft;
