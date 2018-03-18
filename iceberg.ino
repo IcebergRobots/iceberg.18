@@ -31,17 +31,17 @@
 #include <Adafruit_L3GD20_U.h>
 
 // Einstellungen: FAHREN
-int rotMulti;             // Scalar, um die Rotationswerte zu verstärken
 bool start = false;       // ist der funkstart aktiviert
 bool onLine = false;      // befinden wir uns auf einer Linie?
 bool isHeadstart = false; // fahren wir mit voller Geschwindigkeit?
+bool isKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
+int rotMulti;             // Scalar, um die Rotationswerte zu verstärken
 int drivePwr = 0;         // maximale Motorstärke [0 bis 255]
 int driveRot = 0;         // korrigiere Kompass
 int driveDir = 0;         // Zielrichtung
 int lineDir = -1;         // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0; // Zeitpunkt des Betätigen des Headstarts
-bool isKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 Pilot m;                // OBJEKTINITIALISIERUNG
 
@@ -69,10 +69,14 @@ double pidOut;            // Rotationsstärke [-255 bis 255]
 PID myPID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_D, DIRECT); // OBJEKTINITIALISIERUNG
 
 // Einstellungen: BATTERY
-int batVol = 0;       // Spannung MAL 10!
 byte batState = 0;  // ist du Spannung zu gering?
+int batVol = 0;       // Spannung MAL 10!
 
 // Einstellungen: PIXY
+bool driftLeft = false; // steuern wir nach links gegen
+bool isDrift = false;   // driften wir
+bool seeBall = false;   // sehen wir den Ball?
+bool seeGoal = false;   // sehen wir das Tor?
 int ball = 0;       // Abweichung der Ball X-Koordinate
 int ballWidth = 0;  // Ballbreite
 int ballSize = 0;   // Ballgröße (Flächeninhalt)
@@ -84,16 +88,12 @@ unsigned long seeGoalTimer = 0;   // Zeitpunkt des letzen Tor Sehens
 unsigned long driftTimer = 0;     // Zeitpunkt seit wann wir gegensteuern
 unsigned long ballLeftTimer = 0;  // Zeitpunkt wann der Ball zuletzt links war
 unsigned long ballRightTimer = 0; // Zeitpunkt wann der Ball zuletzt rechts war
-bool driftLeft = false; // steuern wir nach links gegen
-bool isDrift = false;   // driften wir
-bool seeBall = false;   // sehen wir den Ball?
-bool seeGoal = false;   // sehen wir das Tor?
 unsigned long pixyResponseTimer = 0;  // Zeitpunkt der letzten Antwort der Pixy
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;                    // OBJEKTINITIALISIERUNG
 
 // Einstellungen: US
-byte us[] = {0, 0, 0, 0};   // Werte des US-Sensors
+byte us[] = {255, 255, 255, 255};   // Werte des US-Sensors
 unsigned long usTimer = 0;  // wann wurde der Us zuletzt ausgelesen?
 
 // Einstellungen: KICK
@@ -105,11 +105,11 @@ String displayDebug = "";      // unterste Zeile des Bildschirms;
 Adafruit_SSD1306 d(PIN_4);     // OBJEKTINITIALISIERUNG
 
 // Einstellungen: LEDS
-unsigned int animationPos = 1;    // Aktuelle Position in der Animation
 bool stateFine = true;  // liegt kein Fehler vor?
 bool hasBall = false;   // besitzen der Roboter den Ball?
 bool showBottom = true; // sollen die Boden-Leds an sein?
 byte pixyState = 0;     // Verbindungsstatus per Pixy
+unsigned int animationPos = 1;    // Aktuelle Position in der Animation
 
 // Einstellungen: BUZZER
 unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
