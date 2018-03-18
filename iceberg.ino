@@ -30,16 +30,15 @@
 #include <Adafruit_9DOF.h>
 #include <Adafruit_L3GD20_U.h>
 
-bool onLine = false;
-bool isHeadstart = false;
-
 // Einstellungen: FAHREN
-int rotMulti;           // Scalar, um die Rotationswerte zu verstärken
-bool start = false;     // ist der funkstart aktiviert
-int drivePwr = 0;       // maximale Motorstärke [0 bis 255]
-int driveRot = 0;       // korrigiere Kompass
-int driveDir = 0;       // Zielrichtung
-int lineDir = -1;       // Richtung, in der ein Bodensensor ausschlug
+int rotMulti;             // Scalar, um die Rotationswerte zu verstärken
+bool start = false;       // ist der funkstart aktiviert
+bool onLine = false;      // befinden wir uns auf einer Linie?
+bool isHeadstart = false; // fahren wir mit voller Geschwindigkeit?
+int drivePwr = 0;         // maximale Motorstärke [0 bis 255]
+int driveRot = 0;         // korrigiere Kompass
+int driveDir = 0;         // Zielrichtung
+int lineDir = -1;         // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0; // Zeitpunkt des Betätigen des Headstarts
 bool isKeeperLeft = false; // deckten wir zuletzt das Tor mit einer Linksbewegung?
