@@ -13,22 +13,22 @@
 *****************************************************/
 void Led::showStates() {
     // zeige Statuswerte an
-  showLed(info, 0, stateFine);
-  showLed(info, 1, batState * (batState != 3 || millis() % 250 < 125), true);
-  showLed(info, 2, millis() % 1000 < 200, true);
+  showState(info, 0, stateFine);
+  showState(info, 1, batState * (batState != 3 || millis() % 250 < 125), true);
+  showState(info, 2, millis() % 1000 < 200, true);
 
-  showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
-  showLed(matrix, 1, !digitalRead(SWITCH_MOTOR));
-  showLed(matrix, 2, seeBall, true);
-  showLed(matrix, 3, hasBall, true);
-  showLed(matrix, 4, isConnected);
-  //showLed(matrix, 5, Bodensensor verfügbar);
-  //showLed(matrix, 6, lift);
-  showLed(matrix, 7, pixyState, true);
-  showLed(matrix, 8, !onLine);
-  showLed(matrix, 9, seeGoal, true);
-  showLed(matrix, 10, isHeadstart, true);
-  showLed(matrix, 11, usFine, true);
+  showState(matrix, 0, digitalRead(SWITCH_SCHUSS));
+  showState(matrix, 1, !digitalRead(SWITCH_MOTOR));
+  showState(matrix, 2, seeBall, true);
+  showState(matrix, 3, hasBall, true);
+  showState(matrix, 4, isConnected);
+  //showState(matrix, 5, Bodensensor verfügbar);
+  //showState(matrix, 6, lift);
+  showState(matrix, 7, pixyState, true);
+  showState(matrix, 8, !onLine);
+  showState(matrix, 9, seeGoal, true);
+  showState(matrix, 10, isHeadstart, true);
+  showState(matrix, 11, usFine, true);
 }
 
 /*****************************************************

@@ -12,7 +12,7 @@ void startSound() {
 /*****************************************************
   Berechne alle Statuswerte und Zustände
 *****************************************************/
-void Led::calculateStates() {
+void calculateStates() {
   isMotor = m.getMotEn();
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;

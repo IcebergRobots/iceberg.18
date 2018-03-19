@@ -14,7 +14,7 @@ extern unsigned long heartbeatTimer;
 
 // Implementierung: BATTERY
 extern byte batState;
-extern int batVol = 0;
+extern int batVol;
 
 // Implementierung: PIXY
 extern bool seeBall, seeGoal, isDrift;

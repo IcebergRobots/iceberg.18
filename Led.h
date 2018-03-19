@@ -9,20 +9,23 @@
 extern bool onLine, isHeadstart;
 
 // Implementierung: BLUETOOTH, MATE
-bool #isConnected;
+extern bool isConnected;
 
 // Implementierung: PIXY
-bool #seeBall, #seeGoal;
-byte #pixyState;
+extern bool seeBall, seeGoal;
+extern byte pixyState;
 
 // Implementierung: ULTRASCHALL
-bool #usFine;
+extern bool usFine;
 
 // Implementierung: KICK, LIGHT-BARRIER
 bool hasBall;
 
 // Implementierung: LEDS
-bool #stateFine;
+extern bool stateFine;
+extern Adafruit_NeoPixel bottom;
+extern Adafruit_NeoPixel matrix;
+extern Adafruit_NeoPixel info;
 
 class Led
 {
