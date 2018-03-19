@@ -249,63 +249,6 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  // ermittle Statuswerte für Leds
-  hasBall = digitalRead(SWITCH_SCHUSS) && analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
-  seeBall = millis() - seeBallTimer < 50;
-  seeGoal = millis() - seeGoalTimer < 1200;
-  isDrift = millis() - driftTimer < 100;
-  isConnected = millis() - heartbeatTimer < 500;
-  onLine = millis() <= lineTimer;
-  isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
-  batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
-  if (batVol > VOLTAGE_MIN) {
-    batState = 1; // ok
-    if (m.getMotEn()) {
-      if (batVol < VOLTAGE_MOTOR_CRIT) {
-        batState = 3; // kritisch
-      } else if (batVol < VOLTAGE_MOTOR_LOW) {
-        batState = 2; // gering
-      }
-    } else {
-      if (batVol < VOLTAGE_CRIT) {
-        batState = 3; // kritisch
-      } else if (batVol < VOLTAGE_LOW) {
-        batState = 2; // gering
-      }
-    }
-  } else {
-    batState = 0; // no battery
-  }
-
-  if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
-    // Kamera war in den letzen 30 Sekunden bereits aktiv
-    pixyState = 1;
-  } else if (pixyResponseTimer > 0) {
-    // Kamera war seit dem letzten Neustart bereits aktiv
-    pixyState = 2;
-  } else {
-    // Kamera nicht angeschlossen
-    pixyState = 3;
-  }
-
-  // zeige Statuswerte an
-  showLed(info, 0, stateFine);
-  showLed(info, 1, batState * (batState != 3 || millis() % 250 < 125), true);
-  showLed(info, 2, millis() % 1000 < 200, true);
-
-  showLed(matrix, 0, digitalRead(SWITCH_SCHUSS));
-  showLed(matrix, 1, !digitalRead(SWITCH_MOTOR));
-  showLed(matrix, 2, seeBall, true);
-  showLed(matrix, 3, hasBall, true);
-  showLed(matrix, 4, isConnected);
-  //showLed(matrix, 5, Bodensensor verfügbar);
-  //showLed(matrix, 6, lift);
-  showLed(matrix, 7, pixyState, true);
-  showLed(matrix, 8, !onLine);
-  showLed(matrix, 9, seeGoal, true);
-  showLed(matrix, 10, isHeadstart, true);
-  showLed(matrix, 11, true);
-
   // schieße
   if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) {
     kick();
