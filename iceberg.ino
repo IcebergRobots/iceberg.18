@@ -274,29 +274,7 @@ void loop() {
     startTimer = millis();
   }
 
-  // bluetooth senden
-  if (millis() - bluetoothTimer > 100) {
-    bluetoothTimer = millis();
-    byte data[9];
-    data[0] = 'h';
-    if (!m.getMotEn()) {
-      data[1] = 253;  // pause: 253
-    } else if (!seeBall) {
-      data[1] = 2;    // ball blind: 2
-    } else {
-      data[1] = ball < 0;
-      // ball < 0: 0
-      // ball >= 0: 1
-    }
-    data[2] = abs(ball);
-    data[3] = ballWidth % 254;
-    data[4] = ballWidth / 254;
-    data[5] = us[0];
-    data[6] = us[1];
-    data[7] = us[2];
-    data[8] = us[3];
-    mate.send(data, 9); // heartbeat
-  }
+  if (millis() - bluetoothTimer > 100)  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
 
   // bluetooth auslesen
   byte command = mate.receive();

@@ -5,29 +5,6 @@
 
 #include <Adafruit_NeoPixel.h>
 
-// Implementierung: FAHREN
-extern bool onLine, isHeadstart;
-
-// Implementierung: BLUETOOTH, MATE
-extern bool isConnected;
-
-// Implementierung: PIXY
-extern bool seeBall, seeGoal;
-extern byte pixyState;
-
-// Implementierung: ULTRASCHALL
-extern bool usFine;
-
-// Implementierung: KICK, LIGHT-BARRIER
-extern bool hasBall;
-
-// Implementierung: LEDS
-extern bool stateFine;
-extern unsigned int animationPos;
-extern Adafruit_NeoPixel bottom;
-extern Adafruit_NeoPixel matrix;
-extern Adafruit_NeoPixel info;
-
 class Led
 {
   public:

@@ -2,6 +2,8 @@
 
 // Implementierung: OBJEKTE
 extern Pilot m;
+extern Mate mate;
+extern Led led;
 
 void startSound() {
   //Fiepen, welches Programstart signalisiert
@@ -55,3 +57,30 @@ void calculateStates() {
   usFine = us[0] * us[1] * us[2] * us[3] != 0;
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
 }
+
+/*****************************************************
+  Sende einen Herzschlag mit Statusinformationen an den Partner
+*****************************************************/
+void transmitHeartbeat() {
+  bluetoothTimer = millis();
+  byte data[9];
+  data[0] = 'h';
+  if (!m.getMotEn()) {
+    data[1] = 253;  // pause: 253
+  } else if (!seeBall) {
+    data[1] = 2;    // ball blind: 2
+  } else {
+    data[1] = ball < 0;
+    // ball < 0: 0
+    // ball >= 0: 1
+  }
+  data[2] = abs(ball);
+  data[3] = ballWidth % 254;
+  data[4] = ballWidth / 254;
+  data[5] = us[0];
+  data[6] = us[1];
+  data[7] = us[2];
+  data[8] = us[3];
+  mate.send(data, 9); // heartbeat
+}
+

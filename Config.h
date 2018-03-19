@@ -22,6 +22,68 @@
 #include <Adafruit_9DOF.h>
 #include <Adafruit_L3GD20_U.h>
 
+// Implementierung: FAHREN
+extern bool isMotor, start, onLine, isHeadstart, isKeeperLeft;
+extern int rotMulti, drivePwr, driveRot, driveDir, lineDir;
+extern unsigned long lineTimer, headstartTimer, lastKeeperToggle;
+//extern Pilot m;
+
+// Implementierung: KOMPASS
+extern int heading, startHeading, rotation;
+extern Adafruit_9DOF dof;
+extern Adafruit_LSM303_Accel_Unified accel;
+extern Adafruit_LSM303_Mag_Unified mag;
+extern sensors_event_t accel_even, mag_event;
+extern sensors_vec_t orientation;
+
+// Implementierung: BLUETOOTH, MATE
+extern bool isConnected, startLast;
+extern unsigned long startTimer, bluetoothTimer, heartbeatTimer;
+//extern Mate mate;
+
+// Implementierung: WICHTUNG DER PID-REGLER
+extern double pidSetpoint, pidIn, pidOut;
+extern PID myPID;
+
+// Implementierung: BATTERY
+extern byte batState;
+extern int batVol;
+
+// Implementierung: PIXY
+extern bool seeBall, seeGoal, isDrift, driftLeft;
+extern byte pixyState;
+extern int ball, ballWidth, ballSize, goal, goalWidth, goalSize;
+extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
+extern Pixy pixy;
+
+// Implementierung: ULTRASCHALL
+extern bool usFine;
+extern byte us[];
+extern unsigned long usTimer;
+
+// Implementierung: KICK, LIGHT-BARRIER
+extern bool hasBall;
+extern unsigned long kickTimer;
+
+// Implementierung: DISPLAY
+extern bool isTypeA;
+extern unsigned long lastDisplay;
+extern String displayDebug;
+extern Adafruit_SSD1306 d;
+
+// Implementierung: LEDS
+extern bool stateFine;
+extern unsigned int animationPos;
+extern Adafruit_NeoPixel bottom, matrix, info;
+//extern Led led;
+
+// Implementierung: BUZZER
+extern unsigned long buzzerStopTimer;
+
+// Implementierung: ROTARY-ENCODER
+extern RotaryEncoder rotaryEncoder;
+extern int rotaryPosition;
+
 // Fahren
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
