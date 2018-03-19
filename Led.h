@@ -8,9 +8,21 @@
 // Implementierung: FAHREN
 extern bool onLine, isHeadstart;
 
+// Implementierung: BLUETOOTH, MATE
+bool #isConnected;
+
 // Implementierung: PIXY
-bool driftLeft, isDrift, seeBall, seeGoal;
-unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
+bool #seeBall, #seeGoal;
+byte #pixyState;
+
+// Implementierung: ULTRASCHALL
+bool #usFine;
+
+// Implementierung: KICK, LIGHT-BARRIER
+bool hasBall;
+
+// Implementierung: LEDS
+bool #stateFine;
 
 class Led
 {

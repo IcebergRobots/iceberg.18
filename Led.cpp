@@ -28,7 +28,7 @@ void Led::showStates() {
   showLed(matrix, 8, !onLine);
   showLed(matrix, 9, seeGoal, true);
   showLed(matrix, 10, isHeadstart, true);
-  showLed(matrix, 11, true);
+  showLed(matrix, 11, usFine, true);
 }
 
 /*****************************************************

@@ -49,7 +49,6 @@ void Led::calculateStates() {
     // Kamera nicht angeschlossen
     pixyState = 3;
   }
-  usFine = us[0] * us[1] * us[2] * us[3] != 0; 
+  usFine = us[0] * us[1] * us[2] * us[3] != 0;
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
-
 }
