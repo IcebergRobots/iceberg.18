@@ -3,6 +3,31 @@
 
 #include "Config.h"
 
+// Implementierung: FAHREN
+extern bool isMotor, onLine, isHeadstart;
+extern unsigned long lineTimer, headstartTimer;
+extern Pilot m;
+
+// Implementierung: BLUETOOTH, MATE
+extern bool isConnected;
+extern unsigned long heartbeatTimer;
+
+// Implementierung: BATTERY
+extern byte batState;
+extern int batVol = 0;
+
+// Implementierung: PIXY
+extern bool seeBall, seeGoal, isDrift;
+extern byte pixyState;
+extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, pixyResponseTimer;
+
+// Implementierung: ULTRASCHALL
+extern bool usFine;
+extern byte us[];
+
+// Implementierung: KICK, LIGHT-BARRIER
+extern bool hasBall;
+
 void startSound();
 void calculateStates();
 const unsigned char PROGMEM logo[] = {
