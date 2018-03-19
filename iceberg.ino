@@ -206,13 +206,9 @@ void loop() {
     start = false;
   }
 
-  // schuß wieder ausschalten
-  if (millis() - kickTimer > 30) {
-    digitalWrite(SCHUSS, 0);
-  }
+  if (millis() - kickTimer > 30)  digitalWrite(SCHUSS, 0);  // schuß wieder ausschalten
 
-  // buzzer anschalten bzw. wieder ausschalten
-  digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);
+  digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
 
   // regler auslesen
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
@@ -222,10 +218,7 @@ void loop() {
   }
   rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
 
-  // starte Animation
-  if (!digitalRead(BUTTON_1)) {
-    animationPos = 1; // starte die Animation
-  }
+  if (!digitalRead(BUTTON_1)) animationPos = 1; // starte die Animation
 
   // Torrichtung speichern
   if (!digitalRead(BUTTON_2)) {
@@ -238,9 +231,7 @@ void loop() {
   }
 
   // starte den Arduino neu
-  if (!digitalRead(BUTTON_3)) {
-    asm ("jmp 0"); // reset Arduino
-  }
+  if (!digitalRead(BUTTON_3)) asm ("jmp 0"); // reset Arduino
 
   // lösche Bodensensor Cache
   while (BOTTOM_SERIAL > 1) {
@@ -249,30 +240,16 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  // schieße
-  if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) {
-    kick();
-  }
+  if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) kick(); // schieße
 
   calculateStates();  // Berechne alle Statuswerte und Zustände
-  
+
   led.set();  // Lege Leds auf Statusinformation fest
   led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
-  
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  // aktualisiere Pixywerte (max. alle 50ms)
-  if (millis() - pixyTimer > 50) {
-    readPixy();
-  }
+  if (millis() - pixyTimer > 50) readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
-  // lese die Ultraschall Sensoren aus (max. alle 100ms)
-  if (millis() - usTimer > 100) {
-    getUs();
-    usTimer = millis();
-  }
+  if (millis() - usTimer > 100) readUltrasonic(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
@@ -536,10 +513,7 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  // aktualisiere Bildschirm und LEDs
-  if (millis() - lastDisplay > 40) {
-    updateDisplay();
-  }
+  if (millis() - lastDisplay > 40)  updateDisplay();   // aktualisiere Bildschirm und LEDs
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
   //debugln();
@@ -584,6 +558,8 @@ void setupMessage(byte pos, String title, String description) {
 
 // Infos auf dem Bildschirm anzeigen
 void updateDisplay() {
+  lastDisplay = millis(); // merke Zeitpunkt
+  
   String myTime = "";
   int min = numberOfMinutes(millis());
   if (min < 10) {
@@ -744,7 +720,6 @@ void updateDisplay() {
 
   d.invertDisplay(m.getMotEn());
   d.display();      // aktualisiere Display
-  lastDisplay = millis();
 }
 
 // Roboter mittels PID-Regler zum Tor ausrichten
@@ -805,6 +780,9 @@ int ausrichten() {
   4        2              blue
 *****************************************************/
 void readPixy() {
+  pixyTimer = millis(); // merke Zeitpunkt
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+
   pixy.setLED(0, 0, 0); // schalte die Front-LED aus
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
@@ -831,7 +809,6 @@ void readPixy() {
     }
   }
 
-  pixyTimer = millis();
   if (ballSizeMax > 0) {
     ballSize = ballSizeMax;
     seeBallTimer = millis();
@@ -844,7 +821,7 @@ void readPixy() {
 
 }
 
-bool getUs() {
+bool readUltrasonic() {
   /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
       empfängt und speichern diese Werte im globalen Array us[]:
           1
@@ -855,6 +832,9 @@ bool getUs() {
            3
       gibt zurück, ob Daten empfangen wurden
   */
+  usTimer = millis(); // merke Zeitpunkt
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
   usTimer = millis();
   while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
