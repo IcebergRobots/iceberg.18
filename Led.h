@@ -16,7 +16,6 @@ class Led
 {
   public:
     Led();
-    void calculateStates();
     void showStates();
     void showState(Adafruit_NeoPixel & board, byte pos, byte state, bool showRed);
     void showState(Adafruit_NeoPixel & board, byte pos, byte state);

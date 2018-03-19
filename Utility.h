@@ -2,14 +2,9 @@
 #define Utility_h
 
 #include "Config.h"
-#include <Adafruit_NeoPixel.h>
 
 void startSound();
-void showLed(Adafruit_NeoPixel & board, byte pos, byte state, bool showRed);
-void showLed(Adafruit_NeoPixel & board, byte pos, byte state);
-void wheelBoard(Adafruit_NeoPixel & board, int boardLength, int offset);
-void turnOffBoard(Adafruit_NeoPixel & board, int boardLength);
-uint32_t wheelToColor(Adafruit_NeoPixel & board, byte pos);
+void calculateStates();
 const unsigned char PROGMEM logo[] = {
 0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 0x00,0x00,0x00,0x06,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,

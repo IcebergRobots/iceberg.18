@@ -11,58 +11,6 @@
   3: rot
   @param hideRed: soll rot unsichtbar sein?
 *****************************************************/
-void Led::calculateStates() {
-    // ermittle Statuswerte für Leds
-  hasBall = digitalRead(SWITCH_SCHUSS) && analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
-  seeBall = millis() - seeBallTimer < 50;
-  seeGoal = millis() - seeGoalTimer < 1200;
-  isDrift = millis() - driftTimer < 100;
-  isConnected = millis() - heartbeatTimer < 500;
-  onLine = millis() <= lineTimer;
-  isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
-  batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
-  if (batVol > VOLTAGE_MIN) {
-    batState = 1; // ok
-    if (m.getMotEn()) {
-      if (batVol < VOLTAGE_MOTOR_CRIT) {
-        batState = 3; // kritisch
-      } else if (batVol < VOLTAGE_MOTOR_LOW) {
-        batState = 2; // gering
-      }
-    } else {
-      if (batVol < VOLTAGE_CRIT) {
-        batState = 3; // kritisch
-      } else if (batVol < VOLTAGE_LOW) {
-        batState = 2; // gering
-      }
-    }
-  } else {
-    batState = 0; // no battery
-  }
-
-  if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
-    // Kamera war in den letzen 30 Sekunden bereits aktiv
-    pixyState = 1;
-  } else if (pixyResponseTimer > 0) {
-    // Kamera war seit dem letzten Neustart bereits aktiv
-    pixyState = 2;
-  } else {
-    // Kamera nicht angeschlossen
-    pixyState = 3;
-  }
-}
-
-/*****************************************************
-  Led zeigt rot, grün oder aus
-  @param board: Led-Board
-  @param pos: Nummer der Led im Board
-  @param (optional) state: darzustellender Zustand
-  0: rot/aus
-  1: grün
-  2: magenta
-  3: rot
-  @param hideRed: soll rot unsichtbar sein?
-*****************************************************/
 void Led::showStates() {
     // zeige Statuswerte an
   showLed(info, 0, stateFine);
