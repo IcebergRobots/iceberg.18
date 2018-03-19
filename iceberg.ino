@@ -279,16 +279,16 @@ void loop() {
   // bluetooth auslesen
   byte command = mate.receive();
   switch (command) {
-    case 104: // heartbeat
+    case 'h': // heartbeat
       heartbeatTimer = millis();
       if (mate.motEn) {
         start = true;
       }
       break;
-    case 115: // start
+    case 's': // start
       start = true;
       break;
-    case 98: // brake
+    case 'b': // brake
       start = false;
       if (digitalRead(SWITCH_KEEPER)) {
         m.brake(true);
