@@ -254,8 +254,10 @@ void loop() {
     kick();
   }
 
-  calculateStates();
-  led.showStates();
+  calculateStates();  // Berechne alle Statuswerte und Zustände
+  
+  led.set();  // Lege Leds auf Statusinformation fest
+  led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
   
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 

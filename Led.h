@@ -34,7 +34,7 @@ class Led
     Led();
     
     void led();
-    void showStates();
+    void set();
     void showState(Adafruit_NeoPixel & board, byte pos, byte state, bool showRed);
     void showState(Adafruit_NeoPixel & board, byte pos, byte state);
     void wheelBoard(Adafruit_NeoPixel & board, int boardLength, int offset);

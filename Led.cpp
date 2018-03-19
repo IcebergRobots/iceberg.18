@@ -51,17 +51,9 @@ void Led::led() {
 }
 
 /*****************************************************
-  Led zeigt rot, grün oder aus
-  @param board: Led-Board
-  @param pos: Nummer der Led im Board
-  @param (optional) state: darzustellender Zustand
-  0: rot/aus
-  1: grün
-  2: magenta
-  3: rot
-  @param hideRed: soll rot unsichtbar sein?
+  Lege Leds auf Statusinformation fest
 *****************************************************/
-void Led::showStates() {
+void Led::set() {
     // zeige Statuswerte an
   showState(info, 0, stateFine);
   showState(info, 1, batState * (batState != 3 || millis() % 250 < 125), true);
