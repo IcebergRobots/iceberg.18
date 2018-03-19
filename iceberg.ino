@@ -26,7 +26,7 @@ int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0; // Zeitpunkt des Betätigen des Headstarts
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
-Pilot m;                // OBJEKTINITIALISIERUNG
+Pilot m;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: KOMPASS
 int heading = 0;                    // Wert des Kompass
@@ -76,7 +76,7 @@ unsigned long ballLeftTimer = 0;  // Zeitpunkt wann der Ball zuletzt links war
 unsigned long ballRightTimer = 0; // Zeitpunkt wann der Ball zuletzt rechts war
 unsigned long pixyResponseTimer = 0;  // Zeitpunkt der letzten Antwort der Pixy
 unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
-Pixy pixy;                    // OBJEKTINITIALISIERUNG
+Pixy pixy;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: ULTRASCHALL
 bool usFine = false;                // sind alle Ultraschallsensoren funktionstüchtig
@@ -91,7 +91,7 @@ unsigned long kickTimer = 0;  // Zeitpunkt des letzten Schießens
 bool isTypeA; // ist das Roboter A?
 unsigned long lastDisplay = 0; // Zeitpunkt des letzten Displayaktualisierens
 String displayDebug = "";      // unterste Zeile des Bildschirms;
-Adafruit_SSD1306 d = Adafruit_SSD1306(PIN_4);     // OBJEKTINITIALISIERUNG
+Adafruit_SSD1306 d = Adafruit_SSD1306(PIN_4); // OBJEKTINITIALISIERUNG
 
 // Globale Definition: LEDS
 bool stateFine = true;  // liegt kein Fehler vor?
@@ -99,6 +99,7 @@ unsigned int animationPos = 1;    // Aktuelle Position in der Animation
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(MATRIX_LENGTH, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
 Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_KHZ800);       // OBJEKTINITIALISIERUNG (STATUS-LEDS)
+Led led;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: BUZZER
 unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
@@ -253,8 +254,9 @@ void loop() {
     kick();
   }
 
-  updateLeds();
-
+  calculateStates();
+  led.showStates();
+  
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // aktualisiere Pixywerte (max. alle 50ms)
