@@ -1,5 +1,8 @@
 #include "Utility.h"
 
+// Implementierung: OBJEKTE
+extern Pilot m;
+
 void startSound() {
   //Fiepen, welches Programstart signalisiert
   for (int i = 10; i < 2000; i += 10) {

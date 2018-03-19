@@ -6,7 +6,6 @@
 // Implementierung: FAHREN
 extern bool isMotor, onLine, isHeadstart;
 extern unsigned long lineTimer, headstartTimer;
-extern Pilot m;
 
 // Implementierung: BLUETOOTH, MATE
 extern bool isConnected;

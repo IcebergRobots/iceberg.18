@@ -1,5 +1,55 @@
 #include "Led.h"
 
+Led::Led() {}
+
+/*****************************************************
+  Aktualisiere alle Leds bzw. zeige die Animation
+*****************************************************/
+void Led::led() {
+  if (animationPos == 0 || !ANIMATION) {
+    // setze Helligkeit zurück
+    bottom.setBrightness(BOTTOM_BRIGHTNESS);
+    matrix.setBrightness(MATRIX_BRIGHTNESS);
+    info.setBrightness(INFO_BRIGHTNESS);
+
+    // setze Boden-Leds
+    for (byte i = 0; i < BOTTOM_LENGTH; i++) {
+      if (!digitalRead(SWITCH_BODENS)) {
+        bottom.setPixelColor(i, 0, 0, 0);
+      } else if (!digitalRead(SWITCH_A)) {
+        bottom.setPixelColor(i, 255, 0, 0);
+      } else {
+        bottom.setPixelColor(i, 255, 255, 255);
+      }
+    }
+  } else {
+    // setze Helligkeit maximal
+    bottom.setBrightness(255);
+    matrix.setBrightness(255);
+    info.setBrightness(255);
+
+    // setze den Farbkreis
+    wheelBoard(bottom, BOTTOM_LENGTH, animationPos);
+    wheelBoard(matrix, MATRIX_LENGTH, animationPos);
+    wheelBoard(info, INFO_LENGTH, animationPos);
+
+    // erhöhe die Position in der Animation
+    animationPos += 1 + animationPos * ANIMATION_SPEED;
+
+    // beende die Animation
+    if (animationPos > 4000) {
+      turnOffBoard(bottom, BOTTOM_LENGTH);
+      turnOffBoard(matrix, MATRIX_LENGTH);
+      turnOffBoard(info, INFO_LENGTH);
+      animationPos = 0;
+    }
+  }
+  // übernehme alle Änderungen
+  bottom.show();
+  matrix.show();
+  info.show();
+}
+
 /*****************************************************
   Led zeigt rot, grün oder aus
   @param board: Led-Board
