@@ -12,5 +12,6 @@ void avoidLine();
 void kick();
 int getCompassHeading();
 void buzzerTone(int duration);
-
+int ausrichten();
+void readPixy();
 #endif
