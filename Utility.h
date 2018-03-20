@@ -7,4 +7,10 @@ void startSound();
 void calculateStates();
 void transmitHeartbeat();
 void setupMotor();
+bool readUltrasonic();
+void avoidLine();
+void kick();
+int getCompassHeading();
+void buzzerTone(int duration);
+
 #endif

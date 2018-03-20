@@ -9,9 +9,12 @@ class Display: public Adafruit_SSD1306
 {
   public:
     Display(int resetPin) : Adafruit_SSD1306(resetPin) {}
-    
+
     void init();
+    void setupMessage(byte pos, String title, String description);
+    void update();
   private:
+    String intToStr(int number);
 };
 
 const unsigned char PROGMEM logo[] = {

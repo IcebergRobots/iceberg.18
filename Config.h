@@ -34,7 +34,7 @@ extern int heading, startHeading, rotation;
 extern Adafruit_9DOF dof;
 extern Adafruit_LSM303_Accel_Unified accel;
 extern Adafruit_LSM303_Mag_Unified mag;
-extern sensors_event_t accel_even, mag_event;
+extern sensors_event_t accel_event, mag_event;
 extern sensors_vec_t orientation;
 
 // Implementierung: BLUETOOTH, MATE

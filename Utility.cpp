@@ -1,6 +1,7 @@
 #include "Utility.h"
 
 // Implementierung: OBJEKTE
+extern Display d;
 extern Pilot m;
 extern Mate mate;
 extern Led led;
@@ -94,4 +95,93 @@ void setupMotor() {
   m.setPins(1, FWD1, BWD1, PWM1);
   m.setPins(2, FWD2, BWD2, PWM2);
   m.setPins(3, FWD3, BWD3, PWM3);
+}
+
+bool readUltrasonic() {
+  /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
+      empfängt und speichern diese Werte im globalen Array us[]:
+          1
+         .--.
+        /    \ 0
+      2 \    /
+         '--'
+           3
+      gibt zurück, ob Daten empfangen wurden
+  */
+  usTimer = millis(); // merke Zeitpunkt
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+
+  digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
+  usTimer = millis();
+  while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
+    if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
+      while (US_SERIAL.available() > 4) {
+        US_SERIAL.read();
+
+      }
+      for (byte i = 0; i < 4; i++) {
+        us[i] = US_SERIAL.read();
+      }
+      digitalWrite(INT_US, 0);  // beende das Interrupt Signal
+      return true;
+    }
+  }
+  digitalWrite(INT_US, 0);  // beende das Interrupt Signal
+  return false; // keine Daten konnten emopfangen werden
+}
+
+
+
+void avoidLine() {
+  digitalWrite(BUZZER_AKTIV, HIGH);
+  while (BOTTOM_SERIAL.available() > 1) {
+    BOTTOM_SERIAL.read();
+  }
+  if (BOTTOM_SERIAL.available() > 0) {
+    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
+    driveDir = lineDir;
+    m.drive(driveDir, SPEED_LINE, 0);
+    lineTimer = millis();
+    headstartTimer = 0;
+    if (drivePwr > 200) {
+      lineTimer = millis() + (2 * LINE_DURATION);
+    } else if (drivePwr > 100) {
+      lineTimer = millis() + (1.5 * LINE_DURATION);
+    } else {
+      lineTimer = millis() + LINE_DURATION;
+    }
+    displayDebug = driveDir;
+  }
+
+
+}
+
+void kick() {
+  if (millis() - kickTimer > 333 && digitalRead(SWITCH_SCHUSS)) {
+    digitalWrite(SCHUSS, 1);
+    kickTimer = millis();
+  }
+}
+
+int getCompassHeading() {
+  // kompasswert [-180 bis 180]
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+  accel.getEvent(&accel_event);
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+
+  mag.getEvent(&mag_event);
+
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+
+  if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
+    rotaryEncoder.tick(); // erkenne Reglerdrehungen
+    return (((int)orientation.heading - startHeading + 720) % 360) - 180;
+  } else {
+    stateFine = false;
+  }
+}
+
+void buzzerTone(int duration) {
+  digitalWrite(BUZZER_AKTIV, 1);
+  buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
 }

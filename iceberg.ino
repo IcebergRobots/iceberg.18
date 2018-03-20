@@ -135,21 +135,21 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(INT_BODENSENSOR), avoidLine, RISING);
 
   // setzte die PinModes
-  setupMessage(1, "PIN", "pinModes");
+  d.setupMessage(1, "PIN", "pinModes");
   pinModes();
   isTypeA = digitalRead(TYPE); // lies den Hardware Jumper aus
 
   // setzte Pins und Winkel des Pilot Objekts
-  setupMessage(2, "MOTOR", "setPins");
+  d.setupMessage(2, "MOTOR", "setPins");
   setupMotor();
 
   // initialisiere Kamera
-  setupMessage(3, "PIXY", "Kamera");
+  d.setupMessage(3, "PIXY", "Kamera");
   pixy.init();
   pixy.setLED(0, 0, 0); // schalte die Hauptled der Pixy aus
 
   // lies EEPROM aus
-  setupMessage(4, "EEPROM", "auslesen");
+  d.setupMessage(4, "EEPROM", "auslesen");
   if (EEPROM.read(0) == 0) {
     startHeading = EEPROM.read(1);
   } else {
@@ -157,37 +157,37 @@ void setup() {
   }
 
   // initialisiere Beschleunigungssensor
-  setupMessage(5, "ACCEL", "Beschleunigungssensor");
+  d.setupMessage(5, "ACCEL", "Beschleunigungssensor");
   if (!accel.begin()) {
     stateFine = false;
-    setupMessage(5, "ACCEL", "failed");
+    d.setupMessage(5, "ACCEL", "failed");
   }
 
   // initialisiere Magnetfeldsensor
-  setupMessage(6, "MAG", "Magnetfeldsensor");
+  d.setupMessage(6, "MAG", "Magnetfeldsensor");
   if (!mag.begin()) {
     stateFine = false;
-    setupMessage(6, "MAG", "failed");
+    d.setupMessage(6, "MAG", "failed");
   }
   delay(1);
 
   // initialisiere Kompasssensor
-  setupMessage(7, "COMPASS", "Orientierung");
+  d.setupMessage(7, "COMPASS", "Orientierung");
   mag.enableAutoRange(true);  // aktiviere automatisches Messen
   heading = getCompassHeading();  // lies Kompassrichtung aus
 
   // initialisiere PID-Regler
-  setupMessage(8, "PID", "Rotation");
+  d.setupMessage(8, "PID", "Rotation");
   pidSetpoint = 0;
   myPID.SetMode(AUTOMATIC);
   myPID.SetOutputLimits(-255, 255);
 
   // initialisiere Leds
-  setupMessage(9, "LED", "Animation");
+  d.setupMessage(9, "LED", "Animation");
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  setupMessage(10, "DONE", "");
+  d.setupMessage(10, "DONE", "");
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
@@ -491,7 +491,7 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (millis() - lastDisplay > 40)  updateDisplay();   // aktualisiere Bildschirm und LEDs
+  if (millis() - lastDisplay > 40)  d.update();   // aktualisiere Bildschirm und LEDs
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
   //debugln();
@@ -499,188 +499,6 @@ void loop() {
 }
 
 //###################################################################################################
-
-void setupMessage(byte pos, String title, String description) {
-  d.fillRect(47, 0, 81, 31, BLACK); // lösche das Textfeld
-  d.drawRect(46, 29, map(pos, 0, SETUP_MESSAGE_RANGE, 0, 82), 2, WHITE);
-  d.setTextColor(WHITE);
-
-  d.setTextSize(2);
-  d.setCursor(47, 0);
-  d.print(title.substring(0, 6));
-
-  d.setTextSize(1);
-  d.setCursor(47, 17);
-  d.print(description.substring(0, 13));
-
-  d.display();
-}
-
-// Infos auf dem Bildschirm anzeigen
-void updateDisplay() {
-  lastDisplay = millis(); // merke Zeitpunkt
-
-  String myTime = "";
-  int min = numberOfMinutes(millis());
-  if (min < 10) {
-    myTime += "0";
-  }
-  myTime += String(min) + ":";
-  int sec = numberOfSeconds(millis());
-  if (sec < 10) {
-    myTime += "0";
-  }
-  myTime += String(sec);
-
-  d.clearDisplay();
-  d.setTextColor(WHITE);
-  d.setTextSize(1);
-  d.setCursor(3, 3);
-  if (isTypeA) {
-    d.println("IcebergRobotsA " + myTime);
-  } else {
-    d.println("IcebergRobotsB " + myTime);
-  }
-  if (heading < -135) { // zeige einen Punkt, der zum Tor zeigt
-    d.drawRect(map(heading, -180, -134, 63 , 125), 61, 2, 2, WHITE); //unten (rechte Hälfte)
-  } else if (heading < -45) {
-    d.drawRect(125, map(heading, -135, -44, 61, 0), 2, 2, WHITE); //rechts
-  } else if (heading < 45) {
-    d.drawRect(map(heading, -45, 44, 125, 0), 0, 2, 2, WHITE); //oben
-  } else if (heading < 135) {
-    d.drawRect(0, map(heading, 45, 134, 0, 61), 2, 2, WHITE); //links
-  } else if (heading < 180) {
-    d.drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
-  }
-  d.setTextSize(2);
-  d.setCursor(3, 14);
-  if (seeBall) {
-    d.println("Ball");
-    d.setCursor(50, 20);
-    d.setTextSize(1);
-    d.println(ball);
-    d.drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
-  } else {
-    d.println("Ball:blind");
-  }
-  d.setTextSize(2);
-  d.drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
-
-  String name1 = "";
-  String name2 = "";
-  String value1 = "";
-  String value2 = "";
-
-  switch (rotaryPosition) {
-    case 0:
-      name1 = "Dir:";
-      value1 = String(driveDir);
-      if (batState == 2) {
-        name2 = "lowVoltage";
-      } else {
-        name2 = String(displayDebug);
-      }
-      break;
-    case 1:
-      name1 = "^";
-      value1 = ">";
-      name2 = "<";
-      value2 = "v";
-      d.setCursor(21, 30);
-      d.print(us[1] + String("   ").substring(0, 3 - String(us[1]).length() ));
-      d.print(String("    ").substring(0, 4 - String(us[0]).length()) + String(us[0]) );
-      d.setCursor(21, 46);
-      d.print(us[2] + String("   ").substring(0, 3 - String(us[2]).length() ));
-      d.print(String("    ").substring(0, 4 - String(us[3]).length()) + String(us[3]));
-      break;
-    case 2:
-      name1 = "dPwr:";
-      value1 = intToStr(drivePwr);   // drive power
-      name2 = "dRot:";
-      value2 = intToStr(driveRot);   // drive rotation
-      break;
-    case 3:
-      name1 = "rotMp:";
-      value1 = intToStr(rotMulti);  // ratation multiplier
-      name2 = "balX:";
-      value2 = intToStr(ball);   // ball angle
-      break;
-    case 4:
-      name1 = "t:";
-      value1 = String(millis()); // ratation multiplier
-      name2 = "headi:";
-      value2 = intToStr(heading);  // heading
-      break;
-    case 5:
-      name1 = "batVo:";
-      value1 = String(batVol / 10) + "." + String(batVol % 10); // bluetooth command
-      name2 = "start:";
-      value2 = String(start);      // start
-      break;
-    case 6:
-      name1 = "bWid:";
-      value1 = String(ballWidth);  // ball box width
-      name2 = "bSiz:";
-      value2 = String(ballSize);  // ball box height*width
-      break;
-    case 7:
-      name1 = "gWid";
-      value1 = String(goalWidth);
-      name2 = "gSiz";
-      value2 = String(goalSize);
-      break;
-    case 8:
-      name1 = "gX:";
-      value1 = intToStr(goal);
-      // 3 - 123
-      int goalLeft;
-      goalLeft = X_CENTER + goal - goalWidth / 2;
-      goalLeft = constrain(map(goalLeft, PIXY_MIN_X, PIXY_MAX_X, 3, 123), 3, 123);
-      d.fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
-      break;
-    case 9:
-      name1 = "Mball:";
-      if (mate.seeBall) {
-        value1 = intToStr(mate.ball);
-      } else {
-        value1 = "blind";
-      }
-      name2 = "Mwid:";
-      value2 = String(mate.ballWidth);
-      break;
-    case 10:
-      name1 = "^";
-      value1 = ">";
-      name2 = "<";
-      value2 = "v";
-      d.setCursor(21, 30);
-      d.print(mate.us[1] + String("   ").substring(0, 3 - String(mate.us[1]).length() ));
-      d.print(String("M   ").substring(0, 4 - String(mate.us[0]).length()) + String(mate.us[0]) );
-      d.setCursor(21, 46);
-      d.print(mate.us[2] + String("   ").substring(0, 3 - String(mate.us[2]).length() ));
-      d.print(String("M   ").substring(0, 4 - String(mate.us[3]).length()) + String(mate.us[3]));
-      break;
-  }
-
-  name1 += String("          ").substring(0, max(0, 10 - name1.length() - value1.length()));
-  name1 = String(name1 + value1).substring(0, 10);
-  name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
-  name2 = String(name2 + value2).substring(0, 10);
-  if (batState == 3) {
-    if (255 * (millis() % 250 < 170)) {
-      name2 = "critVoltag";
-    } else {
-      name2 = "";
-    }
-  }
-  d.setCursor(3, 30);
-  d.print(name1);
-  d.setCursor(3, 46);
-  d.print(name2);
-
-  d.invertDisplay(m.getMotEn());
-  d.display();      // aktualisiere Display
-}
 
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten() {
@@ -779,101 +597,4 @@ void readPixy() {
     seeGoalTimer = millis();
   }
 
-}
-
-bool readUltrasonic() {
-  /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
-      empfängt und speichern diese Werte im globalen Array us[]:
-          1
-         .--.
-        /    \ 0
-      2 \    /
-         '--'
-           3
-      gibt zurück, ob Daten empfangen wurden
-  */
-  usTimer = millis(); // merke Zeitpunkt
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
-  digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
-  usTimer = millis();
-  while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
-    if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
-      while (US_SERIAL.available() > 4) {
-        US_SERIAL.read();
-
-      }
-      for (byte i = 0; i < 4; i++) {
-        us[i] = US_SERIAL.read();
-      }
-      digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-      return true;
-    }
-  }
-  digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-  return false; // keine Daten konnten emopfangen werden
-}
-
-
-
-void avoidLine() {
-  digitalWrite(BUZZER_AKTIV, HIGH);
-  while (BOTTOM_SERIAL.available() > 1) {
-    BOTTOM_SERIAL.read();
-  }
-  if (BOTTOM_SERIAL.available() > 0) {
-    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
-    driveDir = lineDir;
-    m.drive(driveDir, SPEED_LINE, 0);
-    lineTimer = millis();
-    headstartTimer = 0;
-    if (drivePwr > 200) {
-      lineTimer = millis() + (2 * LINE_DURATION);
-    } else if (drivePwr > 100) {
-      lineTimer = millis() + (1.5 * LINE_DURATION);
-    } else {
-      lineTimer = millis() + LINE_DURATION;
-    }
-    displayDebug = driveDir;
-  }
-
-
-}
-
-void kick() {
-  if (millis() - kickTimer > 333 && digitalRead(SWITCH_SCHUSS)) {
-    digitalWrite(SCHUSS, 1);
-    kickTimer = millis();
-  }
-}
-
-int getCompassHeading() {
-  // kompasswert [-180 bis 180]
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-  accel.getEvent(&accel_event);
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
-  mag.getEvent(&mag_event);
-
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
-  if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
-    rotaryEncoder.tick(); // erkenne Reglerdrehungen
-    return (((int)orientation.heading - startHeading + 720) % 360) - 180;
-  } else {
-    stateFine = false;
-  }
-}
-
-String intToStr(int number) {
-  if (number < 0) {
-    return String(number);
-  } else {
-    return "+" + String(number);
-  }
-}
-
-void buzzerTone(int duration) {
-  digitalWrite(BUZZER_AKTIV, 1);
-  buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
 }
