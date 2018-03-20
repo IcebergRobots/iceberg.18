@@ -9,6 +9,8 @@ class Display: public Adafruit_SSD1306
 {
   public:
     Display(int resetPin) : Adafruit_SSD1306(resetPin) {}
+    
+    void init();
   private:
 };
 

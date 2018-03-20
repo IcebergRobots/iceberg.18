@@ -116,7 +116,7 @@ void setup() {
   pixyResponseTimer = SPI.transfer(0x00) == 255;
 
   // initialisiere Display mit Iceberg Schriftzug
-  setupDisplay();
+  d.init();
 
   // Roboter bremst aktiv
   m.brake(true);
@@ -499,14 +499,6 @@ void loop() {
 }
 
 //###################################################################################################
-
-// Bildschirm konfigurieren und Startschriftzug zeigen
-void setupDisplay() {
-  d.begin(SSD1306_SWITCHCAPVCC, 0x3C);  //Initialisieren des Displays
-  d.clearDisplay();
-  d.drawBitmap(0, 0, logo, 114, 64, WHITE);
-  d.display();          //wendet Aenderungen an
-}
 
 void setupMessage(byte pos, String title, String description) {
   d.fillRect(47, 0, 81, 31, BLACK); // lösche das Textfeld
