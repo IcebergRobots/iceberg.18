@@ -2,6 +2,7 @@
 #define Config_h
 
 #include "Arduino.h"
+#include "Display.h"
 #include "Led.h"
 #include "Pilot.h"
 #include "Mate.h"
@@ -69,7 +70,7 @@ extern unsigned long kickTimer;
 extern bool isTypeA;
 extern unsigned long lastDisplay;
 extern String displayDebug;
-extern Adafruit_SSD1306 d;
+//extern Display d;
 
 // Implementierung: LEDS
 extern bool stateFine;

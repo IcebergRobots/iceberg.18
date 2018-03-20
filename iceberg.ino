@@ -91,7 +91,7 @@ unsigned long kickTimer = 0;  // Zeitpunkt des letzten Schießens
 bool isTypeA; // ist das Roboter A?
 unsigned long lastDisplay = 0; // Zeitpunkt des letzten Displayaktualisierens
 String displayDebug = "";      // unterste Zeile des Bildschirms;
-Adafruit_SSD1306 d = Adafruit_SSD1306(PIN_4); // OBJEKTINITIALISIERUNG
+Display d = Display(PIN_4); // OBJEKTINITIALISIERUNG
 
 // Globale Definition: LEDS
 bool stateFine = true;  // liegt kein Fehler vor?
