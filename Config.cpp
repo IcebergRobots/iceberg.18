@@ -34,7 +34,7 @@ void pinModes() {
   pinMode(J_A8,				    INPUT);
   pinMode(J_A9,				    INPUT);
 
-  pinMode(INT_BODENSENSOR,INPUT);
+  pinMode(INT_BODENSENSOR, INPUT);
   pinMode(INT_US,			    OUTPUT);
 
   pinMode(SCHUSS,			    OUTPUT);

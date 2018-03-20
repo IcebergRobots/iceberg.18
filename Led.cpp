@@ -54,7 +54,7 @@ void Led::led() {
   Lege Leds auf Statusinformation fest
 *****************************************************/
 void Led::set() {
-    // zeige Statuswerte an
+  // zeige Statuswerte an
   showState(info, 0, stateFine);
   showState(info, 1, batState * (batState != 3 || millis() % 250 < 125), true);
   showState(info, 2, millis() % 1000 < 200, true);

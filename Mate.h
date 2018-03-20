@@ -9,7 +9,7 @@ class Mate
 {
   public:
     Mate();
-  
+
     void send(byte * data, byte numberOfElements);
     byte cache();
     byte receive();

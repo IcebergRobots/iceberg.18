@@ -9,7 +9,7 @@ class Led
 {
   public:
     Led();
-    
+
     void led();
     void set();
     void showState(Adafruit_NeoPixel & board, byte pos, byte state, bool showRed);

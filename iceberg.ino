@@ -527,7 +527,7 @@ void setupMessage(byte pos, String title, String description) {
 // Infos auf dem Bildschirm anzeigen
 void updateDisplay() {
   lastDisplay = millis(); // merke Zeitpunkt
-  
+
   String myTime = "";
   int min = numberOfMinutes(millis());
   if (min < 10) {
