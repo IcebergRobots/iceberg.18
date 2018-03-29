@@ -75,6 +75,7 @@ extern String displayDebug;
 // Implementierung: LEDS
 extern bool stateFine;
 extern unsigned int animationPos;
+extern unsigned long ledTimer;
 extern Adafruit_NeoPixel bottom, matrix, info;
 //extern Led led;
 

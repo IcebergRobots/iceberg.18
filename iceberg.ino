@@ -94,8 +94,9 @@ String displayDebug = "";      // unterste Zeile des Bildschirms;
 Display d = Display(PIN_4); // OBJEKTINITIALISIERUNG
 
 // Globale Definition: LEDS
-bool stateFine = true;  // liegt kein Fehler vor?
-unsigned int animationPos = 1;    // Aktuelle Position in der Animation
+bool stateFine = true;          // liegt kein Fehler vor?
+unsigned int animationPos = 1;  // Aktuelle Position in der Animation
+unsigned long ledTimer = 0;     // Zeitpunkt der letzten Led-Aktualisierung
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(MATRIX_LENGTH, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
 Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_KHZ800);       // OBJEKTINITIALISIERUNG (STATUS-LEDS)
@@ -196,6 +197,9 @@ void setup() {
 //###################################################################################################
 
 void loop() {
+  debug(millis());
+  debug(" ");
+
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // starte über Funk wenn Schalter Keeper aktiviert
@@ -244,10 +248,16 @@ void loop() {
 
   calculateStates();  // Berechne alle Statuswerte und Zustände
 
-  led.set();  // Lege Leds auf Statusinformation fest
-  led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
+  if (millis() - ledTimer > 500) {
+    debug("led ");
+    led.set();  // Lege Leds auf Statusinformation fest
+    led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
+  }
 
-  if (millis() - pixyTimer > 50) readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
+  if (millis() - pixyTimer > 50) {
+    debug("pixy ");
+    readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
+  }
 
   if (millis() - usTimer > 100) readUltrasonic(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
 
@@ -491,9 +501,12 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (millis() - lastDisplay > 40)  d.update();   // aktualisiere Bildschirm und LEDs
+  if (millis() - lastDisplay > 200) {
+    debug("display ");
+    d.update();   // aktualisiere Bildschirm und LEDs
+  }
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
-  //debugln();
 
+  debugln();
 }

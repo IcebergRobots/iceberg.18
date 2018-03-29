@@ -48,6 +48,7 @@ void Led::led() {
   bottom.show();
   matrix.show();
   info.show();
+  ledTimer = millis();
 }
 
 /*****************************************************

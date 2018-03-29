@@ -30,8 +30,6 @@ void Display::setupMessage(byte pos, String title, String description) {
 
 // Infos auf dem Bildschirm anzeigen
 void Display::update() {
-  lastDisplay = millis(); // merke Zeitpunkt
-
   String myTime = "";
   int min = numberOfMinutes(millis());
   if (min < 10) {
@@ -192,6 +190,8 @@ void Display::update() {
 
   invertDisplay(m.getMotEn());
   display();      // aktualisiere Display
+  
+  lastDisplay = millis(); // merke Zeitpunkt
 }
 
 String Display::intToStr(int number) {

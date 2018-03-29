@@ -63,7 +63,6 @@ void calculateStates() {
   Sende einen Herzschlag mit Statusinformationen an den Partner
 *****************************************************/
 void transmitHeartbeat() {
-  bluetoothTimer = millis();
   byte data[9];
   data[0] = 'h';
   if (!m.getMotEn()) {
@@ -83,6 +82,7 @@ void transmitHeartbeat() {
   data[7] = us[2];
   data[8] = us[3];
   mate.send(data, 9); // heartbeat
+  bluetoothTimer = millis();
 }
 
 /*****************************************************
@@ -108,11 +108,9 @@ bool readUltrasonic() {
            3
       gibt zurück, ob Daten empfangen wurden
   */
-  usTimer = millis(); // merke Zeitpunkt
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
-  usTimer = millis();
   while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
       while (US_SERIAL.available() > 4) {
@@ -123,10 +121,12 @@ bool readUltrasonic() {
         us[i] = US_SERIAL.read();
       }
       digitalWrite(INT_US, 0);  // beende das Interrupt Signal
+      usTimer = millis(); // merke Zeitpunkt
       return true;
     }
   }
   digitalWrite(INT_US, 0);  // beende das Interrupt Signal
+  usTimer = millis(); // merke Zeitpunkt
   return false; // keine Daten konnten emopfangen werden
 }
 
@@ -245,7 +245,6 @@ int ausrichten() {
   4        2              blue
 *****************************************************/
 void readPixy() {
-  pixyTimer = millis(); // merke Zeitpunkt
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   pixy.setLED(0, 0, 0); // schalte die Front-LED aus
@@ -284,4 +283,5 @@ void readPixy() {
     seeGoalTimer = millis();
   }
 
+  pixyTimer = millis(); // merke Zeitpunkt
 }
