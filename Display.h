@@ -16,14 +16,13 @@ class Display: public Adafruit_SSD1306
     void select();
     void back();
     void change(int change);
-
+  private:
+    void set();
     void setLine(byte line, String title, String value);
     void setLine(byte line, String title, int value, bool showPlus);
     void setLine(byte line, String title, int value);
     void setLine(byte line, String title);
     void setLine(byte line);
-  private:
-    void set();
     String intToStr(int number);
 
     int _page = 0;

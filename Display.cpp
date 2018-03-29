@@ -31,7 +31,7 @@ void Display::setupMessage(byte pos, String title, String description) {
 // Infos auf dem Bildschirm anzeigen
 void Display::update() {
   set();
-  
+
   clearDisplay();
   setTextColor(WHITE);
 
@@ -46,6 +46,7 @@ void Display::update() {
   } else if (heading < 180) {
     drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
   }
+  drawLine(map(rotaryPosition, 0, ROTARY_RANGE, 3, 123), 11, map(rotaryPosition, -1, ROTARY_RANGE-1, 3, 123), 11, WHITE);
 
   setTextSize(1);
   setCursor(3, 3);
@@ -53,13 +54,13 @@ void Display::update() {
 
   setTextSize(2);
   setCursor(3, 14);
-  print(_line0.substring(0,10));
-  
+  print(_line0.substring(0, 10));
+
   setCursor(3, 30);
-  print(_line1.substring(0,10));
-  
+  print(_line1.substring(0, 10));
+
   setCursor(3, 46);
-  print(_line2.substring(0,10));
+  print(_line2.substring(0, 10));
 
   invertDisplay(m.getMotEn());
   display();      // aktualisiere Display
@@ -87,34 +88,28 @@ void Display::set() {
   }
 
   if (seeBall) {
-    setLine(0,"Ball");
+    setLine(0, "Ball");
     setCursor(50, 20);
     setTextSize(1);
     println(ball);
     drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
   } else {
-    setLine(0,"Ball:blind");
+    setLine(0, "Ball:blind");
   }
   setTextSize(2);
-  drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
-
-  String name1 = "";
-  String name2 = "";
-  String value1 = "";
-  String value2 = "";
 
   switch (rotaryPosition) {
     case 0:
-      setLine(1,"Dir:",driveDir);
+      setLine(1, "Dir:", driveDir);
       if (batState == 2) {
-        setLine(2,"lowVoltage");
+        setLine(2, "lowVoltage");
       } else {
-        setLine(2,displayDebug);
+        setLine(2, displayDebug);
       }
       break;
     case 1:
-      setLine(1,"^",">");
-      setLine(2,"<","v");
+      setLine(1, "^", ">");
+      setLine(2, "<", "v");
       setCursor(21, 30);
       print(us[1] + String("   ").substring(0, 3 - String(us[1]).length() ));
       print(String("    ").substring(0, 4 - String(us[0]).length()) + String(us[0]) );
@@ -123,31 +118,31 @@ void Display::set() {
       print(String("    ").substring(0, 4 - String(us[3]).length()) + String(us[3]));
       break;
     case 2:
-      setLine(1,"dPwr:",drivePwr,true);   // drive power
-      setLine(1,"dRot:",driveRot,true);   // drive rotation
+      setLine(1, "dPwr:", drivePwr, true); // drive power
+      setLine(1, "dRot:", driveRot, true); // drive rotation
       break;
     case 3:
-      setLine(1,"rotMp:",rotMulti,true);  // ratation multiplier
-      setLine(2,"balX:",ball,true);   // ball angle
+      setLine(1, "rotMp:", rotMulti, true); // ratation multiplier
+      setLine(2, "balX:", ball, true); // ball angle
       break;
     case 4:
-      setLine(1,"t:",millis()); // ratation multiplier
-      setLine(2,"headi:",heading,true);  // heading
+      setLine(1, "t:", millis()); // ratation multiplier
+      setLine(2, "headi:", heading, true); // heading
       break;
     case 5:
-      setLine(1,"batVo:",String(batVol / 10) + "." + String(batVol % 10)); // bluetooth command
-      setLine(2,"start:",start);      // start
+      setLine(1, "batVo:", String(batVol / 10) + "." + String(batVol % 10)); // bluetooth command
+      setLine(2, "start:", start);    // start
       break;
     case 6:
-      setLine(1,"bWid:",ballWidth);  // ball box width
-      setLine(2,"bSiz:",ballSize);  // ball box height*width
+      setLine(1, "bWid:", ballWidth); // ball box width
+      setLine(2, "bSiz:", ballSize); // ball box height*width
       break;
     case 7:
-      setLine(1,"gWid",goalWidth);
-      setLine(2,"gSiz",goalSize);
+      setLine(1, "gWid", goalWidth);
+      setLine(2, "gSiz", goalSize);
       break;
     case 8:
-      setLine(1,"gX:",goal,true);
+      setLine(1, "gX:", goal, true);
       // 3 bis 123
       int goalLeft;
       goalLeft = X_CENTER + goal - goalWidth / 2;
@@ -156,15 +151,15 @@ void Display::set() {
       break;
     case 9:
       if (mate.seeBall) {
-        setLine(1,"Mball:",mate.ball,true);
+        setLine(1, "Mball:", mate.ball, true);
       } else {
-        setLine(1,"Mball:blind");
+        setLine(1, "Mball:blind");
       }
-      setLine(2,"Mwid:",mate.ballWidth);
+      setLine(2, "Mwid:", mate.ballWidth);
       break;
     case 10:
-      setLine(1,"^",">");
-      setLine(2,"<","v");
+      setLine(1, "^", ">");
+      setLine(2, "<", "v");
       setCursor(21, 30);
       print(mate.us[1] + String("   ").substring(0, 3 - String(mate.us[1]).length() ));
       print(String("M   ").substring(0, 4 - String(mate.us[0]).length()) + String(mate.us[0]) );
@@ -175,7 +170,7 @@ void Display::set() {
   }
   if (batState == 3) {
     if (255 * (millis() % 250 < 170)) {
-      setLine(2,"critVoltag");
+      setLine(2, "critVoltag");
     } else {
       setLine(2);
     }
@@ -194,8 +189,8 @@ void Display::setLine(byte line, String title, String value) {
   }
 }
 void Display::setLine(byte line, String title, int value, bool showPlus) {
-  if(showPlus) {
-      setLine(line, title, intToStr(value));
+  if (showPlus) {
+    setLine(line, title, intToStr(value));
   } else {
     setLine(line, title, String(value));
   }
