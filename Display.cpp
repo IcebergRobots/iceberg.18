@@ -46,7 +46,7 @@ void Display::update() {
   } else if (heading < 180) {
     drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
   }
-  drawLine(map(rotaryPosition, 0, ROTARY_RANGE, 3, 123), 11, map(rotaryPosition, -1, ROTARY_RANGE-1, 3, 123), 11, WHITE);
+  drawLine(map(rotaryPosition, 0, ROTARY_RANGE, 3, 123), 11, map(rotaryPosition, -1, ROTARY_RANGE - 1, 3, 123), 11, WHITE);
 
   setTextSize(1);
   setCursor(3, 3);
@@ -108,18 +108,12 @@ void Display::set() {
       }
       break;
     case 1:
-      setLine(1, "^", ">");
-      setLine(2, "<", "v");
-      setCursor(21, 30);
-      print(us[1] + String("   ").substring(0, 3 - String(us[1]).length() ));
-      print(String("    ").substring(0, 4 - String(us[0]).length()) + String(us[0]) );
-      setCursor(21, 46);
-      print(us[2] + String("   ").substring(0, 3 - String(us[2]).length() ));
-      print(String("    ").substring(0, 4 - String(us[3]).length()) + String(us[3]));
+      setLine(1, "^" + String(us[1]), String(us[0]) + ">");
+      setLine(2, "<" + String(us[2]), String(us[3]) + "v");
       break;
     case 2:
       setLine(1, "dPwr:", drivePwr, true); // drive power
-      setLine(1, "dRot:", driveRot, true); // drive rotation
+      setLine(2, "dRot:", driveRot, true); // drive rotation
       break;
     case 3:
       setLine(1, "rotMp:", rotMulti, true); // ratation multiplier
@@ -150,22 +144,18 @@ void Display::set() {
       fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
       break;
     case 9:
+       setLine(0,"Mate");
       if (mate.seeBall) {
-        setLine(1, "Mball:", mate.ball, true);
+        setLine(1, "ball:", mate.ball, true);
       } else {
-        setLine(1, "Mball:blind");
+        setLine(1, "ball:blind");
       }
-      setLine(2, "Mwid:", mate.ballWidth);
+      setLine(2, "bWid:", mate.ballWidth);
       break;
     case 10:
-      setLine(1, "^", ">");
-      setLine(2, "<", "v");
-      setCursor(21, 30);
-      print(mate.us[1] + String("   ").substring(0, 3 - String(mate.us[1]).length() ));
-      print(String("M   ").substring(0, 4 - String(mate.us[0]).length()) + String(mate.us[0]) );
-      setCursor(21, 46);
-      print(mate.us[2] + String("   ").substring(0, 3 - String(mate.us[2]).length() ));
-      print(String("M   ").substring(0, 4 - String(mate.us[3]).length()) + String(mate.us[3]));
+      setLine(0,"Mate");
+      setLine(1, "^" + String(mate.us[1]), String(mate.us[0]) + ">");
+      setLine(2, "<" + String(mate.us[2]), String(mate.us[3]) + "v");
       break;
   }
   if (batState == 3) {
