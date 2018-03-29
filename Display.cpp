@@ -30,27 +30,11 @@ void Display::setupMessage(byte pos, String title, String description) {
 
 // Infos auf dem Bildschirm anzeigen
 void Display::update() {
-  String myTime = "";
-  int min = numberOfMinutes(millis());
-  if (min < 10) {
-    myTime += "0";
-  }
-  myTime += String(min) + ":";
-  int sec = numberOfSeconds(millis());
-  if (sec < 10) {
-    myTime += "0";
-  }
-  myTime += String(sec);
-
+  set();
+  
   clearDisplay();
   setTextColor(WHITE);
-  setTextSize(1);
-  setCursor(3, 3);
-  if (isTypeA) {
-    println("IcebergRobotsA " + myTime);
-  } else {
-    println("IcebergRobotsB " + myTime);
-  }
+
   if (heading < -135) { // zeige einen Punkt, der zum Tor zeigt
     drawRect(map(heading, -180, -134, 63 , 125), 61, 2, 2, WHITE); //unten (rechte Hälfte)
   } else if (heading < -45) {
@@ -62,16 +46,55 @@ void Display::update() {
   } else if (heading < 180) {
     drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
   }
+
+  setTextSize(1);
+  setCursor(3, 3);
+  print(_title.substring(0, 14) + String("               ").substring(0, max(1, 15 - _title.length())) + _time);
+
   setTextSize(2);
   setCursor(3, 14);
+  print(_line0.substring(0,10));
+  
+  setCursor(3, 30);
+  print(_line1.substring(0,10));
+  
+  setCursor(3, 46);
+  print(_line2.substring(0,10));
+
+  invertDisplay(m.getMotEn());
+  display();      // aktualisiere Display
+
+  lastDisplay = millis(); // merke Zeitpunkt
+}
+
+void Display::set() {
+  _time = "";
+  int min = numberOfMinutes(millis());
+  if (min < 10) {
+    _time += "0";
+  }
+  _time += String(min) + ":";
+  int sec = numberOfSeconds(millis());
+  if (sec < 10) {
+    _time += "0";
+  }
+  _time += String(sec);
+
+  if (isTypeA) {
+    _title = "IcebergRobotsA";
+  } else {
+    _title = "IcebergRobotsB";
+  }
+
+
   if (seeBall) {
-    println("Ball");
+    setLine(0,"Ball");
     setCursor(50, 20);
     setTextSize(1);
     println(ball);
     drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
   } else {
-    println("Ball:blind");
+    setLine(0,"Ball:blind");
   }
   setTextSize(2);
   drawLine(3, 11, map(drivePwr, 0, 255, 3, 123), 11, WHITE);
@@ -173,25 +196,34 @@ void Display::update() {
   }
 
   name1 += String("          ").substring(0, max(0, 10 - name1.length() - value1.length()));
-  name1 = String(name1 + value1).substring(0, 10);
+  _line1 = String(name1 + value1).substring(0, 10);
   name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
-  name2 = String(name2 + value2).substring(0, 10);
+  _line2 = String(name2 + value2).substring(0, 10);
   if (batState == 3) {
     if (255 * (millis() % 250 < 170)) {
-      name2 = "critVoltag";
+      _line2 = "critVoltag";
     } else {
-      name2 = "";
+      _line2 = "";
     }
   }
-  setCursor(3, 30);
-  print(name1);
-  setCursor(3, 46);
-  print(name2);
+}
 
-  invertDisplay(m.getMotEn());
-  display();      // aktualisiere Display
-
-  lastDisplay = millis(); // merke Zeitpunkt
+void Display::setLine(byte line, String title, String value) {
+  title += String("          ").substring(0, max(0, 10 - title.length() - value.length()));
+  title = String(title + value).substring(0, 10);
+  if (line == 0) {
+    _line0 = title;
+  } else if (line == 1) {
+    _line1 = title;
+  } else if (line == 2) {
+    _line2 = title;
+  }
+}
+void Display::setLine(byte line, String title) {
+  setLine(line, title, "");
+}
+void Display::setLine(byte line) {
+  setLine(line, "", "");
 }
 
 String Display::intToStr(int number) {

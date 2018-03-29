@@ -13,8 +13,23 @@ class Display: public Adafruit_SSD1306
     void init();
     void setupMessage(byte pos, String title, String description);
     void update();
+    void select();
+    void back();
+    void change(int change);
+
+    void setLine(byte line, String title, String value);
+    void setLine(byte line, String title);
+    void setLine(byte line);
   private:
+    void set();
     String intToStr(int number);
+
+    int _page = 0;
+    String _time = "";
+    String _title = "";
+    String _line0 = "";
+    String _line1 = "";
+    String _line2 = "";
 };
 
 const unsigned char PROGMEM logo[] = {
