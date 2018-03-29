@@ -86,7 +86,6 @@ void Display::set() {
     _title = "IcebergRobotsB";
   }
 
-
   if (seeBall) {
     setLine(0,"Ball");
     setCursor(50, 20);
@@ -106,19 +105,16 @@ void Display::set() {
 
   switch (rotaryPosition) {
     case 0:
-      name1 = "Dir:";
-      value1 = String(driveDir);
+      setLine(1,"Dir:",driveDir);
       if (batState == 2) {
-        name2 = "lowVoltage";
+        setLine(2,"lowVoltage");
       } else {
-        name2 = String(displayDebug);
+        setLine(2,displayDebug);
       }
       break;
     case 1:
-      name1 = "^";
-      value1 = ">";
-      name2 = "<";
-      value2 = "v";
+      setLine(1,"^",">");
+      setLine(2,"<","v");
       setCursor(21, 30);
       print(us[1] + String("   ").substring(0, 3 - String(us[1]).length() ));
       print(String("    ").substring(0, 4 - String(us[0]).length()) + String(us[0]) );
@@ -127,65 +123,48 @@ void Display::set() {
       print(String("    ").substring(0, 4 - String(us[3]).length()) + String(us[3]));
       break;
     case 2:
-      name1 = "dPwr:";
-      value1 = intToStr(drivePwr);   // drive power
-      name2 = "dRot:";
-      value2 = intToStr(driveRot);   // drive rotation
+      setLine(1,"dPwr:",drivePwr,true);   // drive power
+      setLine(1,"dRot:",driveRot,true);   // drive rotation
       break;
     case 3:
-      name1 = "rotMp:";
-      value1 = intToStr(rotMulti);  // ratation multiplier
-      name2 = "balX:";
-      value2 = intToStr(ball);   // ball angle
+      setLine(1,"rotMp:",rotMulti,true);  // ratation multiplier
+      setLine(2,"balX:",ball,true);   // ball angle
       break;
     case 4:
-      name1 = "t:";
-      value1 = String(millis()); // ratation multiplier
-      name2 = "headi:";
-      value2 = intToStr(heading);  // heading
+      setLine(1,"t:",millis()); // ratation multiplier
+      setLine(2,"headi:",heading,true);  // heading
       break;
     case 5:
-      name1 = "batVo:";
-      value1 = String(batVol / 10) + "." + String(batVol % 10); // bluetooth command
-      name2 = "start:";
-      value2 = String(start);      // start
+      setLine(1,"batVo:",String(batVol / 10) + "." + String(batVol % 10)); // bluetooth command
+      setLine(2,"start:",start);      // start
       break;
     case 6:
-      name1 = "bWid:";
-      value1 = String(ballWidth);  // ball box width
-      name2 = "bSiz:";
-      value2 = String(ballSize);  // ball box height*width
+      setLine(1,"bWid:",ballWidth);  // ball box width
+      setLine(2,"bSiz:",ballSize);  // ball box height*width
       break;
     case 7:
-      name1 = "gWid";
-      value1 = String(goalWidth);
-      name2 = "gSiz";
-      value2 = String(goalSize);
+      setLine(1,"gWid",goalWidth);
+      setLine(2,"gSiz",goalSize);
       break;
     case 8:
-      name1 = "gX:";
-      value1 = intToStr(goal);
-      // 3 - 123
+      setLine(1,"gX:",goal,true);
+      // 3 bis 123
       int goalLeft;
       goalLeft = X_CENTER + goal - goalWidth / 2;
       goalLeft = constrain(map(goalLeft, PIXY_MIN_X, PIXY_MAX_X, 3, 123), 3, 123);
       fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
       break;
     case 9:
-      name1 = "Mball:";
       if (mate.seeBall) {
-        value1 = intToStr(mate.ball);
+        setLine(1,"Mball:",mate.ball,true);
       } else {
-        value1 = "blind";
+        setLine(1,"Mball:blind");
       }
-      name2 = "Mwid:";
-      value2 = String(mate.ballWidth);
+      setLine(2,"Mwid:",mate.ballWidth);
       break;
     case 10:
-      name1 = "^";
-      value1 = ">";
-      name2 = "<";
-      value2 = "v";
+      setLine(1,"^",">");
+      setLine(2,"<","v");
       setCursor(21, 30);
       print(mate.us[1] + String("   ").substring(0, 3 - String(mate.us[1]).length() ));
       print(String("M   ").substring(0, 4 - String(mate.us[0]).length()) + String(mate.us[0]) );
@@ -194,16 +173,11 @@ void Display::set() {
       print(String("M   ").substring(0, 4 - String(mate.us[3]).length()) + String(mate.us[3]));
       break;
   }
-
-  name1 += String("          ").substring(0, max(0, 10 - name1.length() - value1.length()));
-  _line1 = String(name1 + value1).substring(0, 10);
-  name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
-  _line2 = String(name2 + value2).substring(0, 10);
   if (batState == 3) {
     if (255 * (millis() % 250 < 170)) {
-      _line2 = "critVoltag";
+      setLine(2,"critVoltag");
     } else {
-      _line2 = "";
+      setLine(2);
     }
   }
 }
@@ -218,6 +192,16 @@ void Display::setLine(byte line, String title, String value) {
   } else if (line == 2) {
     _line2 = title;
   }
+}
+void Display::setLine(byte line, String title, int value, bool showPlus) {
+  if(showPlus) {
+      setLine(line, title, intToStr(value));
+  } else {
+    setLine(line, title, String(value));
+  }
+}
+void Display::setLine(byte line, String title, int value) {
+  setLine(line, title, String(value));
 }
 void Display::setLine(byte line, String title) {
   setLine(line, title, "");
