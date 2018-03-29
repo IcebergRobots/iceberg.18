@@ -66,6 +66,9 @@ extern unsigned long usTimer;
 extern bool hasBall;
 extern unsigned long kickTimer;
 
+// Implementierung: LIFT
+extern bool isLifted;
+
 // Implementierung: DISPLAY
 extern bool isTypeA;
 extern unsigned long lastDisplay;

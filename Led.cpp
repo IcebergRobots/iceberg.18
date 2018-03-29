@@ -14,7 +14,7 @@ void Led::led() {
 
     // setze Boden-Leds
     for (byte i = 0; i < BOTTOM_LENGTH; i++) {
-      if (!digitalRead(SWITCH_BOTTOM)) {
+      if (!digitalRead(SWITCH_BOTTOM) || isLifted) {
         bottom.setPixelColor(i, 0, 0, 0);
       } else if (!digitalRead(SWITCH_A)) {
         bottom.setPixelColor(i, 255, 0, 0);
@@ -42,7 +42,7 @@ void Led::led() {
 
     // beende die Animation
     if (millis() - animationTimer > ANIMATION_DURATION) {
-      if(!digitalRead(SWITCH_BOTTOM)) turnOffBoard(bottom, BOTTOM_LENGTH);
+      if (!digitalRead(SWITCH_BOTTOM) || isLifted) turnOffBoard(bottom, BOTTOM_LENGTH);
       turnOffBoard(matrix, MATRIX_LENGTH);
       turnOffBoard(info, INFO_LENGTH);
       animationPos = 0;

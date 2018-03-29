@@ -23,9 +23,10 @@ int drivePwr = 0;           // maximale Motorstärke [0 bis 255]
 int driveRot = 0;           // korrigiere Kompass
 int driveDir = 0;           // Zielrichtung
 int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
-unsigned long lineTimer = 0;      // Zeitpunkt des Interrupts durch einen Bodensensor
-unsigned long headstartTimer = 0; // Zeitpunkt des Betätigen des Headstarts
+unsigned long lineTimer = 0;        // Zeitpunkt des Interrupts durch einen Bodensensor
+unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
+unsigned long lastFlatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
 Pilot m;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: KOMPASS
@@ -86,6 +87,9 @@ unsigned long usTimer = 0;  // wann wurde der Us zuletzt ausgelesen?
 // Globale Definition: KICK, LIGHT-BARRIER
 bool hasBall = false;   // besitzen der Roboter den Ball?
 unsigned long kickTimer = 0;  // Zeitpunkt des letzten Schießens
+
+// Globale Definition: LIFT
+bool isLifted = false;  // ist der Roboter hochgehoben?
 
 // Globale Definition: DISPLAY
 bool isTypeA; // ist das Roboter A?
@@ -198,10 +202,17 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  debug(millis());
-  debug(" ");
+  debug(String(millis()) + " ");
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
+
+  // erkenne Hochheben
+  if (accel_event.acceleration.z < 8) {
+    isLifted = millis() > lastFlatTimer;
+  } else {
+    lastFlatTimer = millis() + 300;
+    isLifted = false;
+  }
 
   // starte über Funk wenn Schalter Keeper aktiviert
   if (!digitalRead(SWITCH_MOTOR)) {
@@ -328,7 +339,11 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (onLine || isHeadstart) {
+  if (isLifted) {
+    // hochgehoben
+    drivePwr = 0; // stoppe
+    driveRot = 0; // stoppe
+  } else if (onLine || isHeadstart) {
     // reagiere auf Linie bzw. Headstart
     drivePwr = SPEED_LINE;
     if (!onLine && isHeadstart) {
