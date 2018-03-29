@@ -75,7 +75,7 @@ extern String displayDebug;
 // Implementierung: LEDS
 extern bool stateFine;
 extern unsigned int animationPos;
-extern unsigned long ledTimer;
+extern unsigned long ledTimer, animationTimer;
 extern Adafruit_NeoPixel bottom, matrix, info;
 //extern Led led;
 
@@ -112,14 +112,15 @@ extern int rotaryPosition;
 #define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
 
 // LEDS
-#define ANIMATION false    // soll die Animation stattfinden?
-#define ANIMATION_SPEED .01   // [0 bis *] Geschwindigkeit der Animation
-#define BOTTOM_LENGTH 16      // [0 bis *] Anzahl der Boden-Leds
-#define BOTTOM_BRIGHTNESS 255 // [0 bis 255] Helligkeit der Boden-Leds
-#define MATRIX_LENGTH  12     // [0 bis *] Anzahl der Matrix-Leds
-#define MATRIX_BRIGHTNESS 40  // [0 bis 255] Helligkeit der Matrix-Leds
-#define INFO_LENGTH 3         // [0 bis *] Anzahl der Info-Leds
-#define INFO_BRIGHTNESS 100   // [0 bis 255] Helligkeit der Info-Leds
+#define ANIMATION true          // soll die Animation stattfinden?
+#define ANIMATION_SPEED .01     // Geschwindigkeit der Animation
+#define ANIMATION_DURATION 2000 // Länge der Animation
+#define BOTTOM_LENGTH 16        // [0 bis *] Anzahl der Boden-Leds
+#define BOTTOM_BRIGHTNESS 255   // [0 bis 255] Helligkeit der Boden-Leds
+#define MATRIX_LENGTH  12       // [0 bis *] Anzahl der Matrix-Leds
+#define MATRIX_BRIGHTNESS 40    // [0 bis 255] Helligkeit der Matrix-Leds
+#define INFO_LENGTH 3           // [0 bis *] Anzahl der Info-Leds
+#define INFO_BRIGHTNESS 100     // [0 bis 255] Helligkeit der Info-Leds
 
 // PID-Regler
 #define PID_FILTER_P .27 // [0 bis *]~.27 p:proportional

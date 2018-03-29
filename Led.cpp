@@ -23,6 +23,10 @@ void Led::led() {
       }
     }
   } else {
+    if (animationPos == 1) {
+      animationTimer = millis();
+    }
+
     // setze Helligkeit maximal
     bottom.setBrightness(255);
     matrix.setBrightness(255);
@@ -37,7 +41,7 @@ void Led::led() {
     animationPos += 1 + animationPos * ANIMATION_SPEED;
 
     // beende die Animation
-    if (animationPos > 4000) {
+    if (millis() - animationTimer > ANIMATION_DURATION) {
       turnOffBoard(bottom, BOTTOM_LENGTH);
       turnOffBoard(matrix, MATRIX_LENGTH);
       turnOffBoard(info, INFO_LENGTH);

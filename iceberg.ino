@@ -94,9 +94,10 @@ String displayDebug = "";      // unterste Zeile des Bildschirms;
 Display d = Display(PIN_4); // OBJEKTINITIALISIERUNG
 
 // Globale Definition: LEDS
-bool stateFine = true;          // liegt kein Fehler vor?
-unsigned int animationPos = 1;  // Aktuelle Position in der Animation
-unsigned long ledTimer = 0;     // Zeitpunkt der letzten Led-Aktualisierung
+bool stateFine = true;            // liegt kein Fehler vor?
+unsigned int animationPos = 1;    // Aktuelle Position in der Animation
+unsigned long ledTimer = 0;       // Zeitpunkt der letzten Led-Aktualisierung
+unsigned long animationTimer = 0; // Zeitpunkt der Animationsstarts
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(MATRIX_LENGTH, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
 Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_KHZ800);       // OBJEKTINITIALISIERUNG (STATUS-LEDS)
@@ -248,7 +249,7 @@ void loop() {
 
   calculateStates();  // Berechne alle Statuswerte und Zustände
 
-  if (millis() - ledTimer > 500) {
+  if ((animationPos > 0 && ANIMATION) || millis() - ledTimer > 100) {
     debug("led ");
     led.set();  // Lege Leds auf Statusinformation fest
     led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
