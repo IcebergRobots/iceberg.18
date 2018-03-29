@@ -41,7 +41,7 @@ void Display::update() {
     myTime += "0";
   }
   myTime += String(sec);
-
+  
   clearDisplay();
   setTextColor(WHITE);
   setTextSize(1);
@@ -171,7 +171,7 @@ void Display::update() {
       print(String("M   ").substring(0, 4 - String(mate.us[3]).length()) + String(mate.us[3]));
       break;
   }
-
+  
   name1 += String("          ").substring(0, max(0, 10 - name1.length() - value1.length()));
   name1 = String(name1 + value1).substring(0, 10);
   name2 += String("          ").substring(0, max(0, 10 - name2.length() - value2.length()));
@@ -190,7 +190,7 @@ void Display::update() {
 
   invertDisplay(m.getMotEn());
   display();      // aktualisiere Display
-  
+
   lastDisplay = millis(); // merke Zeitpunkt
 }
 

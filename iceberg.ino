@@ -502,7 +502,7 @@ void loop() {
 
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
-  if (millis() - lastDisplay > 200) {
+  if (millis() - lastDisplay > 1000) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs
   }
