@@ -70,7 +70,7 @@ void Led::set() {
   showState(matrix, 3, hasBall, true);
   showState(matrix, 4, isConnected);
   //showState(matrix, 5, Bodensensor verfügbar);
-  //showState(matrix, 6, lift);
+  showState(matrix, 6, isLifted * 3, true);
   showState(matrix, 7, pixyState, true);
   showState(matrix, 8, !onLine);
   showState(matrix, 9, seeGoal, true);

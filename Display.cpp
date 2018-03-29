@@ -144,7 +144,7 @@ void Display::set() {
       fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
       break;
     case 9:
-       setLine(0,"Mate");
+      setLine(0, "Mate");
       if (mate.seeBall) {
         setLine(1, "ball:", mate.ball, true);
       } else {
@@ -153,7 +153,7 @@ void Display::set() {
       setLine(2, "bWid:", mate.ballWidth);
       break;
     case 10:
-      setLine(0,"Mate");
+      setLine(0, "Mate");
       setLine(1, "^" + String(mate.us[1]), String(mate.us[0]) + ">");
       setLine(2, "<" + String(mate.us[2]), String(mate.us[3]) + "v");
       break;
