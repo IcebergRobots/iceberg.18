@@ -112,7 +112,8 @@ unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 
 // Globale Definition: ROTARY-ENCODER
 RotaryEncoder rotaryEncoder = RotaryEncoder(ROTARY_B, ROTARY_A);  // OBJEKTINITIALISIERUNG
-int rotaryPosition = 0; // Zustand, der vom Regler eingestellt ist
+bool rotaryChange = false;    // wurde der Regler gedreht?
+byte rotaryPosition = 0;      // Zustand, der vom Regler eingestellt ist
 
 //###################################################################################################
 
@@ -204,8 +205,6 @@ void setup() {
 void loop() {
   debug(String(millis()) + " ");
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   // erkenne Hochheben
   if (accel_event.acceleration.z < 8) {
     isLifted = millis() > lastFlatTimer;
@@ -232,7 +231,9 @@ void loop() {
     rotaryEncoder.setPosition(0); // setze Regler zurück
     buzzerTone(50);
   }
-  rotaryPosition = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
+  byte pos = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
+  rotaryChange = rotaryPosition != pos;
+  rotaryPosition = pos;
 
   if (!digitalRead(BUTTON_1)) animationPos = 1; // starte die Animation
 
@@ -254,8 +255,6 @@ void loop() {
     BOTTOM_SERIAL.read();
   }
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) kick(); // schieße
 
   calculateStates();  // Berechne alle Statuswerte und Zustände
@@ -272,8 +271,6 @@ void loop() {
   }
 
   if (millis() - usTimer > 100) readUltrasonic(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
-
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
@@ -318,8 +315,6 @@ void loop() {
       break;
   }
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   // Fahre
   if (!seeBall) {
     rotMulti = ROTATION_SIDEWAY;
@@ -333,11 +328,7 @@ void loop() {
     rotMulti = ROTATION_AWAY;
   }
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   driveRot = ausrichten();
-
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   if (isLifted) {
     // hochgehoben
@@ -511,18 +502,12 @@ void loop() {
   }
   drivePwr = max(drivePwr - abs(driveRot), 0);
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   m.drive(driveDir, drivePwr, driveRot);
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
-  if (millis() - lastDisplay > 1000) {
+  if (rotaryChange || millis() - lastDisplay > 1000) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs
   }
-
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
 
   debugln();
 }

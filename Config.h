@@ -87,7 +87,8 @@ extern unsigned long buzzerStopTimer;
 
 // Implementierung: ROTARY-ENCODER
 extern RotaryEncoder rotaryEncoder;
-extern int rotaryPosition;
+extern bool rotaryChange;
+extern byte rotaryPosition;
 
 // Fahren
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100

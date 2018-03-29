@@ -75,7 +75,7 @@ void Led::set() {
   showState(matrix, 8, !onLine);
   showState(matrix, 9, seeGoal, true);
   showState(matrix, 10, isHeadstart, true);
-  showState(matrix, 11, usFine, true);
+  showState(matrix, 11, DEBUG * 3, true);
 }
 
 /*****************************************************

@@ -108,8 +108,6 @@ bool readUltrasonic() {
            3
       gibt zurück, ob Daten empfangen wurden
   */
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
   while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
@@ -165,16 +163,10 @@ void kick() {
 
 int getCompassHeading() {
   // kompasswert [-180 bis 180]
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
   accel.getEvent(&accel_event);
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   mag.getEvent(&mag_event);
 
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
-    rotaryEncoder.tick(); // erkenne Reglerdrehungen
     return (((int)orientation.heading - startHeading + 720) % 360) - 180;
   } else {
     stateFine = false;
@@ -194,9 +186,6 @@ int ausrichten() {
   } else {
     // Misst die Kompassabweichung vom Tor [-180 bis 179]
     heading = getCompassHeading();
-
-    rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
     if (m.getMotEn()) {
       pidIn = (double) heading;
 
@@ -245,8 +234,6 @@ int ausrichten() {
   4        2              blue
 *****************************************************/
 void readPixy() {
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-
   pixy.setLED(0, 0, 0); // schalte die Front-LED aus
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
