@@ -239,7 +239,9 @@ void loop() {
   wasBack = !digitalRead(BUTTON_3);
   // drehen
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
-  d.change(rotaryEncoder.getPosition() - rotaryPositionLast);
+  if (rotaryEncoder.getPosition() != rotaryPositionLast) {
+    d.change(rotaryEncoder.getPosition() - rotaryPositionLast);
+  }
   rotaryPositionLast = rotaryEncoder.getPosition();
 
   if (!digitalRead(BUTTON_1)) animationPos = 1; // starte die Animation
