@@ -112,8 +112,8 @@ unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 
 // Globale Definition: ROTARY-ENCODER
 RotaryEncoder rotaryEncoder = RotaryEncoder(ROTARY_B, ROTARY_A);  // OBJEKTINITIALISIERUNG
-bool rotaryChange = false;    // wurde der Regler gedreht?
-byte rotaryPosition = 0;      // Zustand, der vom Regler eingestellt ist
+int rotaryChange = 0;   // Änderung des Reglers
+int rotaryPosition = 0; // letzter Zustand des Reglers
 
 //###################################################################################################
 
@@ -227,13 +227,13 @@ void loop() {
 
   // regler auslesen
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
+  rotaryChange = rotaryEncoder.getPosition() - rotaryPosition;
+  rotaryPosition = rotaryEncoder.getPosition();
   if (!digitalRead(ROTARY_BUTTON)) {
     rotaryEncoder.setPosition(0); // setze Regler zurück
     buzzerTone(50);
   }
-  byte pos = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
-  rotaryChange = rotaryPosition != pos;
-  rotaryPosition = pos;
+  //byte pos = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
 
   if (!digitalRead(BUTTON_1)) animationPos = 1; // starte die Animation
 
