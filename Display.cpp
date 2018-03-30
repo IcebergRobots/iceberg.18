@@ -47,7 +47,7 @@ void Display::update() {
     drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
   }
   if (_level == 0) {
-    drawLine(map(_page, 0, ROTARY_RANGE, 3, 123), 11, map(_page, -1, ROTARY_RANGE - 1, 3, 123), 11, WHITE);
+    drawLine(map(_page, 0, PAGE_RANGE, 3, 123), 11, map(_page, -1, PAGE_RANGE - 1, 3, 123), 11, WHITE);
   } else if (_level == 1) {
     drawLine(3, 11, 123, 11, WHITE);
   }
@@ -91,10 +91,11 @@ void Display::back() {
 void Display::change(int change) {
   if (_level == 0) {
     _page += change;
-    shift(_page, 0, ROTARY_RANGE);
+    shift(_page, 0, PAGE_RANGE);
+    _subpage = 0;
   } else if (_level == 1) {
     _subpage += change;
-    shift(_subpage, 0, 3);
+    shift(_subpage, 0, SUBPAGE_RANGE[_page]);
   }
   update();
 }
@@ -112,25 +113,29 @@ void Display::set() {
   }
   _time += String(sec);
 
-  if (isTypeA) {
-    _title = "IcebergRobotsA";
-  } else {
-    _title = "IcebergRobotsB";
-  }
-
-  if (seeBall) {
-    setLine(0, "Ball");
-    setCursor(50, 20);
-    setTextSize(1);
-    println(ball);
-    drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
-  } else {
-    setLine(0, "Ball:blind");
-  }
-  setTextSize(2);
+  _title = "";
+  _line0 = "";
+  _line1 = "";
+  _line2 = "";
 
   switch (_page) {
     case 0:
+      if (isTypeA) {
+        _title = "IcebergRobotsA";
+      } else {
+        _title = "IcebergRobotsB";
+      }
+
+      if (seeBall) {
+        setLine(0, "Ball:", ball, true);
+        //setCursor(50, 20);
+        //setTextSize(1);
+        //println(ball);
+        //drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
+      } else {
+        setLine(0, "Ball:blind");
+      }
+
       setLine(1, "Dir:", driveDir);
       if (batState == 2) {
         setLine(2, "lowVoltage");
@@ -139,68 +144,98 @@ void Display::set() {
       }
       break;
     case 1:
+      _title = "Sensor";
+      setLine(0, "Ball:", ball, true);
       setLine(1, "^" + String(us[1]), String(us[0]) + ">");
       setLine(2, "<" + String(us[2]), String(us[3]) + "v");
-      break;
-    case 2:
-      setLine(1, "dPwr:", drivePwr, true); // drive power
-      setLine(2, "dRot:", driveRot, true); // drive rotation
-      break;
-    case 3:
-      setLine(1, "rotMp:", rotMulti, true); // ratation multiplier
-      setLine(2, "balX:", ball, true); // ball angle
-      break;
-    case 4:
-      setLine(1, "t:", millis()); // ratation multiplier
-      setLine(2, "headi:", heading, true); // heading
-      break;
-    case 5:
-      setLine(1, "batVo:", String(batVol / 10) + "." + String(batVol % 10)); // bluetooth command
-      setLine(2, "start:", start);    // start
-      break;
-    case 6:
-      setLine(1, "bWid:", ballWidth); // ball box width
-      setLine(2, "bSiz:", ballSize); // ball box height*width
-      break;
-    case 7:
-      setLine(1, "gWid", goalWidth);
-      setLine(2, "gSiz", goalSize);
-      break;
-    case 8:
-      setLine(1, "gX:", goal, true);
-      // 3 bis 123
-      int goalLeft;
-      goalLeft = X_CENTER + goal - goalWidth / 2;
-      goalLeft = constrain(map(goalLeft, PIXY_MIN_X, PIXY_MAX_X, 3, 123), 3, 123);
-      fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
-      break;
-    case 9:
-      setLine(0, "Mate");
-      if (mate.seeBall) {
-        setLine(1, "ball:", mate.ball, true);
+      setLine(3, "Barr:", analogRead(LIGHT_BARRIER));
+      setLine(4, "Volt:", String(batVol / 10) + "." + String(batVol % 10)); // battery voltage
+      if (onLine) {
+        setLine(5, "Line:", lineDir, true);
       } else {
-        setLine(1, "ball:blind");
+        setLine(5, "Line:");
       }
-      setLine(2, "bWid:", mate.ballWidth);
-      break;
-    case 10:
-      setLine(0, "Mate");
-      setLine(1, "^" + String(mate.us[1]), String(mate.us[0]) + ">");
-      setLine(2, "<" + String(mate.us[2]), String(mate.us[3]) + "v");
+      setLine(6, "Head:", heading, true);
+      setLine(7, "T:", millis());
       break;
   }
+
+  /*
+    switch (_page) {
+      case 0:
+        setLine(1, "Dir:", driveDir);
+        if (batState == 2) {
+          setLine(2, "lowVoltage");
+        } else {
+          setLine(2, displayDebug);
+        }
+        break;
+      case 1:
+        setLine(1, "^" + String(us[1]), String(us[0]) + ">");
+        setLine(2, "<" + String(us[2]), String(us[3]) + "v");
+        break;
+      case 2:
+        setLine(1, "dPwr:", drivePwr, true); // drive power
+        setLine(2, "dRot:", driveRot, true); // drive rotation
+        break;
+      case 3:
+        setLine(1, "rotMp:", rotMulti, true); // ratation multiplier
+        setLine(2, "balX:", ball, true); // ball angle
+        break;
+      case 4:
+        setLine(1, "t:", millis()); // ratation multiplier
+        setLine(2, "headi:", heading, true); // heading
+        break;
+      case 5:
+        setLine(1, "batVo:", String(batVol / 10) + "." + String(batVol % 10)); // bluetooth command
+        setLine(2, "start:", start);    // start
+        break;
+      case 6:
+        setLine(1, "bWid:", ballWidth); // ball box width
+        setLine(2, "bSiz:", ballSize); // ball box height*width
+        break;
+      case 7:
+        setLine(1, "gWid", goalWidth);
+        setLine(2, "gSiz", goalSize);
+        break;
+      case 8:
+        setLine(1, "gX:", goal, true);
+        // 3 bis 123
+        int goalLeft;
+        goalLeft = X_CENTER + goal - goalWidth / 2;
+        goalLeft = constrain(map(goalLeft, PIXY_MIN_X, PIXY_MAX_X, 3, 123), 3, 123);
+        fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
+        break;
+      case 9:
+        setLine(0, "Mate");
+        if (mate.seeBall) {
+          setLine(1, "ball:", mate.ball, true);
+        } else {
+          setLine(1, "ball:blind");
+        }
+        setLine(2, "bWid:", mate.ballWidth);
+        break;
+      case 10:
+        setLine(0, "Mate");
+        setLine(1, "^" + String(mate.us[1]), String(mate.us[0]) + ">");
+        setLine(2, "<" + String(mate.us[2]), String(mate.us[3]) + "v");
+        break;
+    }
+  */
   if (batState == 3) {
     if (255 * (millis() % 250 < 170)) {
-      setLine(2, "critVoltag");
+      _line2 = "critVoltag";
     } else {
-      setLine(2);
+      _line2 = "";
     }
   }
 }
 
-void Display::setLine(byte line, String title, String value) {
+void Display::setLine(int line, String title, String value) {
   title += String("          ").substring(0, max(0, 10 - title.length() - value.length()));
   title = String(title + value).substring(0, 10);
+  line -= _subpage;
+  shift(line, 0, SUBPAGE_RANGE[_page]);
   if (line == 0) {
     _line0 = title;
   } else if (line == 1) {
@@ -209,20 +244,20 @@ void Display::setLine(byte line, String title, String value) {
     _line2 = title;
   }
 }
-void Display::setLine(byte line, String title, int value, bool showPlus) {
+void Display::setLine(int line, String title, int value, bool showPlus) {
   if (showPlus) {
     setLine(line, title, intToStr(value));
   } else {
     setLine(line, title, String(value));
   }
 }
-void Display::setLine(byte line, String title, int value) {
+void Display::setLine(int line, String title, int value) {
   setLine(line, title, String(value));
 }
-void Display::setLine(byte line, String title) {
+void Display::setLine(int line, String title) {
   setLine(line, title, "");
 }
-void Display::setLine(byte line) {
+void Display::setLine(int line) {
   setLine(line, "", "");
 }
 

@@ -18,16 +18,18 @@ class Display: public Adafruit_SSD1306
     void change(int change);
   private:
     void set();
-    void setLine(byte line, String title, String value);
-    void setLine(byte line, String title, int value, bool showPlus);
-    void setLine(byte line, String title, int value);
-    void setLine(byte line, String title);
-    void setLine(byte line);
+    void setLine(int line, String title, String value);
+    void setLine(int line, String title, int value, bool showPlus);
+    void setLine(int line, String title, int value);
+    void setLine(int line, String title);
+    void setLine(int line);
     String intToStr(int number);
 
     byte _level = 0;
     int _page = 0;
+    const byte PAGE_RANGE = 6;
     int _subpage = 0;
+    const byte SUBPAGE_RANGE[6] = {3, 8, 4, 9, 4, 4};
     String _time = "";
     String _title = "";
     String _line0 = "";
