@@ -8,13 +8,13 @@ extern Led led;
 void Display::init() {
   begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialisiere das Displays
   clearDisplay(); // leere den Bildschirm
-  drawBitmap(0, 0, logo, 114, 64, WHITE); // zeige das Logo
+  drawBitmap(0, 0, LOGO, 114, 64, WHITE); // zeige das Logo
   display();  //wendet Aenderungen an
 }
 
 void Display::setupMessage(byte pos, String title, String description) {
   fillRect(47, 0, 81, 31, BLACK); // lösche das Textfeld
-  drawRect(46, 29, map(pos, 0, SETUP_MESSAGE_RANGE, 0, 82), 2, WHITE);
+  drawRect(0, 29, map(pos, 0, SETUP_MESSAGE_RANGE, 0, 128), 2, WHITE);
   setTextColor(WHITE);
 
   setTextSize(2);
@@ -49,7 +49,8 @@ void Display::update() {
   if (_level == 0) {
     drawLine(map(_page, 0, PAGE_RANGE, 3, 123), 11, map(_page, -1, PAGE_RANGE - 1, 3, 123), 11, WHITE);
   } else if (_level == 1) {
-    drawLine(3, 11, 123, 11, WHITE);
+    drawLine(3, 11, map(_subpage, 0, SUBPAGE_RANGE[_page], 3, 123), 11, WHITE);
+    drawLine(map(_subpage, -1, SUBPAGE_RANGE[_page] - 1, 3, 123), 11, 123, 11, WHITE);
   }
 
   setTextSize(1);
