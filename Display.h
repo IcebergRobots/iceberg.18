@@ -25,7 +25,9 @@ class Display: public Adafruit_SSD1306
     void setLine(byte line);
     String intToStr(int number);
 
+    byte _level = 0;
     int _page = 0;
+    int _subpage = 0;
     String _time = "";
     String _title = "";
     String _line0 = "";

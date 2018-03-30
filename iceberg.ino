@@ -112,8 +112,9 @@ unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 
 // Globale Definition: ROTARY-ENCODER
 RotaryEncoder rotaryEncoder = RotaryEncoder(ROTARY_B, ROTARY_A);  // OBJEKTINITIALISIERUNG
-int rotaryChange = 0;   // Änderung des Reglers
-int rotaryPosition = 0; // letzter Zustand des Reglers
+int rotaryPositionLast = 0; // letzter Zustand des Reglers
+bool wasSelect = false;     // war der Auswählen-Knopf gedrückt?
+bool wasBack = false;       // war der Zurück-Knopf gedrückt?
 
 //###################################################################################################
 
@@ -225,15 +226,21 @@ void loop() {
 
   digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
 
-  // regler auslesen
-  rotaryEncoder.tick(); // erkenne Reglerdrehungen
-  rotaryChange = rotaryEncoder.getPosition() - rotaryPosition;
-  rotaryPosition = rotaryEncoder.getPosition();
-  if (!digitalRead(ROTARY_BUTTON)) {
-    rotaryEncoder.setPosition(0); // setze Regler zurück
-    buzzerTone(50);
+  // Seitenauswahl
+  // auswählen
+  if (!digitalRead(ROTARY_BUTTON) && !wasSelect) {
+    d.select();
   }
-  //byte pos = (ROTARY_RANGE + (rotaryEncoder.getPosition() % ROTARY_RANGE)) % ROTARY_RANGE;  // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
+  wasSelect = !digitalRead(ROTARY_BUTTON);
+  // zurück
+  if (!digitalRead(BUTTON_3) && !wasBack ) {
+    d.back();
+  }
+  wasBack = !digitalRead(BUTTON_3);
+  // drehen
+  rotaryEncoder.tick(); // erkenne Reglerdrehungen
+  d.change(rotaryEncoder.getPosition() - rotaryPositionLast);
+  rotaryPositionLast = rotaryEncoder.getPosition();
 
   if (!digitalRead(BUTTON_1)) animationPos = 1; // starte die Animation
 
@@ -246,9 +253,6 @@ void loop() {
     heading = 0;
     buzzerTone(200);
   }
-
-  // starte den Arduino neu
-  if (!digitalRead(BUTTON_3)) asm ("jmp 0"); // reset Arduino
 
   // lösche Bodensensor Cache
   while (BOTTOM_SERIAL > 1) {
@@ -504,7 +508,7 @@ void loop() {
 
   m.drive(driveDir, drivePwr, driveRot);
 
-  if (rotaryChange || millis() - lastDisplay > 1000) {
+  if (millis() - lastDisplay > 1000) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs
   }

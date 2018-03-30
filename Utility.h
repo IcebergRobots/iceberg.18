@@ -3,6 +3,7 @@
 
 #include "Config.h"
 
+void shift(int &value, int min, int max);
 void startSound();
 void calculateStates();
 void transmitHeartbeat();

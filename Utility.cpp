@@ -6,6 +6,10 @@ extern Pilot m;
 extern Mate mate;
 extern Led led;
 
+void shift(int &value, int min, int max) {
+  value = (max + ((value - min) % max)) % max + min; // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
+}
+
 void startSound() {
   //Fiepen, welches Programstart signalisiert
   for (int i = 10; i < 2000; i += 10) {

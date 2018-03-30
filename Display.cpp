@@ -46,7 +46,11 @@ void Display::update() {
   } else if (heading < 180) {
     drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
   }
-  drawLine(map(rotaryPosition, 0, ROTARY_RANGE, 3, 123), 11, map(rotaryPosition, -1, ROTARY_RANGE - 1, 3, 123), 11, WHITE);
+  if (_level == 0) {
+    drawLine(map(_page, 0, ROTARY_RANGE, 3, 123), 11, map(_page, -1, ROTARY_RANGE - 1, 3, 123), 11, WHITE);
+  } else if (_level == 1) {
+    drawLine(3, 11, 123, 11, WHITE);
+  }
 
   setTextSize(1);
   setCursor(3, 3);
@@ -66,6 +70,33 @@ void Display::update() {
   display();      // aktualisiere Display
 
   lastDisplay = millis(); // merke Zeitpunkt
+}
+
+void Display::select() {
+  if (_level < 2) {
+    _level++;
+    update();
+  }
+}
+
+void Display::back() {
+  if (_level == 0) {
+    asm ("jmp 0");   // starte den Arduino neu
+  } else {
+    _level--;
+    update();
+  }
+}
+
+void Display::change(int change) {
+  if (_level == 0) {
+    _page += change;
+    shift(_page, 0, ROTARY_RANGE);
+  } else if (_level == 1) {
+    _subpage += change;
+    shift(_subpage, 0, 3);
+  }
+  update();
 }
 
 void Display::set() {
@@ -98,7 +129,7 @@ void Display::set() {
   }
   setTextSize(2);
 
-  switch (rotaryPosition) {
+  switch (_page) {
     case 0:
       setLine(1, "Dir:", driveDir);
       if (batState == 2) {
