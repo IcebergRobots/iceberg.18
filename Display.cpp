@@ -159,70 +159,19 @@ void Display::set() {
       setLine(6, "Head:", heading, true);
       setLine(7, "T:", millis());
       break;
+    case 2:
+      _title = "Config";
+      break;
+    case 3:
+      _title = "Pixy";
+      break;
+    case 4:
+      _title = "Driving";
+      break;
+    case 5:
+      _title = "Mate";
+      break;
   }
-
-  /*
-    switch (_page) {
-      case 0:
-        setLine(1, "Dir:", driveDir);
-        if (batState == 2) {
-          setLine(2, "lowVoltage");
-        } else {
-          setLine(2, displayDebug);
-        }
-        break;
-      case 1:
-        setLine(1, "^" + String(us[1]), String(us[0]) + ">");
-        setLine(2, "<" + String(us[2]), String(us[3]) + "v");
-        break;
-      case 2:
-        setLine(1, "dPwr:", drivePwr, true); // drive power
-        setLine(2, "dRot:", driveRot, true); // drive rotation
-        break;
-      case 3:
-        setLine(1, "rotMp:", rotMulti, true); // ratation multiplier
-        setLine(2, "balX:", ball, true); // ball angle
-        break;
-      case 4:
-        setLine(1, "t:", millis()); // ratation multiplier
-        setLine(2, "headi:", heading, true); // heading
-        break;
-      case 5:
-        setLine(1, "batVo:", String(batVol / 10) + "." + String(batVol % 10)); // bluetooth command
-        setLine(2, "start:", start);    // start
-        break;
-      case 6:
-        setLine(1, "bWid:", ballWidth); // ball box width
-        setLine(2, "bSiz:", ballSize); // ball box height*width
-        break;
-      case 7:
-        setLine(1, "gWid", goalWidth);
-        setLine(2, "gSiz", goalSize);
-        break;
-      case 8:
-        setLine(1, "gX:", goal, true);
-        // 3 bis 123
-        int goalLeft;
-        goalLeft = X_CENTER + goal - goalWidth / 2;
-        goalLeft = constrain(map(goalLeft, PIXY_MIN_X, PIXY_MAX_X, 3, 123), 3, 123);
-        fillRect(goalLeft, 46, constrain(map(goalWidth, 0, PIXY_MAX_X - PIXY_MIN_X, 0, 123), 0, 123), 32, true); // zeige die Torbreite
-        break;
-      case 9:
-        setLine(0, "Mate");
-        if (mate.seeBall) {
-          setLine(1, "ball:", mate.ball, true);
-        } else {
-          setLine(1, "ball:blind");
-        }
-        setLine(2, "bWid:", mate.ballWidth);
-        break;
-      case 10:
-        setLine(0, "Mate");
-        setLine(1, "^" + String(mate.us[1]), String(mate.us[0]) + ">");
-        setLine(2, "<" + String(mate.us[2]), String(mate.us[3]) + "v");
-        break;
-    }
-  */
   if (batState == 3) {
     if (255 * (millis() % 250 < 170)) {
       _line2 = "critVoltag";
