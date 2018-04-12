@@ -254,6 +254,7 @@ void loop() {
     EEPROM.write(1, abs(startHeading)); // speichere Winkel
     heading = 0;
     buzzerTone(200);
+    d.update();   // aktualisiere Bildschirm und LEDs
   }
 
   // lösche Bodensensor Cache

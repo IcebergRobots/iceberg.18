@@ -157,19 +157,53 @@ void Display::set() {
         setLine(5, "Line:");
       }
       setLine(6, "Head:", heading, true);
-      setLine(7, "T:", millis());
+      setLine(7, "Time:", millis() / 1000);
       break;
     case 2:
       _title = "Config";
       break;
     case 3:
       _title = "Pixy";
+      if (seeBall) {
+        setLine(0, "B.ang:", ball, true);
+      } else {
+        setLine(0, "B.ang:");
+      }
+      setLine(1, "B.wid:", ballWidth);
+      setLine(2, "B.siz:", ballSize);
+      setLine(3, "B.tim:", (millis() - seeBallTimer) / 1000);
+      if (seeGoal) {
+        setLine(4, "G.ang:", goal, true);
+      } else {
+        setLine(4, "G.ang:");
+      }
+      setLine(5, "G.wid:", goalWidth);
+      setLine(6, "G.siz:", goalSize);
+      setLine(7, "G.tim", (millis() - seeGoalTimer) / 1000);
       break;
     case 4:
       _title = "Driving";
+      setLine(0, "Dir:", driveDir, true);
+      setLine(1, "Rot:", driveRot, true);
+      setLine(2, "Pwr:", drivePwr);
+      setLine(3, "Line:", onLine);
+      setLine(4, "Head:", isHeadstart);
+      setLine(5, "K.tim:", (millis() - lastKeeperToggle) / 1000);
+      setLine(6, "F.tim:", (millis() - lastFlatTimer) / 1000);
       break;
     case 5:
       _title = "Mate";
+      setLine(0, "Conn:", (millis() - heartbeatTimer) / 1000);
+      setLine(1, "^" + String(mate.us[1]), String(mate.us[0]) + ">");
+      setLine(2, "<" + String(mate.us[2]), String(mate.us[3]) + "v");
+      if (mate.seeBall) {
+        setLine(3, "B.dif:", ball - mate.ball, true);
+        setLine(4, "B.ang:", mate.ball, true);
+      } else {
+        setLine(3, "B.dif:");
+        setLine(4, "B.ang:");
+      }
+      setLine(5, "B.wid:", mate.ballWidth);
       break;
   }
   if (batState == 3) {
