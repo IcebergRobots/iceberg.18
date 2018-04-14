@@ -136,7 +136,7 @@ bool readUltrasonic() {
 
 
 void avoidLine() {
-  buzzerTone(50);
+  buzzerTone(100);
   while (BOTTOM_SERIAL.available() > 1) {
     BOTTOM_SERIAL.read();
   }
@@ -191,6 +191,11 @@ int ausrichten() {
   if (onLine) {
     return 0;
   } else {
+    if (seeGoal) {
+      pidSetpoint = constrain(goal/3 + heading, -45, 45);
+    } else {
+      pidSetpoint = 0;
+    }
     // Misst die Kompassabweichung vom Tor [-180 bis 179]
     heading = getCompassHeading();
     if (m.getMotEn()) {

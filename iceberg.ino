@@ -523,7 +523,7 @@ void loop() {
   drivePwr = 0;
   m.drive(driveDir, drivePwr, driveRot);
   
-  if (millis() - lastDisplay > 1000) {
+  if (millis() - lastDisplay > 100) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs
   }

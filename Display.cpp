@@ -187,14 +187,15 @@ void Display::set() {
       setLine(1, "Rot:", driveRot, true);
       setLine(2, "Pwr:", drivePwr);
       setLine(3, driveState);
-      setLine(4, "M ':", m.getMotValue(0), true);
-      setLine(5, "M ,:", m.getMotValue(1), true);
-      setLine(6, "M, :", m.getMotValue(2), true);
-      setLine(7, "M' :", m.getMotValue(3), true);
-      setLine(8, "Line:", onLine);
-      setLine(9, "Head:", isHeadstart);
-      setLine(10, "K.tim:", (millis() - lastKeeperToggle) / 1000);
-      setLine(11, "F.tim:", (millis() - lastFlatTimer) / 1000);
+      setLine(4, "PID:", pidSetpoint, true);
+      setLine(5, "M ':", m.getMotValue(0), true);
+      setLine(6, "M ,:", m.getMotValue(1), true);
+      setLine(7, "M, :", m.getMotValue(2), true);
+      setLine(8, "M' :", m.getMotValue(3), true);
+      setLine(9, "Line:", onLine);
+      setLine(10, "Head:", isHeadstart);
+      setLine(11, "K.tim:", (millis() - lastKeeperToggle) / 1000);
+      setLine(12, "F.tim:", (millis() - lastFlatTimer) / 1000);
       break;
     case 5:
       _title = "Mate";
