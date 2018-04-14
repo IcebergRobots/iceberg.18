@@ -84,7 +84,10 @@ Pixy pixy;  // OBJEKTINITIALISIERUNG
 bool usFine = false;        // sind alle Ultraschallsensoren funktionstüchtig
 bool usConnected = false;   // sind wir mit dem Nano verbunden
 byte us[] = {0, 0, 0, 0};   // Werte des US-Sensors
-unsigned long usTimer = 0;  // wann wurde der Us zuletzt ausgelesen?
+unsigned long usTimer = 0;  // Zeitpunkt des letzten Auslesens
+unsigned long usResponseTimer = 0; // Zeitpunkt der letzten Arduino-Antwort
+Ultrasonic ultrasonic;  // OBJEKTINITIALISIERUNG
+
 
 // Globale Definition: KICK, LIGHT-BARRIER
 bool hasBall = false;   // besitzen der Roboter den Ball?
@@ -134,7 +137,7 @@ void setup() {
   // Start der Seriellen Kommunikation
   DEBUG_SERIAL.begin(115200);
   BLUETOOTH_SERIAL.begin(115200);
-  US_SERIAL.begin(115200);
+  ULTRASONIC_SERIAL.begin(115200);
   BOTTOM_SERIAL.begin(115200);
   Wire.begin();         // Start der I2C-Kommunikation
 
@@ -279,7 +282,7 @@ void loop() {
     readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
   }
 
-  if (millis() - usTimer > 100) readUltrasonic(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
+  if (millis() - usTimer > 100) ultrasonic.receive(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {

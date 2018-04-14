@@ -24,7 +24,7 @@ void Mate::send(byte * data, byte numberOfElements) {
 *****************************************************/
 byte Mate::cache() {
   // returns length of incomming message
-  while (BLUETOOTH_SERIAL.available() > 0) {
+  while (BLUETOOTH_SERIAL.available()) {
     byte b = BLUETOOTH_SERIAL.read();
     if (_cacheIndex != 255) { // aktives Zuhören?
       if (b == START_MARKER) {
@@ -63,7 +63,7 @@ byte Mate::cache() {
 byte Mate::receive() {
   byte messageLength = cache(); // aktualisiere den Cache
   if (messageLength == 9 && _cache[0] == 104) {
-    // cache ist 9 zeilen lang und vom Typ Heartbeat
+    // cache ist 9 Zeichen lang und vom Typ Heartbeat
     motEn = _cache[1] < 3; // speichere Motorzustand
     if (motEn) {
       // Partner is aktiv

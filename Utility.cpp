@@ -59,7 +59,7 @@ void calculateStates() {
     // Kamera nicht angeschlossen
     pixyState = 3;
   }
-  usConnected = millis() - usTimer < 500;
+  usConnected = millis() - usResponseTimer < 500;
   usFine = usConnected && us[1] * us[2] * us[3] != 0;
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
 }
@@ -101,40 +101,6 @@ void setupMotor() {
   m.setPins(2, FWD2, BWD2, PWM2);
   m.setPins(3, FWD3, BWD3, PWM3);
 }
-
-bool readUltrasonic() {
-  /*  erfragt beim Ultraschallsensor durch einen Interrupt die aktuellen Sensorwerte
-      empfängt und speichern diese Werte im globalen Array us[]:
-          1
-         .--.
-        /    \ 0
-      2 \    /
-         '--'
-           3
-      gibt zurück, ob Daten empfangen wurden
-  */
-  debug("us ");
-  digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
-  unsigned long timestamp = millis();
-  while (millis() - timestamp < 3) {  // warte max. 3ms auf eine Antwort
-    if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
-      while (US_SERIAL.available() > 4) {
-        US_SERIAL.read();
-
-      }
-      for (byte i = 0; i < 4; i++) {
-        us[i] = US_SERIAL.read();
-      }
-      digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-      usTimer = millis(); // merke Zeitpunkt
-      return true;
-    }
-  }
-  digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-  return false; // keine Daten konnten emopfangen werden
-}
-
-
 
 void avoidLine() {
   buzzerTone(100);
@@ -193,7 +159,7 @@ int ausrichten() {
     return 0;
   } else {
     if (seeGoal) {
-      pidSetpoint = constrain(goal/3 + heading, -45, 45);
+      pidSetpoint = constrain(goal / 3 + heading, -45, 45);
     } else {
       pidSetpoint = 0;
     }

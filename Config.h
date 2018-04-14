@@ -6,6 +6,7 @@
 #include "Led.h"
 #include "Pilot.h"
 #include "Mate.h"
+#include "Ultrasonic.h"
 #include "Utility.h"
 #include "pin.h"
 
@@ -61,7 +62,7 @@ extern Pixy pixy;
 // Implementierung: ULTRASCHALL
 extern bool usFine, usConnected;
 extern byte us[];
-extern unsigned long usTimer;
+extern unsigned long usTimer, usResponseTimer;
 
 // Implementierung: KICK, LIGHT-BARRIER
 extern bool hasBall;
@@ -151,7 +152,7 @@ extern bool wasSelect, wasBack;
 #define BLUETOOTH true            // soll eine Bluetooth-Kommunikation bestehen?
 #define BLUETOOTH_SERIAL Serial1  // Serial des Bluetooth-Moduls
 #define BOTTOM_SERIAL Serial2     // Serial des Bodensensor-Arduinos
-#define US_SERIAL Serial3         // Serial des Ultraschall-Arduinos
+#define ULTRASONIC_SERIAL Serial3         // Serial des Ultraschall-Arduinos
 #define START_MARKER 254          // Startzeichen einer Bluetooth-Nachricht
 #define END_MARKER 255            // Endzeichen einer Bluetooth-Nachricht
 
