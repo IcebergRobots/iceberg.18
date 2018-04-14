@@ -13,14 +13,12 @@ void Led::led() {
     info.setBrightness(INFO_BRIGHTNESS);
 
     // setze Boden-Leds
-    for (byte i = 0; i < BOTTOM_LENGTH; i++) {
-      if (!digitalRead(SWITCH_BOTTOM) || isLifted) {
-        bottom.setPixelColor(i, 0, 0, 0);
-      } else if (!digitalRead(SWITCH_A)) {
-        bottom.setPixelColor(i, 255, 0, 0);
-      } else {
-        bottom.setPixelColor(i, 255, 255, 255);
-      }
+    if (!digitalRead(SWITCH_BOTTOM) || isLifted) {
+      setBoard(bottom, BOTTOM_LENGTH, bottom.Color(0, 0, 0));
+    } else if (!digitalRead(SWITCH_A)) {
+      setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 0, 0));
+    } else {
+      setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
     }
   } else {
     if (animationPos == 1) {
@@ -34,17 +32,17 @@ void Led::led() {
 
     // setze den Farbkreis
     wheelBoard(bottom, BOTTOM_LENGTH, animationPos);
-    wheelBoard(matrix, MATRIX_LENGTH, animationPos);
-    wheelBoard(info, INFO_LENGTH, animationPos);
+    setBoard(matrix, MATRIX_LENGTH, wheelToColor(matrix, animationPos));
+    setBoard(info, INFO_LENGTH, wheelToColor(info, animationPos));
 
     // erhöhe die Position in der Animation
     animationPos += 1 + animationPos * ANIMATION_SPEED;
 
     // beende die Animation
     if (millis() - animationTimer > ANIMATION_DURATION) {
-      if (!digitalRead(SWITCH_BOTTOM) || isLifted) turnOffBoard(bottom, BOTTOM_LENGTH);
-      turnOffBoard(matrix, MATRIX_LENGTH);
-      turnOffBoard(info, INFO_LENGTH);
+      if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
+      setBoard(matrix, MATRIX_LENGTH, 0);
+      setBoard(info, INFO_LENGTH, 0);
       animationPos = 0;
     }
   }
@@ -74,7 +72,7 @@ void Led::set() {
   showState(matrix, 7, pixyState, true);
   showState(matrix, 8, !onLine);
   showState(matrix, 9, seeGoal, true);
-  showState(matrix, 10, usFine, true);
+  showState(matrix, 10, usFine);
   showState(matrix, 11, DEBUG * 3, true);
 }
 
@@ -143,9 +141,9 @@ void Led::wheelBoard(Adafruit_NeoPixel & board, int boardLength, int offset) {
   @param board: Led-Board
   @param boardLength: Leds im Board
 *****************************************************/
-void Led::turnOffBoard(Adafruit_NeoPixel & board, int boardLength) {
+void Led::setBoard(Adafruit_NeoPixel & board, int boardLength, uint32_t color) {
   for (int i = 0; i < boardLength; i++) {
-    board.setPixelColor(i, 0);
+    board.setPixelColor(i, color);
   }
   board.show();
 }

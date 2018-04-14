@@ -59,7 +59,7 @@ extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ball
 extern Pixy pixy;
 
 // Implementierung: ULTRASCHALL
-extern bool usFine;
+extern bool usFine, usConnected;
 extern byte us[];
 extern unsigned long usTimer;
 

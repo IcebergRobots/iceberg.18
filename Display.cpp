@@ -147,8 +147,13 @@ void Display::set() {
     case 1:
       _title = "Sensor";
       setLine(0, "Ball:", ball, true);
-      setLine(1, "^" + String(us[1]), String(us[0]) + ">");
-      setLine(2, "<" + String(us[2]), String(us[3]) + "v");
+      if (usConnected) {
+        setLine(1, "^" + String(us[1]), String(us[0]) + ">");
+        setLine(2, "<" + String(us[2]), String(us[3]) + "v");
+      } else {
+        setLine(1, "^", ">");
+        setLine(2, "<", "v");
+      }
       setLine(3, "Barr:", analogRead(LIGHT_BARRIER));
       setLine(4, "Volt:", String(batVol / 10) + "." + String(batVol % 10)); // battery voltage
       if (onLine) {

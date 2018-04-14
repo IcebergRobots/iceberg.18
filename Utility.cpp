@@ -59,7 +59,8 @@ void calculateStates() {
     // Kamera nicht angeschlossen
     pixyState = 3;
   }
-  usFine = us[0] * us[1] * us[2] * us[3] != 0;
+  usConnected = millis() - usTimer < 500;
+  usFine = usConnected && us[1] * us[2] * us[3] != 0;
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
 }
 
@@ -114,7 +115,8 @@ bool readUltrasonic() {
   */
   debug("us ");
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
-  while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
+  unsigned long timestamp = millis();
+  while (millis() - timestamp < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen
       while (US_SERIAL.available() > 4) {
         US_SERIAL.read();
@@ -129,7 +131,6 @@ bool readUltrasonic() {
     }
   }
   digitalWrite(INT_US, 0);  // beende das Interrupt Signal
-  usTimer = millis(); // merke Zeitpunkt
   return false; // keine Daten konnten emopfangen werden
 }
 

@@ -81,7 +81,8 @@ unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: ULTRASCHALL
-bool usFine = false;                // sind alle Ultraschallsensoren funktionstüchtig
+bool usFine = false;        // sind alle Ultraschallsensoren funktionstüchtig
+bool usConnected = false;   // sind wir mit dem Nano verbunden
 byte us[] = {0, 0, 0, 0};   // Werte des US-Sensors
 unsigned long usTimer = 0;  // wann wurde der Us zuletzt ausgelesen?
 
