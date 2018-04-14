@@ -27,6 +27,7 @@
 extern bool isMotor, start, onLine, isHeadstart, isKeeperLeft;
 extern int rotMulti, drivePwr, driveRot, driveDir, lineDir;
 extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastFlatTimer;
+extern String driveState;
 //extern Pilot m;
 
 // Implementierung: KOMPASS

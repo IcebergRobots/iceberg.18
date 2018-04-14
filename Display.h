@@ -29,7 +29,7 @@ class Display: public Adafruit_SSD1306
     int _page = 0;
     const byte PAGE_RANGE = 6;
     int _subpage = 0;
-    const byte SUBPAGE_RANGE[6] = {4, 9, 4, 9, 8, 7};
+    const byte SUBPAGE_RANGE[6] = {4, 9, 4, 9, 13, 7};
     String _time = "";
     String _title = "";
     String _line0 = "";

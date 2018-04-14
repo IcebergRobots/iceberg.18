@@ -178,3 +178,7 @@ bool Pilot::getMotEn() {
   return _motEn;
 }
 
+int Pilot::getMotValue(byte id) {
+  id = constrain(id,0,3);
+  return _values[id];
+}

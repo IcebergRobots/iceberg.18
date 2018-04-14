@@ -27,6 +27,7 @@ class Pilot
     void setMotEn(bool motEn);
     bool getMotEn();
     void switchMotEn();
+    int getMotValue(byte id);
 
   private:
     byte _fwd[4];    // digitaler PIN fuer Vorwaertsrotation

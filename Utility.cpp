@@ -263,12 +263,12 @@ void readPixy() {
         goalWidth = width;  // merke Torbreite
         break;
     }
+    pixyResponseTimer = millis();
   }
 
   if (ballSizeMax > 0) {
     ballSize = ballSizeMax;
     seeBallTimer = millis();
-    pixyResponseTimer = millis();
   }
   if (goalSizeMax > 0) {
     goalSize = goalSizeMax;

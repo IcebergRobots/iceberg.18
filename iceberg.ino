@@ -27,6 +27,7 @@ unsigned long lineTimer = 0;        // Zeitpunkt des Interrupts durch einen Bode
 unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 unsigned long lastFlatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
+String driveState = "";             // Zustand des Fahrens
 Pilot m;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: KOMPASS
@@ -337,21 +338,25 @@ void loop() {
 
   driveRot = ausrichten();
 
+  driveState = "";
   if (isLifted) {
     // hochgehoben
+    driveState = "lifted";
     drivePwr = 0; // stoppe
     driveRot = 0; // stoppe
-  } else if (onLine || isHeadstart) {
-    // reagiere auf Linie bzw. Headstart
+  } else if (onLine) {
+    // weiche einer Linie aus
+    driveState = "avoid line";
     drivePwr = SPEED_LINE;
-    if (!onLine && isHeadstart) {
-      drivePwr = SPEED_HEADSTART;
-      driveDir = 0;
-    }
-  } else if (isDrift) {
+  } else if (isHeadstart) {
+    // führe einen Schnellstart aus
+    driveState = "headstart";
     drivePwr = SPEED_HEADSTART;
-    debug("drift ");
+    driveDir = 0;
+  } else if (isDrift) {
     // steuere gegen
+    driveState = "avoid drift";
+    drivePwr = SPEED_HEADSTART;
     if (driftLeft) {
       driveDir = 90;
     } else {
@@ -390,19 +395,23 @@ void loop() {
           driftLeft = true;
         }
         // fahre in Richtung des Balls
+        driveState = "follow";
         driveDir = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
         if (driveDir > 60) {
           // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+          driveState = "sideway ri";
           driveDir = 100;
           drivePwr = SPEED_SIDEWAY;
         }
         if (driveDir < -60) {
           // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+          driveState = "sideway le";
           driveDir = -100;
           drivePwr = SPEED_SIDEWAY;
         }
         if (-15 < ball && ball < 15 && abs(heading) < 20) {
           // fahre geradeaus
+          driveState = "straight";
           drivePwr = SPEED_BALL_IN_FRONT;
         } else if (ballWidth > 50) {
           drivePwr *= 0.6;
@@ -412,6 +421,7 @@ void loop() {
       // sehen den Ball nicht bzw. sollen ihn nicht sehen
 
       // fahre nach hinten
+      driveState = "passive";
       driveDir = 180;
       drivePwr = SPEED_BACKWARDS;
 
@@ -426,6 +436,7 @@ void loop() {
           // beide Ultraschallsensoren kaputt
           stateFine = false;
         } else {
+          driveState = "keeper";
           if (usRight == 0) {
             usRight = COURT_WIDTH - usLeft; // ersetze kaputte US-Sensoren mit sinvollen Werten
           }
@@ -509,8 +520,9 @@ void loop() {
   }
   drivePwr = max(drivePwr - abs(driveRot), 0);
 
-  drivePwr = 0;
-  m.drive(driveDir, drivePwr, driveRot);
+  //drivePwr = 0;
+  //m.drive(driveDir, drivePwr, driveRot);
+  m.drive(0,0,255);
 
   if (millis() - lastDisplay > 1000) {
     debug("display ");
