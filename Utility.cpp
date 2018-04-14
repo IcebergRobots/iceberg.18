@@ -112,6 +112,7 @@ bool readUltrasonic() {
            3
       gibt zurück, ob Daten empfangen wurden
   */
+  debug("us ");
   digitalWrite(INT_US, 1);  // sende eine Interrupt Aufforderung an den US-Arduino
   while (millis() - usTimer < 3) {  // warte max. 3ms auf eine Antwort
     if (US_SERIAL.available() >= 4) { // alle Sensorwerte wurden übertragen

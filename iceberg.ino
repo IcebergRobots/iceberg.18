@@ -350,7 +350,7 @@ void loop() {
     }
   } else if (isDrift) {
     drivePwr = SPEED_HEADSTART;
-    debugln("drift");
+    debug("drift ");
     // steuere gegen
     if (driftLeft) {
       driveDir = 90;
@@ -363,11 +363,11 @@ void loop() {
     if (seeBall && !(isConnected && mate.seeBall && mate.ballWidth > ballWidth)) {
       // fahre in Richtung des Balls
       if (ball > 50) {
-        debugln("setLeft");
+        debug("setLeft ");
         ballLeftTimer = millis();
       }
       if (ball < -50) {
-        debugln("setRight");
+        debug("setRight ");
         ballRightTimer = millis();
       }
       if (hasBall) {
@@ -378,13 +378,13 @@ void loop() {
       } else {
         // verhindere das Driften
         if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {
-          debugln("runRight");
+          debug("runRight ");
           buzzerTone(500);
           driftTimer = millis();
           driftLeft = false;
         }
         if (ball < 0 && millis() - ballLeftTimer < DRIFT_DURATION) {
-          debugln("runLeft");
+          debug("runLeft ");
           buzzerTone(500);
           driftTimer = millis();
           driftLeft = true;
@@ -509,6 +509,7 @@ void loop() {
   }
   drivePwr = max(drivePwr - abs(driveRot), 0);
 
+  drivePwr = 0;
   m.drive(driveDir, drivePwr, driveRot);
 
   if (millis() - lastDisplay > 1000) {
