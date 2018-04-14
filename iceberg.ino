@@ -225,7 +225,7 @@ void loop() {
 
   if (millis() - kickTimer > 30)  digitalWrite(SCHUSS, 0);  // schuß wieder ausschalten
 
-  digitalWrite(BUZZER_AKTIV, millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
+  digitalWrite(BUZZER, millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
 
   // Seitenauswahl
   // auswählen
@@ -520,10 +520,9 @@ void loop() {
   }
   drivePwr = max(drivePwr - abs(driveRot), 0);
 
-  //drivePwr = 0;
-  //m.drive(driveDir, drivePwr, driveRot);
-  m.drive(0,0,255);
-
+  drivePwr = 0;
+  m.drive(driveDir, drivePwr, driveRot);
+  
   if (millis() - lastDisplay > 1000) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs

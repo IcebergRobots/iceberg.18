@@ -136,7 +136,7 @@ bool readUltrasonic() {
 
 
 void avoidLine() {
-  digitalWrite(BUZZER_AKTIV, HIGH);
+  buzzerTone(50);
   while (BOTTOM_SERIAL.available() > 1) {
     BOTTOM_SERIAL.read();
   }
@@ -179,8 +179,10 @@ int getCompassHeading() {
 }
 
 void buzzerTone(int duration) {
-  digitalWrite(BUZZER_AKTIV, 1);
-  buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
+  if (!SILENT) {
+    analogWrite(BUZZER, 127);
+    buzzerStopTimer = max(buzzerStopTimer, millis() + duration);
+  }
 }
 
 

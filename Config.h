@@ -139,6 +139,9 @@ extern bool wasSelect, wasBack;
 #define SIGNATURE_BALL 1  // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
 
+// BUZZER
+#define SILENT false // soll der Roboter stumm sein?
+
 // DISPLAY
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup
 
