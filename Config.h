@@ -27,6 +27,7 @@
 
 // Implementierung: FAHREN
 extern bool isMotor, start, onLine, isHeadstart, isKeeperLeft;
+extern byte usRight, usFront, usLeft, usBack;
 extern int rotMulti, drivePwr, driveRot, driveDir, lineDir;
 extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastFlatTimer;
 extern String driveState;

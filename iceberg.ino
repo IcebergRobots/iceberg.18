@@ -13,11 +13,15 @@
 #include "Config.h"
 
 // Globale Definition: FAHREN
-bool isMotor = false;      // sind die Motoren aktiviert?
+bool isMotor = false;       // sind die Motoren aktiviert?
 bool start = false;         // ist der funkstart aktiviert
-bool onLine = false;       // befinden wir uns auf einer Linie?
-bool isHeadstart = false;  // fahren wir mit voller Geschwindigkeit?
+bool onLine = false;        // befinden wir uns auf einer Linie?
+bool isHeadstart = false;   // fahren wir mit voller Geschwindigkeit?
 bool isKeeperLeft = false;  // deckten wir zuletzt das Tor mit einer Linksbewegung?
+byte usRight = 0;           // modifizierbarer Abstand nach rechts
+byte usFront = 0;            // modifizierbarer Abstand nach vorne
+byte usLeft = 0;            // modifizierbarer Abstand nach links
+byte usBack = 0;            // modifizierbarer Abstand nach hinten
 int rotMulti;               // Scalar, um die Rotationswerte zu verstärken
 int drivePwr = 0;           // maximale Motorstärke [0 bis 255]
 int driveRot = 0;           // korrigiere Kompass
@@ -424,13 +428,8 @@ void loop() {
       }
     } else {
       // sehen den Ball nicht bzw. sollen ihn nicht sehen
-
-      // fahre nach hinten
-      driveState = "passive";
-      driveDir = 180;
-      drivePwr = SPEED_BACKWARDS;
-
-      if (us[3] > 0 && us[3] < 50 && us[2] + us[0] > 0 && abs(heading) < 40) {
+      if (usBack > 0 && usBack < 50 && us[2] + us[0] > 0 && abs(heading) < 40) {
+        // verteidige das Tor im Strafraum oder davor
         if (seeBall) {
           if (ball > 0 && !keeper.atGatepost()) keeper.left();
           if (ball < 0 && !keeper.atGatepost()) keeper.right();
@@ -441,6 +440,11 @@ void loop() {
         }
 
         keeper.set(); // übernehme die Steuerwerte
+      } else {
+        // fahre nach hinten
+        driveState = "passive";
+        driveDir = 180;
+        drivePwr = SPEED_BACKWARDS;
       }
     }
   }

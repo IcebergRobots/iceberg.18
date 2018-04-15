@@ -65,12 +65,20 @@ void Ultrasonic::receive() {
   digitalWrite(INT_US, LOW);  // beende das Interrupt Signal
 
   if (messageLength == 4) {
-    us[0] = _cache[0];
-    us[1] = _cache[1];
-    us[2] = _cache[2];
-    us[3] = _cache[3];
-    usResponseTimer = millis(); // merke Zeitpunkt
+    usRight = _cache[0];
+    usFront = _cache[1];
+    usLeft = _cache[2];
+    usBack = _cache[3];
+    us[0] = usRight;
+    us[1] = usFront;
+    us[2] = usLeft;
+    us[3] = usBack;
+    if (usLeft == 0)  usLeft = COURT_WIDTH - usRight;
+    if (usRight == 0) usRight = COURT_WIDTH - usLeft;
+    if (isConnected && mate.us[3] < 80) usBack = max(0, usBack - 80);
   }
-  usTimer = millis(); // merke Zeitpunkt
+  usResponseTimer = millis(); // merke Zeitpunkt
+}
+usTimer = millis(); // merke Zeitpunkt
 }
 
