@@ -1,5 +1,8 @@
 #include "Ultrasonic.h"
 
+// Implementierung: OBJEKTE
+extern Mate mate;
+
 Ultrasonic::Ultrasonic() {
 }
 
@@ -76,9 +79,8 @@ void Ultrasonic::receive() {
     if (usLeft == 0)  usLeft = COURT_WIDTH - usRight;
     if (usRight == 0) usRight = COURT_WIDTH - usLeft;
     if (isConnected && mate.us[3] < 80) usBack = max(0, usBack - 80);
+    usResponseTimer = millis(); // merke Zeitpunkt
   }
-  usResponseTimer = millis(); // merke Zeitpunkt
-}
-usTimer = millis(); // merke Zeitpunkt
+  usTimer = millis(); // merke Zeitpunkt
 }
 

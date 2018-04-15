@@ -138,7 +138,7 @@ void Display::set() {
         setLine(0, "Ball:blind");
       }
 
-      setLine(1, "Dir:", driveDir);
+      setLine(1, driveState.substring(0,6), driveDir, true);
       if (batState == 2) {
         setLine(2, "lowVoltage");
       } else {
@@ -197,10 +197,10 @@ void Display::set() {
       setLine(2, "Pwr:", drivePwr);
       setLine(3, driveState);
       setLine(4, "PID:", pidSetpoint, true);
-      setLine(5, "M ':", m.getMotValue(0), true);
-      setLine(6, "M ,:", m.getMotValue(1), true);
-      setLine(7, "M, :", m.getMotValue(2), true);
-      setLine(8, "M' :", m.getMotValue(3), true);
+      setLine(5, "M' :", m.getMotValue(0), true);
+      setLine(6, "M, :", m.getMotValue(1), true);
+      setLine(7, "M ,:", m.getMotValue(2), true);
+      setLine(8, "M ':", m.getMotValue(3), true);
       setLine(9, "Line:", onLine);
       setLine(10, "Head:", isHeadstart);
       setLine(11, "K.tim:", (millis() - lastKeeperToggle) / 1000);
