@@ -60,7 +60,7 @@ void calculateStates() {
     pixyState = 3;
   }
   usConnected = millis() - usResponseTimer < 500;
-  usFine = usConnected && us[1] * us[2] * us[3] != 0;
+  usFine = usConnected && us[0] * us[2] * us[3] != 0;
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
 }
 
