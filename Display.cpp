@@ -2,6 +2,7 @@
 
 // Implementierung: OBJEKTE
 extern Pilot m;
+extern Keeper keeper;
 extern Mate mate;
 extern Led led;
 
@@ -74,7 +75,7 @@ void Display::update() {
 }
 
 void Display::select() {
-  if (_level < 2) {
+  if (_level < 1) {
     _level++;
     update();
   }
@@ -165,7 +166,10 @@ void Display::set() {
       setLine(7, "Time:", millis() / 1000);
       break;
     case 2:
-      _title = "Config";
+      _title = "Debug";
+      setLine(0, "togg:", keeper.lastToggle() / 1000);
+      setLine(1, "post:", keeper.atGatepost());
+      
       break;
     case 3:
       _title = "Pixy";

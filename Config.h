@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "Display.h"
+#include "Keeper.h"
 #include "Led.h"
 #include "Pilot.h"
 #include "Mate.h"

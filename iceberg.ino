@@ -28,6 +28,7 @@ unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 unsigned long lastFlatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
 String driveState = "";             // Zustand des Fahrens
+Keeper keeper;  // OBJEKTINITIALISIERUNG
 Pilot m;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: KOMPASS
@@ -429,103 +430,24 @@ void loop() {
       driveDir = 180;
       drivePwr = SPEED_BACKWARDS;
 
-      if (us[3] == 0) {
-        // us-Sensor kaputt
-        stateFine = false;
-      } else if (us[3] < 50 && abs(heading) < 40) {
-        drivePwr = SPEED_KEEPER;
-        byte usRight = us[0];
-        byte usLeft = us[2];
-        if (usRight == 0 && usLeft == 0) {
-          // beide Ultraschallsensoren kaputt
-          stateFine = false;
-        } else {
-          driveState = "keeper";
-          if (usRight == 0) {
-            usRight = COURT_WIDTH - usLeft; // ersetze kaputte US-Sensoren mit sinvollen Werten
-          }
-          if (usLeft == 0) {
-            usLeft = COURT_WIDTH - usRight;  // ersetze kaputte US-Sensoren mit sinvollen Werten
-          }
-          if (seeBall) {
-            if (ball > 0 && usLeft > COURT_GOAL_TO_BORDER) {
-              driveDir = ANGLE_SIDEWAY;
-              if (us[3] < 15) {
-                driveDir *= 0.8;
-              }
-              isKeeperLeft = true;
-              lastKeeperToggle = millis();
-            }
-            if (ball < 0 && usRight > COURT_GOAL_TO_BORDER) {
-              driveDir = -ANGLE_SIDEWAY;
-              if (us[3] < 15) {
-                driveDir *= 0.8;
-              }
-              isKeeperLeft = false;
-              lastKeeperToggle = millis();
-            }
-          } else if (millis() - lastKeeperToggle > 4000) {
-            // force toggle
-            if (isKeeperLeft) {
-              driveDir = -ANGLE_SIDEWAY;
-              if (us[3] < 15) {
-                driveDir *= 0.8;
-              }
-              isKeeperLeft = false;
-              lastKeeperToggle = millis();
-            } else {
-              driveDir = ANGLE_SIDEWAY;
-              if (us[3] < 15) {
-                driveDir *= 0.8;
-              }
-              isKeeperLeft = true;
-              lastKeeperToggle = millis();
-            }
-          } else if (millis() - lastKeeperToggle > 1500) {
-            // eventuell toggeln
-            if (isKeeperLeft) {
-              // wir fahren gerade nach links
-              if (usLeft < COURT_GOAL_TO_BORDER) {
-                driveDir = -ANGLE_SIDEWAY;
-                if (us[3] < 15) {
-                  driveDir *= 0.8;
-                }
-                isKeeperLeft = false;
-                lastKeeperToggle = millis();
-              }
-            } else {
-              // wir fahren gerade nach rechts
-              if (usRight < COURT_GOAL_TO_BORDER) {
-                driveDir = ANGLE_SIDEWAY;
-                if (us[3] < 15) {
-                  driveDir *= 0.8;
-                }
-                isKeeperLeft = true;
-                lastKeeperToggle = millis();
-              }
-            }
-          } else {
-            // do nothing
-            if (isKeeperLeft) {
-              driveDir = ANGLE_SIDEWAY;
-              if (us[3] < 15) {
-                driveDir *= 0.8;
-              }
-            } else {
-              driveDir = -ANGLE_SIDEWAY;
-              if (us[3] < 15) {
-                driveDir *= 0.8;
-              }
-            }
-          }
+      if (us[3] > 0 && us[3] < 50 && us[2] + us[0] > 0 && abs(heading) < 40) {
+        if (seeBall) {
+          if (ball > 0 && !keeper.atGatepost()) keeper.left();
+          if (ball < 0 && !keeper.atGatepost()) keeper.right();
+        } else if (keeper.lastToggle() > 4000) {
+          keeper.toggle();  // Richtungsänderung nach max. 4 Sekungen
+        } else if (keeper.lastToggle() > 1500 && keeper.atGatepost()) {
+          keeper.toggle();  // Richtungsänderung am Torpfosten
         }
+
+        keeper.set(); // übernehme die Steuerwerte
       }
     }
   }
   drivePwr = max(drivePwr - abs(driveRot), 0);
 
   m.drive(driveDir, drivePwr, driveRot);
-  
+
   if (millis() - lastDisplay > 100) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs
