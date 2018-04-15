@@ -524,7 +524,6 @@ void loop() {
   }
   drivePwr = max(drivePwr - abs(driveRot), 0);
 
-  drivePwr = 0;
   m.drive(driveDir, drivePwr, driveRot);
   
   if (millis() - lastDisplay > 100) {
