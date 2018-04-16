@@ -27,11 +27,9 @@
 
 // Implementierung: FAHREN
 extern bool isMotor, isRusher, start, onLine, isHeadstart, isKeeperLeft;
-extern byte usRight, usFront, usLeft, usBack;
 extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
 extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastFlatTimer;
 extern String driveState;
-//extern Pilot m;
 
 // Implementierung: KOMPASS
 extern int heading, startHeading, rotation;
@@ -44,7 +42,6 @@ extern sensors_vec_t orientation;
 // Implementierung: BLUETOOTH, MATE
 extern bool startLast;
 extern unsigned long startTimer, bluetoothTimer, heartbeatTimer;
-//extern Mate mate;
 
 // Implementierung: WICHTUNG DER PID-REGLER
 extern double pidSetpoint, pidIn, pidOut;
@@ -62,9 +59,7 @@ extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ball
 extern Pixy pixy;
 
 // Implementierung: ULTRASCHALL
-extern bool usFine;
-extern byte us[];
-extern unsigned long usTimer, usResponseTimer;
+extern unsigned long usTimer;
 
 // Implementierung: KICK, LIGHT-BARRIER
 extern bool hasBall;
@@ -77,7 +72,6 @@ extern bool isLifted;
 extern bool isTypeA;
 extern unsigned long lastDisplay;
 extern String displayDebug;
-//extern Display d;
 
 // Implementierung: LEDS
 extern bool stateFine;

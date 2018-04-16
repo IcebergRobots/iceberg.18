@@ -1,10 +1,12 @@
 #include "Display.h"
 
 // Implementierung: OBJEKTE
-extern Pilot m;
+extern Display d;
 extern Keeper keeper;
-extern Mate mate;
 extern Led led;
+extern Mate mate;
+extern Pilot m;
+extern Ultrasonic us;
 
 void Display::init() {
   begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialisiere das Displays
@@ -148,9 +150,9 @@ void Display::set() {
     case 1:
       _title = "Sensor";
       setLine(0, "Ball:", ball, true);
-      if (ultrasonic.connected) {
-        setLine(1, "^" + String(us[1]), String(us[0]) + ">");
-        setLine(2, "<" + String(us[2]), String(us[3]) + "v");
+      if (us.conn()) {
+        setLine(1, "^" + String(us.front()), String(us.right()) + ">");
+        setLine(2, "<" + String(us.left()), String(us.back()) + "v");
       } else {
         setLine(1, "^", ">");
         setLine(2, "<", "v");
@@ -205,8 +207,8 @@ void Display::set() {
     case 5:
       _title = "Mate";
       setLine(0, "Conn:", (millis() - heartbeatTimer) / 1000);
-      setLine(1, "^" + String(mate.us[1]), String(mate.us[0]) + ">");
-      setLine(2, "<" + String(mate.us[2]), String(mate.us[3]) + "v");
+      setLine(1, "^" + String(mate.front()), String(mate.right()) + ">");
+      setLine(2, "<" + String(mate.left()), String(mate.back()) + "v");
       if (mate.seeBall) {
         setLine(3, "B.dif:", ball - mate.ball, true);
         setLine(4, "B.ang:", mate.ball, true);

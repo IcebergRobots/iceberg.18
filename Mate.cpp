@@ -1,5 +1,13 @@
 #include "Mate.h"
 
+// Implementierung: OBJEKTE
+extern Display d;
+extern Keeper keeper;
+extern Led led;
+extern Mate mate;
+extern Pilot m;
+extern Ultrasonic us;
+
 Mate::Mate() {
 }
 
@@ -77,10 +85,10 @@ byte Mate::receive() {
     if(cache[2]==1) ball = -cache[3];
     else ball = cache[3];
     ballWidth = cache[3] + 254 * cache[4];  // speichere die Ballbreite
-    us[0] = cache[5];
-    us[1] = cache[6];
-    us[2] = cache[7];
-    us[3] = cache[8];
+    distanceRight = cache[5];
+    distanceFront = cache[6];
+    distanceLeft = cache[7];
+    distanceBack = cache[8];
   }
   if (messageLength > 0) {
     return cache[0];
@@ -89,3 +97,22 @@ byte Mate::receive() {
   }
 }
 
+byte Mate::right() {
+  return distanceRight;
+}
+
+byte Mate::front() {
+  return distanceFront;
+}
+
+byte Mate::left() {
+  return distanceLeft;
+}
+
+byte Mate::back() {
+  return distanceBack;
+}
+
+bool Mate::conn() {
+  return millis() - responseTimer < 500;
+}

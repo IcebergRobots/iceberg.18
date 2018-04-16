@@ -1,5 +1,13 @@
 #include "Config.h"
 
+// Implementierung: OBJEKTE
+extern Display d;
+extern Keeper keeper;
+extern Led led;
+extern Mate mate;
+extern Pilot m;
+extern Ultrasonic us;
+
 void pinModes() {
   pinMode(LIGHT_BARRIER,	INPUT_PULLUP);
   pinMode(BATT_VOLTAGE,		INPUT);

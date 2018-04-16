@@ -2,9 +2,11 @@
 
 // Implementierung: OBJEKTE
 extern Display d;
-extern Pilot m;
-extern Mate mate;
+extern Keeper keeper;
 extern Led led;
+extern Mate mate;
+extern Pilot m;
+extern Ultrasonic us;
 
 int shift(int &value, int min, int max) {
   max -= min;
@@ -28,7 +30,6 @@ void calculateStates() {
   isMotor = m.getMotEn();
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
-  mate.connected = millis() - heartbeatTimer < 500;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
   if (batVol > VOLTAGE_MIN) {
     batState = 1; // ok
@@ -67,7 +68,7 @@ void calculateStates() {
 
 /*****************************************************
   Sende einen Herzschlag mit Statusinformationen an den Partner
-  
+
   Byte    Information   mögliche Zustände
   -----------------------------------------------------
   0       Pakettyps     Heartbeat(104)
@@ -80,17 +81,17 @@ void calculateStates() {
 void transmitHeartbeat() {
   byte data[10];
   data[0] = 'h';
-  if(!m.getMotEn()||isLifted) data[1] = 0;
+  if (!m.getMotEn() || isLifted) data[1] = 0;
   else data[1] = !isRusher;
   if (!seeBall) data[2] = 2;
   else data[1] = ball < 0;
   data[2] = abs(ball);
   data[3] = ballWidth % 254;
   data[4] = ballWidth / 254;
-  data[5] = us[0];
-  data[6] = us[1];
-  data[7] = us[2];
-  data[8] = us[3];
+  data[5] = us.right();
+  data[6] = us.front();
+  data[7] = us.left();
+  data[8] = us.back();
   mate.send(data, 10); // heartbeat
   bluetoothTimer = millis();
 }

@@ -19,10 +19,6 @@ bool start = false;         // ist der funkstart aktiviert
 bool onLine = false;        // befinden wir uns auf einer Linie?
 bool isHeadstart = false;   // fahren wir mit voller Geschwindigkeit?
 bool isKeeperLeft = false;  // deckten wir zuletzt das Tor mit einer Linksbewegung?
-byte usRight = 0;           // modifizierbarer Abstand nach rechts
-byte usFront = 0;            // modifizierbarer Abstand nach vorne
-byte usLeft = 0;            // modifizierbarer Abstand nach links
-byte usBack = 0;            // modifizierbarer Abstand nach hinten
 int rotMulti;               // Scalar, um die Rotationswerte zu verstärken
 int drivePower = 0;         // [-255 bis 255] aktuelle maximale Motorstärke
 int driveRotation = 0;       // [-255 bis 255] aktuelle Rotationsstärke
@@ -87,11 +83,8 @@ unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: ULTRASCHALL
-bool usFine = false;        // sind alle Ultraschallsensoren funktionstüchtig
-byte us[] = {0, 0, 0, 0};   // Werte des US-Sensors
 unsigned long usTimer = 0;  // Zeitpunkt des letzten Auslesens
-unsigned long usResponseTimer = 0; // Zeitpunkt der letzten Arduino-Antwort
-Ultrasonic ultrasonic;  // OBJEKTINITIALISIERUNG
+Ultrasonic us;  // OBJEKTINITIALISIERUNG
 
 
 // Globale Definition: KICK, LIGHT-BARRIER
@@ -289,7 +282,7 @@ void loop() {
     readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
   }
 
-  if (millis() - usTimer > 100) ultrasonic.receive(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
+  if (millis() - usTimer > 100) us.receive(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
@@ -376,7 +369,7 @@ void loop() {
     if (seeGoal) driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
     drivePower = SPEED;
 
-    if (seeBall && !(mate.connected && mate.seeBall && mate.ballWidth > ballWidth)) {
+    if (seeBall && !(mate.conn() && mate.seeBall && mate.ballWidth > ballWidth)) {
       // fahre in Richtung des Balls
       if (ball > 50) {
         debug("setLeft ");
@@ -430,7 +423,7 @@ void loop() {
       }
     } else {
       // sehen den Ball nicht bzw. sollen ihn nicht sehen
-      if (usBack > 0 && usBack < 50 && us[2] + us[0] > 0 && abs(heading) < 40) {
+      if (us.back() > 0 && us.back() < 50 && us.left() + us.right() > 0 && abs(heading) < 40) {
         // verteidige das Tor im Strafraum oder davor
         if (seeBall) {
           if (ball > 0 && !keeper.atGatepost()) keeper.left();

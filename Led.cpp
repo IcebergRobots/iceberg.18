@@ -1,5 +1,13 @@
 #include "Led.h"
 
+// Implementierung: OBJEKTE
+extern Display d;
+extern Keeper keeper;
+extern Led led;
+extern Mate mate;
+extern Pilot m;
+extern Ultrasonic us;
+
 Led::Led() {}
 
 /*****************************************************
@@ -66,13 +74,13 @@ void Led::set() {
   showState(matrix, 1, !digitalRead(SWITCH_MOTOR));
   showState(matrix, 2, seeBall, true);
   showState(matrix, 3, hasBall, true);
-  showState(matrix, 4, mate.connected);
+  showState(matrix, 4, mate.conn());
   //showState(matrix, 5, Bodensensor verfügbar);
   showState(matrix, 6, isLifted * 3, true);
   showState(matrix, 7, pixyState, true);
   showState(matrix, 8, !onLine);
   showState(matrix, 9, seeGoal, true);
-  showState(matrix, 10, usFine);
+  showState(matrix, 10, us.check());
   showState(matrix, 11, DEBUG * 3, true);
 }
 

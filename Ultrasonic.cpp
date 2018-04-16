@@ -1,7 +1,12 @@
 #include "Ultrasonic.h"
 
 // Implementierung: OBJEKTE
+extern Display d;
+extern Keeper keeper;
+extern Led led;
 extern Mate mate;
+extern Pilot m;
+extern Ultrasonic us;
 
 Ultrasonic::Ultrasonic() {
 }
@@ -68,19 +73,39 @@ void Ultrasonic::receive() {
   digitalWrite(INT_US, LOW);  // beende das Interrupt Signal
 
   if (messageLength == 4) {
-    usRight = cache[0];
-    usFront = cache[1];
-    usLeft = cache[2];
-    usBack = cache[3];
-    us[0] = usRight;
-    us[1] = usFront;
-    us[2] = usLeft;
-    us[3] = usBack;
-    if (usLeft == 0)  usLeft = COURT_WIDTH - usRight;
-    if (usRight == 0) usRight = COURT_WIDTH - usLeft;
-    if (mate.connected && mate.us[3] < 80) usBack = max(0, usBack - 80);
-    usResponseTimer = millis(); // merke Zeitpunkt
+    distanceRight = cache[0];
+    distanceFront = cache[1];
+    distanceLeft = cache[2];
+    distanceBack = cache[3];
+    responseTimer = millis(); // merke Zeitpunkt
   }
   usTimer = millis(); // merke Zeitpunkt
+}
+
+byte Ultrasonic::right() {
+  if (distanceRight == 0 && distanceLeft > 0) return COURT_WIDTH - distanceLeft;
+  else return distanceRight;
+}
+
+byte Ultrasonic::front() {
+  return distanceFront;
+}
+
+byte Ultrasonic::left() {
+  if (distanceLeft == 0 && distanceRight > 0) return COURT_WIDTH - distanceRight;
+  else return distanceLeft;
+}
+
+byte Ultrasonic::back() {
+  /*if (mate.conn() && mate.back() < 80) return max(0, us.back() - 80);
+  else*/ return distanceBack;
+}
+
+bool Ultrasonic::check() {
+  return conn() && (distanceRight * distanceLeft * distanceBack > 0);
+}
+
+bool Ultrasonic::conn() {
+  return millis() - responseTimer < 500;
 }
 
