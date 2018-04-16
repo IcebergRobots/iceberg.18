@@ -12,11 +12,13 @@ class Mate
 
     void send(byte * data, byte numberOfElements);
     byte receive();
-    bool role = 0;
+
+    bool connnected = false;
     bool seeBall = false;
+    bool role = 0;
+    byte us[4] = {0, 0, 0, 0};
     int ball = 0;
     unsigned int ballWidth = 0;
-    byte us[4] = {0, 0, 0, 0};
 
   private:
     byte fetch();

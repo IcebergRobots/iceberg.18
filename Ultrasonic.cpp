@@ -78,7 +78,7 @@ void Ultrasonic::receive() {
     us[3] = usBack;
     if (usLeft == 0)  usLeft = COURT_WIDTH - usRight;
     if (usRight == 0) usRight = COURT_WIDTH - usLeft;
-    if (isConnected && mate.us[3] < 80) usBack = max(0, usBack - 80);
+    if (mate.connected && mate.us[3] < 80) usBack = max(0, usBack - 80);
     usResponseTimer = millis(); // merke Zeitpunkt
   }
   usTimer = millis(); // merke Zeitpunkt

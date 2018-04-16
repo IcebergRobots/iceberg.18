@@ -42,7 +42,7 @@ extern sensors_event_t accel_event, mag_event;
 extern sensors_vec_t orientation;
 
 // Implementierung: BLUETOOTH, MATE
-extern bool isConnected, startLast;
+extern bool startLast;
 extern unsigned long startTimer, bluetoothTimer, heartbeatTimer;
 //extern Mate mate;
 
@@ -62,7 +62,7 @@ extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ball
 extern Pixy pixy;
 
 // Implementierung: ULTRASCHALL
-extern bool usFine, usConnected;
+extern bool usFine;
 extern byte us[];
 extern unsigned long usTimer, usResponseTimer;
 

@@ -28,7 +28,7 @@ void calculateStates() {
   isMotor = m.getMotEn();
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
-  isConnected = millis() - heartbeatTimer < 500;
+  mate.connected = millis() - heartbeatTimer < 500;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
   if (batVol > VOLTAGE_MIN) {
     batState = 1; // ok
@@ -61,8 +61,7 @@ void calculateStates() {
     // Kamera nicht angeschlossen
     pixyState = 3;
   }
-  usConnected = millis() - usResponseTimer < 500;
-  usFine = usConnected && us[0] * us[2] * us[3] != 0;
+
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
 }
 

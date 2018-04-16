@@ -66,7 +66,7 @@ void Led::set() {
   showState(matrix, 1, !digitalRead(SWITCH_MOTOR));
   showState(matrix, 2, seeBall, true);
   showState(matrix, 3, hasBall, true);
-  showState(matrix, 4, isConnected);
+  showState(matrix, 4, mate.connected);
   //showState(matrix, 5, Bodensensor verfügbar);
   showState(matrix, 6, isLifted * 3, true);
   showState(matrix, 7, pixyState, true);

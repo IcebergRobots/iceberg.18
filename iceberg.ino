@@ -49,7 +49,6 @@ sensors_event_t mag_event;
 sensors_vec_t   orientation;
 
 // Globale Definition: BLUETOOTH, MATE
-bool isConnected = false; // besteht eine Bluetooth Verbindung zum Parter
 bool startLast = false; // war zuletzt der Funktstart aktiviert
 unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
@@ -89,7 +88,6 @@ Pixy pixy;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: ULTRASCHALL
 bool usFine = false;        // sind alle Ultraschallsensoren funktionstüchtig
-bool usConnected = false;   // sind wir mit dem Nano verbunden
 byte us[] = {0, 0, 0, 0};   // Werte des US-Sensors
 unsigned long usTimer = 0;  // Zeitpunkt des letzten Auslesens
 unsigned long usResponseTimer = 0; // Zeitpunkt der letzten Arduino-Antwort
@@ -378,7 +376,7 @@ void loop() {
     if (seeGoal) driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
     drivePower = SPEED;
 
-    if (seeBall && !(isConnected && mate.seeBall && mate.ballWidth > ballWidth)) {
+    if (seeBall && !(mate.connected && mate.seeBall && mate.ballWidth > ballWidth)) {
       // fahre in Richtung des Balls
       if (ball > 50) {
         debug("setLeft ");

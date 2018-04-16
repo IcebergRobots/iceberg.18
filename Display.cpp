@@ -148,7 +148,7 @@ void Display::set() {
     case 1:
       _title = "Sensor";
       setLine(0, "Ball:", ball, true);
-      if (usConnected) {
+      if (ultrasonic.connected) {
         setLine(1, "^" + String(us[1]), String(us[0]) + ">");
         setLine(2, "<" + String(us[2]), String(us[3]) + "v");
       } else {

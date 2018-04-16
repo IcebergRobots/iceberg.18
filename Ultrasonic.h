@@ -11,10 +11,12 @@ class Ultrasonic
     Ultrasonic();
 
     void receive();
-    
+
+    bool connected = false;
+
   private:
     byte fetch();
-  
+
     byte cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
     byte cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
 };
