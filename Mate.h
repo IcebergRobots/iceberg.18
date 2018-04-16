@@ -11,17 +11,18 @@ class Mate
     Mate();
 
     void send(byte * data, byte numberOfElements);
-    byte cache();
     byte receive();
-    bool motEn;
+    bool role = 0;
     bool seeBall = false;
     int ball = 0;
     unsigned int ballWidth = 0;
     byte us[4] = {0, 0, 0, 0};
 
   private:
-    byte _cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
-    byte _cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
+    byte fetch();
+
+    byte cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
+    byte cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
 };
 
 #endif

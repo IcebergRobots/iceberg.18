@@ -10,33 +10,33 @@ Ultrasonic::Ultrasonic() {
   empfange Daten an des Patners
   - speichere diese im Cache
 *****************************************************/
-byte Ultrasonic::cache() {
+byte Ultrasonic::fetch() {
   // returns length of incomming message
   while (ULTRASONIC_SERIAL.available()) {
     byte b = ULTRASONIC_SERIAL.read();
-    if (_cacheIndex != 255) { // aktives Zuhören?
+    if (cacheIndex != 255) { // aktives Zuhören?
       if (b == START_MARKER) {
-        _cacheIndex = 0;  // aktiviere Zuhören
+        cacheIndex = 0;  // aktiviere Zuhören
         for (byte i = 0; i < CACHE_SIZE; i++) {
-          _cache[i] = 255; // überschreibe den Cache
+          cache[i] = 255; // überschreibe den Cache
         }
       } else if (b == END_MARKER) {
-        byte messageLength = _cacheIndex;
-        _cacheIndex = 255; // deaktiviere Zuhören
+        byte messageLength = cacheIndex;
+        cacheIndex = 255; // deaktiviere Zuhören
         return messageLength; // Befehl empfangen!
       } else {
-        if (_cacheIndex >= CACHE_SIZE) {
-          _cacheIndex = 255; // deaktiviere Zuhören
+        if (cacheIndex >= CACHE_SIZE) {
+          cacheIndex = 255; // deaktiviere Zuhören
         } else {
-          _cache[_cacheIndex] = b;  // speichere in Cache
-          _cacheIndex += 1;  // speichere index
+          cache[cacheIndex] = b;  // speichere in Cache
+          cacheIndex += 1;  // speichere index
         }
       }
     } else {
       if (b == START_MARKER) {
-        _cacheIndex = 0; // aktiviere Zuhören
+        cacheIndex = 0; // aktiviere Zuhören
         for (byte i = 0; i < CACHE_SIZE; i++) {
-          _cache[i] = 255; // überschreibe den Cache
+          cache[i] = 255; // überschreibe den Cache
         }
       }
     }
@@ -61,17 +61,17 @@ void Ultrasonic::receive() {
   unsigned long timestamp = millis();
   byte messageLength = 0;
   while (millis() - timestamp < 3) {
-    messageLength = cache();
+    messageLength = fetch();
     if (messageLength == 4) break;
   }
   while (ULTRASONIC_SERIAL.available()) ULTRASONIC_SERIAL.read();
   digitalWrite(INT_US, LOW);  // beende das Interrupt Signal
 
   if (messageLength == 4) {
-    usRight = _cache[0];
-    usFront = _cache[1];
-    usLeft = _cache[2];
-    usBack = _cache[3];
+    usRight = cache[0];
+    usFront = cache[1];
+    usLeft = cache[2];
+    usBack = cache[3];
     us[0] = usRight;
     us[1] = usFront;
     us[2] = usLeft;

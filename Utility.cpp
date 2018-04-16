@@ -68,8 +68,9 @@ void calculateStates() {
 
 /*****************************************************
   Sende einen Herzschlag mit Statusinformationen an den Partner
+  
   Byte    Information   mögliche Zustände
-  ---------------------------------------
+  -----------------------------------------------------
   0       Pakettyps     Heartbeat(104)
   1       Rolle         Stürmer(2) / Torwart(1) / Aus(0)
   2       Ballzustand   blind(2) / links(1) / rechts(0)

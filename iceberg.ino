@@ -218,7 +218,7 @@ void setup() {
 void loop() {
   debug(String(millis()) + " ");
 
-    readCompass();
+  readCompass();
   // erkenne Hochheben
   if (accel_event.acceleration.z < 8) {
     isLifted = millis() > lastFlatTimer;
@@ -321,7 +321,7 @@ void loop() {
   switch (command) {
     case 'h': // heartbeat
       heartbeatTimer = millis();
-      if (mate.motEn) {
+      if (mate.role > 0) {
         start = true;
       }
       break;

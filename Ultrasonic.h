@@ -10,13 +10,13 @@ class Ultrasonic
   public:
     Ultrasonic();
 
-    void send(byte * data, byte numberOfElements);
-    byte cache();
     void receive();
-
+    
   private:
-    byte _cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
-    byte _cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
+    byte fetch();
+  
+    byte cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
+    byte cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
 };
 
 #endif

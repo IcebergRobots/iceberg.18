@@ -22,33 +22,33 @@ void Mate::send(byte * data, byte numberOfElements) {
   empfange Daten an des Patners
   - speichere diese im Cache
 *****************************************************/
-byte Mate::cache() {
+byte Mate::fetch() {
   // returns length of incomming message
   while (BLUETOOTH_SERIAL.available()) {
     byte b = BLUETOOTH_SERIAL.read();
-    if (_cacheIndex != 255) { // aktives Zuhören?
+    if (cacheIndex != 255) { // aktives Zuhören?
       if (b == START_MARKER) {
-        _cacheIndex = 0;  // aktiviere Zuhören
+        cacheIndex = 0;  // aktiviere Zuhören
         for (byte i = 0; i < CACHE_SIZE; i++) {
-          _cache[i] = 255; // überschreibe den Cache
+          cache[i] = 255; // überschreibe den Cache
         }
       } else if (b == END_MARKER) {
-        byte messageLength = _cacheIndex;
-        _cacheIndex = 255; // deaktiviere Zuhören
+        byte messageLength = cacheIndex;
+        cacheIndex = 255; // deaktiviere Zuhören
         return messageLength; // Befehl empfangen!
       } else {
-        if (_cacheIndex >= CACHE_SIZE) {
-          _cacheIndex = 255; // deaktiviere Zuhören
+        if (cacheIndex >= CACHE_SIZE) {
+          cacheIndex = 255; // deaktiviere Zuhören
         } else {
-          _cache[_cacheIndex] = b;  // speichere in Cache
-          _cacheIndex += 1;  // speichere index
+          cache[cacheIndex] = b;  // speichere in Cache
+          cacheIndex += 1;  // speichere index
         }
       }
     } else {
       if (b == START_MARKER) {
-        _cacheIndex = 0; // aktiviere Zuhören
+        cacheIndex = 0; // aktiviere Zuhören
         for (byte i = 0; i < CACHE_SIZE; i++) {
-          _cache[i] = 255; // überschreibe den Cache
+          cache[i] = 255; // überschreibe den Cache
         }
       }
     }
@@ -61,29 +61,29 @@ byte Mate::cache() {
   lese Nachrichten aus dem Cache aus
 *****************************************************/
 byte Mate::receive() {
-  byte messageLength = cache(); // aktualisiere den Cache
-  if (messageLength == 9 && _cache[0] == 104) {
-    // cache ist 9 Zeichen lang und vom Typ Heartbeat
-    motEn = _cache[1] < 3; // speichere Motorzustand
-    if (motEn) {
-      // Partner is aktiv
-      if (_cache[1] == 2) {
-        // Partner ist blind
-        seeBall = false;
-      } else {
-        // Partner sieht den Ball
-        seeBall = true;
-        ball = -(_cache[1] == 1) * _cache[2]; // speichere die Ballabweichung
-      }
-    }
-    ballWidth = _cache[3] + 254 * _cache[4];  // speichere die Ballbreite
-    us[0] = _cache[5];
-    us[1] = _cache[6];
-    us[2] = _cache[7];
-    us[3] = _cache[8];
+  byte messageLength = fetch(); // aktualisiere den Cache
+  if (messageLength == 10 && cache[0] == 'h') {
+    /*Byte    Information   mögliche Zustände
+      -----------------------------------------------------
+      0       Pakettyps     Heartbeat(104)
+      1       Rolle         Stürmer(2) / Torwart(1) / Aus(0)
+      2       Ballzustand   blind(2) / links(1) / rechts(0)
+      3       Ballwinkel    (0 bis 253)
+      4,5     Ballbreite    je (0 bis 253)
+      6,7,8,9 Ultraschall   je (0 bis 253)
+    */
+    role = cache[1];
+    seeBall = cache[2] < 2;
+    if(cache[2]==1) ball = -cache[3];
+    else ball = cache[3];
+    ballWidth = cache[3] + 254 * cache[4];  // speichere die Ballbreite
+    us[0] = cache[5];
+    us[1] = cache[6];
+    us[2] = cache[7];
+    us[3] = cache[8];
   }
   if (messageLength > 0) {
-    return _cache[0];
+    return cache[0];
   } else {
     return 255;
   }
