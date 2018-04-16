@@ -14,6 +14,7 @@
 
 // Globale Definition: FAHREN
 bool isMotor = false;       // sind die Motoren aktiviert?
+bool isRusher = false;      // bin ich Stürmer?
 bool start = false;         // ist der funkstart aktiviert
 bool onLine = false;        // befinden wir uns auf einer Linie?
 bool isHeadstart = false;   // fahren wir mit voller Geschwindigkeit?

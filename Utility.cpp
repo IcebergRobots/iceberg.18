@@ -68,19 +68,22 @@ void calculateStates() {
 
 /*****************************************************
   Sende einen Herzschlag mit Statusinformationen an den Partner
+  Byte    Information   mögliche Zustände
+  ---------------------------------------
+  0       Pakettyps     Heartbeat(104)
+  1       Rolle         Stürmer(2) / Torwart(1) / Aus(0)
+  2       Ballzustand   blind(2) / links(1) / rechts(0)
+  3       Ballwinkel    (0 bis 253)
+  4,5     Ballbreite    je (0 bis 253)
+  6,7,8,9 Ultraschall   je (0 bis 253)
 *****************************************************/
 void transmitHeartbeat() {
-  byte data[9];
+  byte data[10];
   data[0] = 'h';
-  if (!m.getMotEn()) {
-    data[1] = 253;  // pause: 253
-  } else if (!seeBall) {
-    data[1] = 2;    // ball blind: 2
-  } else {
-    data[1] = ball < 0;
-    // ball < 0: 0
-    // ball >= 0: 1
-  }
+  if(!m.getMotEn()||isLifted) data[1] = 0;
+  else data[1] = !isRusher;
+  if (!seeBall) data[2] = 2;
+  else data[1] = ball < 0;
   data[2] = abs(ball);
   data[3] = ballWidth % 254;
   data[4] = ballWidth / 254;
@@ -88,7 +91,7 @@ void transmitHeartbeat() {
   data[6] = us[1];
   data[7] = us[2];
   data[8] = us[3];
-  mate.send(data, 9); // heartbeat
+  mate.send(data, 10); // heartbeat
   bluetoothTimer = millis();
 }
 

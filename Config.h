@@ -26,7 +26,7 @@
 #include <Adafruit_L3GD20_U.h>
 
 // Implementierung: FAHREN
-extern bool isMotor, start, onLine, isHeadstart, isKeeperLeft;
+extern bool isMotor, isRusher, start, onLine, isHeadstart, isKeeperLeft;
 extern byte usRight, usFront, usLeft, usBack;
 extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
 extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastFlatTimer;
