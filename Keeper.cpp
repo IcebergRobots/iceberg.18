@@ -4,14 +4,17 @@ Keeper::Keeper() {
 }
 
 void Keeper::set() {
-  drivePwr = SPEED_KEEPER;
-  driveState = "keeper";
+  drivePower = SPEED_KEEPER;
   if (movingLeft) {
-    driveDir = ANGLE_SIDEWAY;
+    driveState = "keeper <";
+    driveDirection = ANGLE_SIDEWAY;
+    driveOrientation = -constrain(map(usLeft - COURT_GOAL_TO_BORDER, 0, 30, ANGLE_KEEPER_MAX, 0), 0, ANGLE_KEEPER_MAX);
   } else {
-    driveDir = -ANGLE_SIDEWAY;
+    driveState = "keeper >";
+    driveDirection = -ANGLE_SIDEWAY;
+    driveOrientation = constrain(map(usRight - COURT_GOAL_TO_BORDER, 0, 30, ANGLE_KEEPER_MAX, 0), 0, ANGLE_KEEPER_MAX);
   }
-  if (usBack < 15) driveDir *= 0.8;
+  if (usBack < 15) driveDirection *= 0.8;
 }
 
 void Keeper::right() {

@@ -3,15 +3,15 @@
 
 #include "Config.h"
 
-void shift(int &value, int min, int max);
+int shift(int &value, int min, int max);
 void startSound();
 void calculateStates();
 void transmitHeartbeat();
 void setupMotor();
 void avoidLine();
 void kick();
-int getCompassHeading();
+void readCompass();
 void buzzerTone(int duration);
-int ausrichten();
+int ausrichten(int orientation);
 void readPixy();
 #endif

@@ -28,7 +28,7 @@
 // Implementierung: FAHREN
 extern bool isMotor, start, onLine, isHeadstart, isKeeperLeft;
 extern byte usRight, usFront, usLeft, usBack;
-extern int rotMulti, drivePwr, driveRot, driveDir, lineDir;
+extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
 extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastFlatTimer;
 extern String driveState;
 //extern Pilot m;
@@ -96,7 +96,8 @@ extern bool wasSelect, wasBack;
 
 // Fahren
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
-#define ANGLE_GOAL_MAX 45       // [0 bis 180]~45  maximaler Drehungwinkel zum Tor
+#define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
+#define ANGLE_KEEPER_MAX 20     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
 #define ROTATION_18CM 50        // [0 bis *]~70

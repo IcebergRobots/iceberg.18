@@ -138,7 +138,7 @@ void Display::set() {
         setLine(0, "Ball:blind");
       }
 
-      setLine(1, driveState.substring(0,6), driveDir, true);
+      setLine(1, driveState.substring(0, 6), driveDirection, true);
       if (batState == 2) {
         setLine(2, "lowVoltage");
       } else {
@@ -164,12 +164,12 @@ void Display::set() {
       }
       setLine(6, "Head:", heading, true);
       setLine(7, "Time:", millis() / 1000);
+      setLine(8, "acc.X:", accel_event.acceleration.x, true);
+      setLine(9, "acc.Y:", accel_event.acceleration.y, true);
+      setLine(10, "acc.Z:", accel_event.acceleration.z, true);
       break;
     case 2:
       _title = "Debug";
-      setLine(0, "togg:", keeper.lastToggle() / 1000);
-      setLine(1, "post:", keeper.atGatepost());
-      
       break;
     case 3:
       _title = "Pixy";
@@ -192,19 +192,15 @@ void Display::set() {
       break;
     case 4:
       _title = "Driving";
-      setLine(0, "Dir:", driveDir, true);
-      setLine(1, "Rot:", driveRot, true);
-      setLine(2, "Pwr:", drivePwr);
+      setLine(0, "Dir:", driveDirection, true);
+      setLine(1, "Rot:", driveRotation, true);
+      setLine(2, "Pwr:", drivePower, true);
       setLine(3, driveState);
-      setLine(4, "PID:", pidSetpoint, true);
-      setLine(5, "M' :", m.getMotValue(0), true);
-      setLine(6, "M, :", m.getMotValue(1), true);
-      setLine(7, "M ,:", m.getMotValue(2), true);
-      setLine(8, "M ':", m.getMotValue(3), true);
-      setLine(9, "Line:", onLine);
-      setLine(10, "Head:", isHeadstart);
-      setLine(11, "K.tim:", (millis() - lastKeeperToggle) / 1000);
-      setLine(12, "F.tim:", (millis() - lastFlatTimer) / 1000);
+      setLine(4, "Ori:", pidSetpoint, true);
+      setLine(5, "Line:", onLine);
+      setLine(6, "Head:", isHeadstart);
+      setLine(7, "K.tim:", (millis() - lastKeeperToggle) / 1000);
+      setLine(8, "F.tim:", (millis() - lastFlatTimer) / 1000);
       break;
     case 5:
       _title = "Mate";

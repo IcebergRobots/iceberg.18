@@ -23,9 +23,10 @@ byte usFront = 0;            // modifizierbarer Abstand nach vorne
 byte usLeft = 0;            // modifizierbarer Abstand nach links
 byte usBack = 0;            // modifizierbarer Abstand nach hinten
 int rotMulti;               // Scalar, um die Rotationswerte zu verstärken
-int drivePwr = 0;           // maximale Motorstärke [0 bis 255]
-int driveRot = 0;           // korrigiere Kompass
-int driveDir = 0;           // Zielrichtung
+int drivePower = 0;         // [-255 bis 255] aktuelle maximale Motorstärke
+int driveRotation = 0;       // [-255 bis 255] aktuelle Rotationsstärke
+int driveDirection = 0;     // [-180 bis 180] Ziel-Fahrrichtung
+int driveOrientation = 0;   // [-180 bis 180] Ziel-Orientierungswinkel
 int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;        // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
@@ -55,7 +56,7 @@ unsigned long heartbeatTimer = 0; // Zeitpunkt des letzten empfangenen Heartbeat
 Mate mate;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: WICHTUNG DER PID-REGLER
-double pidSetpoint;       // Nulllevel [-180 bis 180]:Winkel des Tours
+double pidSetpoint;       // Nulllevel [-180 bis 180] Winkel des Tours
 double pidIn;             // Kompasswert [-180 bis 180]
 double pidOut;            // Rotationsstärke [-255 bis 255]
 PID myPID = PID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_D, DIRECT); // OBJEKTINITIALISIERUNG
@@ -192,7 +193,7 @@ void setup() {
   // initialisiere Kompasssensor
   d.setupMessage(7, "COMPASS", "Orientierung");
   mag.enableAutoRange(true);  // aktiviere automatisches Messen
-  heading = getCompassHeading();  // lies Kompassrichtung aus
+  readCompass();  // lies Kompassrichtung aus
 
   // initialisiere PID-Regler
   d.setupMessage(8, "PID", "Rotation");
@@ -216,6 +217,7 @@ void setup() {
 void loop() {
   debug(String(millis()) + " ");
 
+    readCompass();
   // erkenne Hochheben
   if (accel_event.acceleration.z < 8) {
     isLifted = millis() > lastFlatTimer;
@@ -259,7 +261,8 @@ void loop() {
   // Torrichtung speichern
   if (!digitalRead(BUTTON_2)) {
     startHeading = 0;
-    startHeading = getCompassHeading(); //merke Torrichtung [-180 bis 179]
+    readCompass();
+    startHeading = heading; //merke Torrichtung [-180 bis 179]
     EEPROM.write(0, startHeading < 0);  // speichere Vorzeichen
     EEPROM.write(1, abs(startHeading)); // speichere Winkel
     heading = 0;
@@ -345,35 +348,35 @@ void loop() {
     rotMulti = ROTATION_AWAY;
   }
 
-  driveRot = ausrichten();
-
   driveState = "";
+  driveOrientation = 0;
   if (isLifted) {
     // hochgehoben
     driveState = "lifted";
-    drivePwr = 0; // stoppe
-    driveRot = 0; // stoppe
+    drivePower = 0; // stoppe
+    driveRotation = 0; // stoppe
   } else if (onLine) {
     // weiche einer Linie aus
     driveState = "avoid line";
-    drivePwr = SPEED_LINE;
+    drivePower = SPEED_LINE;
   } else if (isHeadstart) {
     // führe einen Schnellstart aus
     driveState = "headstart";
-    drivePwr = SPEED_HEADSTART;
-    driveDir = 0;
+    drivePower = SPEED_HEADSTART;
+    driveDirection = 0;
   } else if (isDrift) {
     // steuere gegen
     driveState = "avoid drift";
-    drivePwr = SPEED_HEADSTART;
+    drivePower = SPEED_HEADSTART;
     if (driftLeft) {
-      driveDir = 90;
+      driveDirection = 90;
     } else {
-      driveDir = -90;
+      driveDirection = -90;
     }
   } else {
-    //drivePwr = map(analogRead(POTI), 0, 1023, 0, 255) - abs(heading);
-    drivePwr = SPEED;
+    if (seeGoal) driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
+    drivePower = SPEED;
+
     if (seeBall && !(isConnected && mate.seeBall && mate.ballWidth > ballWidth)) {
       // fahre in Richtung des Balls
       if (ball > 50) {
@@ -386,9 +389,9 @@ void loop() {
       }
       if (hasBall) {
         if (seeGoal && abs(heading < 20)) {
-          drivePwr = SPEED_HEADSTART;
+          drivePower = SPEED_HEADSTART;
         }
-        driveDir = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+        driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       } else {
         // verhindere das Driften
         if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {
@@ -405,25 +408,25 @@ void loop() {
         }
         // fahre in Richtung des Balls
         driveState = "follow";
-        driveDir = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
-        if (driveDir > 60) {
+        driveDirection = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
+        if (driveDirection > 60) {
           // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
           driveState = "sideway ri";
-          driveDir = 100;
-          drivePwr = SPEED_SIDEWAY;
+          driveDirection = 100;
+          drivePower = SPEED_SIDEWAY;
         }
-        if (driveDir < -60) {
+        if (driveDirection < -60) {
           // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
           driveState = "sideway le";
-          driveDir = -100;
-          drivePwr = SPEED_SIDEWAY;
+          driveDirection = -100;
+          drivePower = SPEED_SIDEWAY;
         }
         if (-15 < ball && ball < 15 && abs(heading) < 20) {
           // fahre geradeaus
           driveState = "straight";
-          drivePwr = SPEED_BALL_IN_FRONT;
+          drivePower = SPEED_BALL_IN_FRONT;
         } else if (ballWidth > 50) {
-          drivePwr *= 0.6;
+          drivePower *= 0.6;
         }
       }
     } else {
@@ -443,14 +446,15 @@ void loop() {
       } else {
         // fahre nach hinten
         driveState = "passive";
-        driveDir = 180;
-        drivePwr = SPEED_BACKWARDS;
+        driveDirection = 180;
+        drivePower = SPEED_BACKWARDS;
       }
     }
   }
-  drivePwr = max(drivePwr - abs(driveRot), 0);
 
-  m.drive(driveDir, drivePwr, driveRot);
+  drivePower = max(drivePower - abs(driveRotation), 0);
+  driveRotation = ausrichten(driveOrientation);
+  m.drive(driveDirection, drivePower, driveRotation);
 
   if (millis() - lastDisplay > 100) {
     debug("display ");

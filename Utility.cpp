@@ -6,8 +6,10 @@ extern Pilot m;
 extern Mate mate;
 extern Led led;
 
-void shift(int &value, int min, int max) {
-  value = (max + ((value - min) % max)) % max + min; // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
+int shift(int &value, int min, int max) {
+  max -= min;
+  value = (max + (value - min % max)) % max + min; // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um
+  return value;
 }
 
 void startSound() {
@@ -109,18 +111,18 @@ void avoidLine() {
   }
   if (BOTTOM_SERIAL.available() > 0) {
     lineDir = BOTTOM_SERIAL.read() * 90 + 90;
-    driveDir = lineDir;
-    m.drive(driveDir, SPEED_LINE, 0);
+    driveDirection = lineDir;
+    m.drive(driveDirection, SPEED_LINE, 0);
     lineTimer = millis();
     headstartTimer = 0;
-    if (drivePwr > 200) {
+    if (drivePower > 200) {
       lineTimer = millis() + (2 * LINE_DURATION);
-    } else if (drivePwr > 100) {
+    } else if (drivePower > 100) {
       lineTimer = millis() + (1.5 * LINE_DURATION);
     } else {
       lineTimer = millis() + LINE_DURATION;
     }
-    displayDebug = driveDir;
+    displayDebug = driveDirection;
   }
 
 
@@ -133,13 +135,13 @@ void kick() {
   }
 }
 
-int getCompassHeading() {
+void readCompass() {
   // kompasswert [-180 bis 180]
   accel.getEvent(&accel_event);
   mag.getEvent(&mag_event);
 
   if (dof.magGetOrientation(SENSOR_AXIS_Z, &mag_event, &orientation)) {
-    return (((int)orientation.heading - startHeading + 720) % 360) - 180;
+    heading = (((int)orientation.heading - startHeading + 720) % 360) - 180;
   } else {
     stateFine = false;
   }
@@ -154,17 +156,12 @@ void buzzerTone(int duration) {
 
 
 // Roboter mittels PID-Regler zum Tor ausrichten
-int ausrichten() {
-  if (onLine) {
+int ausrichten(int orientation) {
+  pidSetpoint = shift(orientation, -179, 180);
+  if (isLifted || onLine) {
     return 0;
   } else {
-    if (seeGoal) {
-      pidSetpoint = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
-    } else {
-      pidSetpoint = 0;
-    }
     // Misst die Kompassabweichung vom Tor [-180 bis 179]
-    heading = getCompassHeading();
     if (m.getMotEn()) {
       pidIn = (double) heading;
 
