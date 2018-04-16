@@ -96,6 +96,7 @@ extern bool wasSelect, wasBack;
 
 // Fahren
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
+#define ANGLE_GOAL_MAX 45       // [0 bis 180]~45  maximaler Drehungwinkel zum Tor
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
 #define ROTATION_18CM 50        // [0 bis *]~70

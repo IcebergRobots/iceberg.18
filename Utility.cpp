@@ -159,7 +159,7 @@ int ausrichten() {
     return 0;
   } else {
     if (seeGoal) {
-      pidSetpoint = constrain(goal / 3 + heading, -45, 45);
+      pidSetpoint = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
     } else {
       pidSetpoint = 0;
     }
