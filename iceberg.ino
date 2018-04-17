@@ -14,11 +14,11 @@
 
 // Globale Definition: FAHREN
 bool isMotor = false;       // sind die Motoren aktiviert?
-bool isRusher = false;      // bin ich Stürmer?
 bool start = false;         // ist der funkstart aktiviert
 bool onLine = false;        // befinden wir uns auf einer Linie?
 bool isHeadstart = false;   // fahren wir mit voller Geschwindigkeit?
 bool isKeeperLeft = false;  // deckten wir zuletzt das Tor mit einer Linksbewegung?
+byte role = 0;              // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
 int rotMulti;               // Scalar, um die Rotationswerte zu verstärken
 int drivePower = 0;         // [-255 bis 255] aktuelle maximale Motorstärke
 int driveRotation = 0;       // [-255 bis 255] aktuelle Rotationsstärke
@@ -305,6 +305,8 @@ void loop() {
     startTimer = millis();
   }
 
+  if (m.isKeeper() && !isLifted && mate.conn() && mate.seeBall && mate.ballWidth < ballWidth) m.setRusher();  // werde zum Stürmer
+
   if (millis() - bluetoothTimer > 100)  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
 
   // bluetooth auslesen
@@ -312,9 +314,8 @@ void loop() {
   switch (command) {
     case 'h': // heartbeat
       heartbeatTimer = millis();
-      if (mate.role > 0) {
-        start = true;
-      }
+      if (mate.role > 0) start = true;
+      if (mate.role == 2) m.setKeeper();
       break;
     case 's': // start
       start = true;

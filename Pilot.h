@@ -27,7 +27,12 @@ class Pilot
     void setMotEn(bool motEn);
     bool getMotEn();
     void switchMotEn();
-    int getMotValue(byte id);
+
+    bool setRusher();
+    bool setKeeper();
+    bool isRusher();
+    bool isKeeper();
+    byte getRole();
 
   private:
     byte _fwd[4];    // digitaler PIN fuer Vorwaertsrotation
@@ -37,7 +42,9 @@ class Pilot
     int _values[4];  // Zwischenspeicher für Outputsignale
 
     byte _angle;
-    bool _motEn;    //gibt an, ob die Motoren an sind
+    byte _role = 0; // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
+    bool _motEn;    // gibt an, ob die Motoren an sind
+    unsigned long _roleTimer = 0; // Zeitpunkt des letzten Rollenwechsels
 };
 
 #endif

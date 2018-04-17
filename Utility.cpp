@@ -81,8 +81,7 @@ void calculateStates() {
 void transmitHeartbeat() {
   byte data[10];
   data[0] = 'h';
-  if (!m.getMotEn()) data[1] = 0;
-  else data[1] = !isRusher;
+  data[1] = m.getRole();
   if (!seeBall) data[2] = 2;
   else data[1] = ball < 0;
   data[2] = abs(ball);
