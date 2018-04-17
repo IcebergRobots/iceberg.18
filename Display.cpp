@@ -131,13 +131,13 @@ void Display::set() {
       }
 
       if (seeBall) {
-        setLine(0, "Ball:", ball, true);
-        //setCursor(50, 20);
-        //setTextSize(1);
-        //println(ball);
-        //drawLine(91, 27, constrain(map(ball, -160, 160, 60, 123), 60, 123), 14, WHITE);
+        if(m.isRusher())      setLine(0, "rush", ball, true);
+        else if(m.isKeeper()) setLine(0, "keep", ball, true);
+        else                  setLine(0, "off", ball, true);
       } else {
-        setLine(0, "Ball:blind");
+        if(m.isRusher())      setLine(0, "rush", "blind");
+        else if(m.isKeeper()) setLine(0, "keep", "blind");
+        else                  setLine(0, "off", "blind");
       }
 
       setLine(1, driveState.substring(0, 6), driveDirection, true);

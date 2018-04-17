@@ -49,8 +49,8 @@ void calculateStates() {
   } else {
     batState = 0; // no battery
   }
-  seeBall = millis() - seeBallTimer < 50;
-  seeGoal = millis() - seeGoalTimer < 1200;
+  seeBall = !isLifted && millis() - seeBallTimer < 50;
+  seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
   isDrift = millis() - driftTimer < 100;
   if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
     // Kamera war in den letzen 30 Sekunden bereits aktiv
