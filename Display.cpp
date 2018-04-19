@@ -56,6 +56,25 @@ void Display::update() {
     drawLine(map(subpage, -1, SUBPAGE_RANGE[page] - 1, 3, 123), 11, 123, 11, WHITE);
   }
 
+  // Pixy Boxen
+  if (page == 3) {
+    for (byte i = 0; i < blockCount; i++) { // geht alle erkannten Bloecke durch
+      int width = map(pixy.blocks[i].width, 0, PIXY_MAX_X - PIXY_MIN_X + 1, 0, 121);
+      int height = map(pixy.blocks[i].height, 0, PIXY_MAX_Y - PIXY_MIN_Y + 1, 0, 47);
+      int x = map(pixy.blocks[i].x, PIXY_MIN_X, PIXY_MAX_X, 3, 123);
+      int y = map(pixy.blocks[i].y , PIXY_MIN_Y, PIXY_MAX_Y, 13, 59);
+      switch (pixy.blocks[i].signature) { // Was sehe ich?
+        case SIGNATURE_BALL:
+          if (subpage < 2) fillRect(x, y, width, height, WHITE);
+          break;
+        case SIGNATURE_GOAL:
+          if (subpage == 0) drawRect(x, y, width, height, WHITE);
+          else if (subpage == 2) fillRect(x, y, width, height, WHITE);
+          break;
+      }
+    }
+  }
+
   setTextSize(1);
   setCursor(3, 3);
   print(title.substring(0, 14) + String("               ").substring(0, max(1, 15 - title.length())) + runtime);
@@ -174,6 +193,15 @@ void Display::set() {
       title = "Debug";
       break;
     case 3:
+      if (subpage == 0) {
+        title = "Pixy Both " + String(blockCountBall) + "+" + String(blockCountGoal);
+      } else if (subpage == 1) {
+        title = "Pixy Ball " + String(blockCountBall);
+      } else if (subpage == 2) {
+        title = "Pixy Goal   " + String(blockCountGoal);
+      }
+      break;
+    case 4:
       title = "Pixy";
       if (seeBall) {
         setLine(0, "B.ang:", ball, true);
@@ -192,7 +220,7 @@ void Display::set() {
       setLine(6, "G.siz:", goalSize);
       setLine(7, "G.tim", (millis() - seeGoalTimer) / 1000);
       break;
-    case 4:
+    case 5:
       title = "Driving";
       setLine(0, "Dir:", driveDirection, true);
       setLine(1, "Rot:", driveRotation, true);
@@ -204,7 +232,7 @@ void Display::set() {
       setLine(7, "K.tim:", (millis() - lastKeeperToggle) / 1000);
       setLine(8, "F.tim:", (millis() - flatTimer) / 1000);
       break;
-    case 5:
+    case 6:
       title = "Mate";
       setLine(0, "Conn:", mate.timeout() / 1000);
       setLine(1, "^" + String(mate.front()), String(mate.right()) + ">");

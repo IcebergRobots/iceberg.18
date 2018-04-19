@@ -27,9 +27,9 @@ class Display: public Adafruit_SSD1306
 
     byte level = 0;
     int page = 0;
-    const byte PAGE_RANGE = 6;
+    const byte PAGE_RANGE = 7;
     int subpage = 0;
-    const byte SUBPAGE_RANGE[6] = {4, 12, 4, 9, 10, 7};
+    const byte SUBPAGE_RANGE[7] = {4, 12, 4, 3, 9, 10, 7};
     String runtime = "";
     String title = "";
     String line0 = "";

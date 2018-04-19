@@ -1,11 +1,11 @@
- /***
-   _____ _______ _______ ______  _______  ______  ______
-     |   |       |______ |_____] |______ |_____/ |  ____
-   __|__ |_____  |______ |_____] |______ |    \_ |_____|
+/***
+  _____ _______ _______ ______  _______  ______  ______
+    |   |       |______ |_____] |______ |_____/ |  ____
+  __|__ |_____  |______ |_____] |______ |    \_ |_____|
 
-    ______  _____  ______   _____  _______ _______
-   |_____/ |     | |_____] |     |    |    |______
-   |    \_ |_____| |_____] |_____|    |    ______|
+   ______  _____  ______   _____  _______ _______
+  |_____/ |     | |_____] |     |    |    |______
+  |    \_ |_____| |_____] |_____|    |    ______|
 
 */
 
@@ -66,6 +66,9 @@ bool seeGoal = false;   // sehen wir das Tor?
 bool isDrift = false;   // driften wir
 bool driftLeft = false; // steuern wir nach links gegen
 byte pixyState = 0;     // Verbindungsstatus per Pixy
+byte blockCount = 0;    // Anzahl der gesehenen Blöcke
+byte blockCountBall = 0;// Anzahl der Ball Blöcke
+byte blockCountGoal = 0;// Anzahl der Tor Blöcke
 int ball = 0;       // Abweichung der Ball X-Koordinate
 int ballWidth = 0;  // Ballbreite
 int ballSize = 0;   // Ballgröße (Flächeninhalt)
@@ -219,7 +222,8 @@ void loop() {
 
   if (millis() - kickTimer > 30)  digitalWrite(SCHUSS, 0);  // schuß wieder ausschalten
 
-  digitalWrite(BUZZER, millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
+  if(batState == 3) analogWrite(BUZZER, 127 * (millis() % 250 < 125));
+  else analogWrite(BUZZER, 127 * millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
 
   // Seitenauswahl
   // auswählen
@@ -414,7 +418,7 @@ void loop() {
       }
     } else {
       // sehen den Ball nicht bzw. sollen ihn nicht sehen
-      if (us.back() > 0 && us.back() < 50 && us.left() + us.right() > 0 && abs(heading) < 40) {
+      if (us.back() && us.back() < 50 && us.left() && us.right() && abs(heading) < 40) {
         // verteidige das Tor im Strafraum oder davor
         if (seeBall) {
           if (ball > 0 && !keeper.atGatepost()) keeper.left();
@@ -426,6 +430,11 @@ void loop() {
         }
 
         keeper.set(); // übernehme die Steuerwerte
+      } else if (!us.timeout() && us.back() && us.back() < 80) {
+        // fahre nach hinten
+        driveState = "penalty";
+        driveDirection = 180;
+        drivePower = SPEED_PENALTY;
       } else {
         // fahre nach hinten
         driveState = "passive";

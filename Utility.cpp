@@ -135,7 +135,7 @@ void avoidLine() {
 }
 
 void kick() {
-  if (millis() - kickTimer > 333 && digitalRead(SWITCH_SCHUSS)) {
+  if (millis() - kickTimer > 333 && (digitalRead(SWITCH_SCHUSS) || !digitalRead(SCHUSS_BUTTON))) {
     digitalWrite(SCHUSS, 1);
     kickTimer = millis();
   }
@@ -220,7 +220,9 @@ void readPixy() {
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 
-  uint16_t blockCount = pixy.getBlocks();
+  blockCount = pixy.getBlocks();
+  blockCountBall = 0;
+  blockCountGoal = 0;
   // Liest alle Blöcke aus und zählt diese
   // Sendet "cs error" über USB bei Fehler in Prüfsumme eines empfangenen Objekts
 
@@ -230,11 +232,13 @@ void readPixy() {
     int x = pixy.blocks[i].x - X_CENTER;
     switch (pixy.blocks[i].signature) { // Was sehe ich?
       case SIGNATURE_BALL:
+        blockCountBall++;
         ballSizeMax = max(ballSizeMax, height * width);
         ball = x;           // merke Ballwinkel
         ballWidth = width;  // merke Ballbreite
         break;
       case SIGNATURE_GOAL:
+        blockCountGoal++;
         goalSizeMax = max(goalSizeMax, height * width);
         goal = x;           // merke Torwinkel
         goalWidth = width;  // merke Torbreite

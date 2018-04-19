@@ -54,7 +54,7 @@ extern int batVol;
 
 // Implementierung: PIXY
 extern bool seeBall, seeGoal, isDrift, driftLeft;
-extern byte pixyState;
+extern byte pixyState, blockCount, blockCountBall, blockCountGoal;
 extern int ball, ballWidth, ballSize, goal, goalWidth, goalSize;
 extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
 extern Pixy pixy;
@@ -102,6 +102,7 @@ extern bool wasSelect, wasBack;
 #define SPEED_SIDEWAY 60        // [0 bis 255]~60
 #define SPEED_BALL_IN_FRONT 120 // [0 bis 255]~255
 #define SPEED_BACKWARDS 50      // [0 bis 255]~40
+#define SPEED_PENALTY 40        // [0 bis 255]~40
 #define SPEED_KEEPER 40         // [0 bis 255]~40
 #define SPEED_HEADSTART 120     // [0 bis 255]~120
 #define SPEED_LINE 80           // [0 bis 255]~80
@@ -123,7 +124,7 @@ extern bool wasSelect, wasBack;
 #define BOTTOM_LENGTH 16        // [0 bis *] Anzahl der Boden-Leds
 #define BOTTOM_BRIGHTNESS 255   // [0 bis 255] Helligkeit der Boden-Leds
 #define MATRIX_LENGTH  12       // [0 bis *] Anzahl der Matrix-Leds
-#define MATRIX_BRIGHTNESS 30    // [0 bis 255] Helligkeit der Matrix-Leds
+#define MATRIX_BRIGHTNESS 50    // [0 bis 255] Helligkeit der Matrix-Leds
 #define INFO_LENGTH 3           // [0 bis *] Anzahl der Info-Leds
 #define INFO_BRIGHTNESS 100     // [0 bis 255] Helligkeit der Info-Leds
 
@@ -157,9 +158,9 @@ extern bool wasSelect, wasBack;
 
 // BATTERY_VOLTAGE
 #define VOLTAGE_MIN 40        // [0 bis 126]~40  Mindestspannung des Akkus
-#define VOLTAGE_MOTOR_CRIT 95 // [0 bis 126]~90  Kritische Akkuspannung beim Fahren
+#define VOLTAGE_MOTOR_CRIT 100 // [0 bis 126]~90  Kritische Akkuspannung beim Fahren
 #define VOLTAGE_MOTOR_LOW 108 // [0 bis 126]~108 Geringe Akkuspannung beim Fahren
-#define VOLTAGE_CRIT 95       // [0 bis 126]~90  Kritische Akkuspannung
+#define VOLTAGE_CRIT 100       // [0 bis 126]~90  Kritische Akkuspannung
 #define VOLTAGE_LOW 110       // [0 bis 126]~110 Geringe Akkuspannung
 
 // Zeitumwandlung
