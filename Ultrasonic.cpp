@@ -83,7 +83,7 @@ void Ultrasonic::receive() {
 }
 
 byte Ultrasonic::right() {
-  if (distanceRight == 0 && distanceLeft > 0) return COURT_WIDTH - distanceLeft;
+  if (!distanceRight && distanceLeft > 0) return COURT_WIDTH - distanceLeft;
   else return distanceRight;
 }
 
@@ -92,20 +92,20 @@ byte Ultrasonic::front() {
 }
 
 byte Ultrasonic::left() {
-  if (distanceLeft == 0 && distanceRight > 0) return COURT_WIDTH - distanceRight;
+  if (!distanceLeft && distanceRight > 0) return COURT_WIDTH - distanceRight;
   else return distanceLeft;
 }
 
 byte Ultrasonic::back() {
-  /*if (mate.conn() && mate.back() < 80) return max(0, us.back() - 80);
-  else*/ return distanceBack;
+  /*if (!mate.timeout() && mate.back() < 80) return max(0, us.back() - 80);
+    else*/ return distanceBack;
 }
 
 bool Ultrasonic::check() {
-  return conn() && (distanceRight * distanceLeft * distanceBack > 0);
+  return !timeout() && distanceRight && distanceLeft && distanceBack;
 }
 
-bool Ultrasonic::conn() {
-  return millis() - responseTimer < 500;
+unsigned long Ultrasonic::timeout() {
+  if (millis() - responseTimer < 500) return 0;
+  else return millis() - responseTimer;
 }
-

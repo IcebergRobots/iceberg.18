@@ -29,7 +29,7 @@
 extern bool isMotor, start, onLine, isHeadstart, isKeeperLeft;
 extern byte role;
 extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
-extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastFlatTimer;
+extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, flatTimer;
 extern String driveState;
 
 // Implementierung: KOMPASS
@@ -42,7 +42,7 @@ extern sensors_vec_t orientation;
 
 // Implementierung: BLUETOOTH, MATE
 extern bool startLast;
-extern unsigned long startTimer, bluetoothTimer, heartbeatTimer;
+extern unsigned long startTimer, bluetoothTimer;
 
 // Implementierung: WICHTUNG DER PID-REGLER
 extern double pidSetpoint, pidIn, pidOut;
@@ -76,8 +76,7 @@ extern String displayDebug;
 
 // Implementierung: LEDS
 extern bool stateFine;
-extern unsigned int animationPos;
-extern unsigned long ledTimer, animationTimer;
+extern unsigned long ledTimer;
 extern Adafruit_NeoPixel bottom, matrix, info;
 //extern Led led;
 
@@ -124,7 +123,7 @@ extern bool wasSelect, wasBack;
 #define BOTTOM_LENGTH 16        // [0 bis *] Anzahl der Boden-Leds
 #define BOTTOM_BRIGHTNESS 255   // [0 bis 255] Helligkeit der Boden-Leds
 #define MATRIX_LENGTH  12       // [0 bis *] Anzahl der Matrix-Leds
-#define MATRIX_BRIGHTNESS 40    // [0 bis 255] Helligkeit der Matrix-Leds
+#define MATRIX_BRIGHTNESS 30    // [0 bis 255] Helligkeit der Matrix-Leds
 #define INFO_LENGTH 3           // [0 bis *] Anzahl der Info-Leds
 #define INFO_BRIGHTNESS 100     // [0 bis 255] Helligkeit der Info-Leds
 

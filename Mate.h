@@ -15,7 +15,7 @@ class Mate
     byte front();
     byte left();
     byte back();
-    bool conn();
+    unsigned long timeout();
     void send(byte * data, byte numberOfElements);
 
     bool seeBall = false;

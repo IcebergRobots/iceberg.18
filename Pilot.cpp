@@ -174,7 +174,7 @@ void Pilot::brake(bool activ) {
 void Pilot::setMotEn(bool motEn) {
   _motEn = motEn;
   if (motEn) {
-    if (mate.conn() && mate.role == 1) {
+    if (!mate.timeout() && mate.role == 1) {
       _role = 2;
       _roleTimer = millis();
     } else {

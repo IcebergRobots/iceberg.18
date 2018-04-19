@@ -1,4 +1,4 @@
-/***
+ /***
    _____ _______ _______ ______  _______  ______  ______
      |   |       |______ |_____] |______ |_____/ |  ____
    __|__ |_____  |______ |_____] |______ |    \_ |_____|
@@ -28,7 +28,7 @@ int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;        // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
-unsigned long lastFlatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
+unsigned long flatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
 String driveState = "";             // Zustand des Fahrens
 Keeper keeper;  // OBJEKTINITIALISIERUNG
 Pilot m;  // OBJEKTINITIALISIERUNG
@@ -48,7 +48,6 @@ sensors_vec_t   orientation;
 bool startLast = false; // war zuletzt der Funktstart aktiviert
 unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
-unsigned long heartbeatTimer = 0; // Zeitpunkt des letzten empfangenen Heartbeat
 Mate mate;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: WICHTUNG DER PID-REGLER
@@ -102,9 +101,7 @@ Display d = Display(PIN_4); // OBJEKTINITIALISIERUNG
 
 // Globale Definition: LEDS
 bool stateFine = true;            // liegt kein Fehler vor?
-unsigned int animationPos = 1;    // Aktuelle Position in der Animation
 unsigned long ledTimer = 0;       // Zeitpunkt der letzten Led-Aktualisierung
-unsigned long animationTimer = 0; // Zeitpunkt der Animationsstarts
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
 Adafruit_NeoPixel matrix = Adafruit_NeoPixel(MATRIX_LENGTH, MATRIX_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (LED-MATRIX)
 Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_KHZ800);       // OBJEKTINITIALISIERUNG (STATUS-LEDS)
@@ -198,6 +195,7 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
+  led.animation();
   d.setupMessage(10, "DONE", "");
   debugln("setup done");
 
@@ -210,13 +208,6 @@ void loop() {
   debug(String(millis()) + " ");
 
   readCompass();
-  // erkenne Hochheben
-  if (accel_event.acceleration.z < 8) {
-    isLifted = millis() > lastFlatTimer;
-  } else {
-    lastFlatTimer = millis() + 300;
-    isLifted = false;
-  }
 
   // starte über Funk wenn Schalter Keeper aktiviert
   if (!digitalRead(SWITCH_MOTOR)) {
@@ -248,7 +239,7 @@ void loop() {
   }
   rotaryPositionLast = rotaryEncoder.getPosition();
 
-  if (!digitalRead(BUTTON_1)) animationPos = 1; // starte die Animation
+  if (!digitalRead(BUTTON_1)) led.animation(); // starte die Animation
 
   // Torrichtung speichern
   if (!digitalRead(BUTTON_2)) {
@@ -271,7 +262,7 @@ void loop() {
 
   calculateStates();  // Berechne alle Statuswerte und Zustände
 
-  if ((animationPos > 0 && ANIMATION) || millis() - ledTimer > 100) {
+  if (led.isAnimation() || millis() - ledTimer > 100) {
     debug("led ");
     led.set();  // Lege Leds auf Statusinformation fest
     led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
@@ -305,7 +296,7 @@ void loop() {
     startTimer = millis();
   }
 
-  if (m.isKeeper() && !isLifted && mate.conn() && mate.seeBall && mate.ballWidth < ballWidth) m.setRusher();  // werde zum Stürmer
+  if (m.isKeeper() && !isLifted && !mate.timeout() && mate.seeBall && mate.ballWidth < ballWidth) m.setRusher();  // werde zum Stürmer
 
   if (millis() - bluetoothTimer > 100)  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
 
@@ -313,7 +304,6 @@ void loop() {
   byte command = mate.receive();
   switch (command) {
     case 'h': // heartbeat
-      heartbeatTimer = millis();
       if (mate.role > 0) start = true;
       if (mate.role == 2) m.setKeeper();
       break;
@@ -370,7 +360,7 @@ void loop() {
     if (seeGoal) driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
     drivePower = SPEED;
 
-    if (seeBall && !(mate.conn() && mate.seeBall && mate.ballWidth > ballWidth)) {
+    if (seeBall && !(!mate.timeout() && mate.seeBall && mate.ballWidth > ballWidth)) {
       // fahre in Richtung des Balls
       if (ball > 50) {
         debug("setLeft ");

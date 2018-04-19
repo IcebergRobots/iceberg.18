@@ -49,26 +49,26 @@ void Display::update() {
   } else if (heading < 180) {
     drawRect(map(heading, 135, 179, 0, 62), 61, 2, 2, WHITE); //unten (linke Hälfte)
   }
-  if (_level == 0) {
-    drawLine(map(_page, 0, PAGE_RANGE, 3, 123), 11, map(_page, -1, PAGE_RANGE - 1, 3, 123), 11, WHITE);
-  } else if (_level == 1) {
-    drawLine(3, 11, map(_subpage, 0, SUBPAGE_RANGE[_page], 3, 123), 11, WHITE);
-    drawLine(map(_subpage, -1, SUBPAGE_RANGE[_page] - 1, 3, 123), 11, 123, 11, WHITE);
+  if (level == 0) {
+    drawLine(map(page, 0, PAGE_RANGE, 3, 123), 11, map(page, -1, PAGE_RANGE - 1, 3, 123), 11, WHITE);
+  } else if (level == 1) {
+    drawLine(3, 11, map(subpage, 0, SUBPAGE_RANGE[page], 3, 123), 11, WHITE);
+    drawLine(map(subpage, -1, SUBPAGE_RANGE[page] - 1, 3, 123), 11, 123, 11, WHITE);
   }
 
   setTextSize(1);
   setCursor(3, 3);
-  print(_title.substring(0, 14) + String("               ").substring(0, max(1, 15 - _title.length())) + _time);
+  print(title.substring(0, 14) + String("               ").substring(0, max(1, 15 - title.length())) + runtime);
 
   setTextSize(2);
   setCursor(3, 14);
-  print(_line0.substring(0, 10));
+  print(line0.substring(0, 10));
 
   setCursor(3, 30);
-  print(_line1.substring(0, 10));
+  print(line1.substring(0, 10));
 
   setCursor(3, 46);
-  print(_line2.substring(0, 10));
+  print(line2.substring(0, 10));
 
   invertDisplay(m.getMotEn());
   display();      // aktualisiere Display
@@ -77,66 +77,66 @@ void Display::update() {
 }
 
 void Display::select() {
-  if (_level < 1) {
-    _level++;
+  if (level < 1) {
+    level++;
     update();
   }
 }
 
 void Display::back() {
-  if (_level == 0) {
+  if (level == 0) {
     asm ("jmp 0");   // starte den Arduino neu
   } else {
-    _level--;
+    level--;
     update();
   }
 }
 
 void Display::change(int change) {
-  if (_level == 0) {
-    _page += change;
-    shift(_page, 0, PAGE_RANGE);
-    _subpage = 0;
-  } else if (_level == 1) {
-    _subpage += change;
-    shift(_subpage, 0, SUBPAGE_RANGE[_page]);
+  if (level == 0) {
+    page += change;
+    shift(page, 0, PAGE_RANGE);
+    subpage = 0;
+  } else if (level == 1) {
+    subpage += change;
+    shift(subpage, 0, SUBPAGE_RANGE[page]);
   }
   update();
 }
 
 void Display::set() {
-  _time = "";
+  runtime = "";
   int min = numberOfMinutes(millis());
   if (min < 10) {
-    _time += "0";
+    runtime += "0";
   }
-  _time += String(min) + ":";
+  runtime += String(min) + ":";
   int sec = numberOfSeconds(millis());
   if (sec < 10) {
-    _time += "0";
+    runtime += "0";
   }
-  _time += String(sec);
+  runtime += String(sec);
 
-  _title = "";
-  _line0 = "";
-  _line1 = "";
-  _line2 = "";
+  title = "";
+  line0 = "";
+  line1 = "";
+  line2 = "";
 
-  switch (_page) {
+  switch (page) {
     case 0:
       if (isTypeA) {
-        _title = "IcebergRobotsA";
+        title = "IcebergRobotsA";
       } else {
-        _title = "IcebergRobotsB";
+        title = "IcebergRobotsB";
       }
 
       if (seeBall) {
-        if(m.isRusher())      setLine(0, "rush", ball, true);
-        else if(m.isKeeper()) setLine(0, "keep", ball, true);
+        if (m.isRusher())      setLine(0, "rush", ball, true);
+        else if (m.isKeeper()) setLine(0, "keep", ball, true);
         else                  setLine(0, "off", ball, true);
       } else {
-        if(m.isRusher())      setLine(0, "rush", "blind");
-        else if(m.isKeeper()) setLine(0, "keep", "blind");
+        if (m.isRusher())      setLine(0, "rush", "blind");
+        else if (m.isKeeper()) setLine(0, "keep", "blind");
         else                  setLine(0, "off", "blind");
       }
 
@@ -148,9 +148,9 @@ void Display::set() {
       }
       break;
     case 1:
-      _title = "Sensor";
+      title = "Sensor";
       setLine(0, "Ball:", ball, true);
-      if (us.conn()) {
+      if (!us.timeout()) {
         setLine(1, "^" + String(us.front()), String(us.right()) + ">");
         setLine(2, "<" + String(us.left()), String(us.back()) + "v");
       } else {
@@ -171,10 +171,10 @@ void Display::set() {
       setLine(10, "acc.Z:", accel_event.acceleration.z, true);
       break;
     case 2:
-      _title = "Debug";
+      title = "Debug";
       break;
     case 3:
-      _title = "Pixy";
+      title = "Pixy";
       if (seeBall) {
         setLine(0, "B.ang:", ball, true);
       } else {
@@ -193,7 +193,7 @@ void Display::set() {
       setLine(7, "G.tim", (millis() - seeGoalTimer) / 1000);
       break;
     case 4:
-      _title = "Driving";
+      title = "Driving";
       setLine(0, "Dir:", driveDirection, true);
       setLine(1, "Rot:", driveRotation, true);
       setLine(2, "Pwr:", drivePower, true);
@@ -202,11 +202,11 @@ void Display::set() {
       setLine(5, "Line:", onLine);
       setLine(6, "Head:", isHeadstart);
       setLine(7, "K.tim:", (millis() - lastKeeperToggle) / 1000);
-      setLine(8, "F.tim:", (millis() - lastFlatTimer) / 1000);
+      setLine(8, "F.tim:", (millis() - flatTimer) / 1000);
       break;
     case 5:
-      _title = "Mate";
-      setLine(0, "Conn:", (millis() - heartbeatTimer) / 1000);
+      title = "Mate";
+      setLine(0, "Conn:", mate.timeout() / 1000);
       setLine(1, "^" + String(mate.front()), String(mate.right()) + ">");
       setLine(2, "<" + String(mate.left()), String(mate.back()) + "v");
       if (mate.seeBall) {
@@ -221,9 +221,9 @@ void Display::set() {
   }
   if (batState == 3) {
     if (255 * (millis() % 250 < 170)) {
-      _line2 = "critVoltag";
+      line2 = "critVoltag";
     } else {
-      _line2 = "";
+      line2 = "";
     }
   }
 }
@@ -231,24 +231,24 @@ void Display::set() {
 void Display::setLine(int line, String title, String value) {
   title += String("          ").substring(0, max(0, 10 - title.length() - value.length()));
   title = String(title + value).substring(0, 10);
-  line -= _subpage;
-  shift(line, 0, SUBPAGE_RANGE[_page]);
+  line -= subpage;
+  shift(line, 0, SUBPAGE_RANGE[page]);
   if (line == 0) {
-    _line0 = title;
+    line0 = title;
   } else if (line == 1) {
-    _line1 = title;
+    line1 = title;
   } else if (line == 2) {
-    _line2 = title;
+    line2 = title;
   }
 }
-void Display::setLine(int line, String title, int value, bool showPlus) {
+void Display::setLine(int line, String title, long value, bool showPlus) {
   if (showPlus) {
     setLine(line, title, intToStr(value));
   } else {
     setLine(line, title, String(value));
   }
 }
-void Display::setLine(int line, String title, int value) {
+void Display::setLine(int line, String title, long value) {
   setLine(line, title, String(value));
 }
 void Display::setLine(int line, String title) {

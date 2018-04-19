@@ -16,7 +16,7 @@ class Ultrasonic
     byte left();
     byte back();
     bool check();
-    bool conn();
+    unsigned long timeout();
 
   private:
     byte fetch();

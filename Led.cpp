@@ -14,7 +14,7 @@ Led::Led() {}
   Aktualisiere alle Leds bzw. zeige die Animation
 *****************************************************/
 void Led::led() {
-  if (animationPos == 0 || !ANIMATION) {
+  if (!animationPosition) {
     // setze Helligkeit zurück
     bottom.setBrightness(BOTTOM_BRIGHTNESS);
     matrix.setBrightness(MATRIX_BRIGHTNESS);
@@ -28,31 +28,29 @@ void Led::led() {
     } else {
       setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
     }
-  } else {
-    if (animationPos == 1) {
-      animationTimer = millis();
-    }
-
-    // setze Helligkeit maximal
+  } else if (animationPosition == 1) {
+    animationTimer = millis();
+    animationPosition++;
     bottom.setBrightness(255);
     matrix.setBrightness(255);
     info.setBrightness(255);
-
+    setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
+    setBoard(matrix, BOTTOM_LENGTH, matrix.Color(255, 255, 255));
+    setBoard(info, BOTTOM_LENGTH, info.Color(255, 255, 255));
+  } else if (millis() - animationTimer > ANIMATION_DURATION) {
+    // beende die Animation
+    if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
+    setBoard(matrix, MATRIX_LENGTH, 0);
+    setBoard(info, INFO_LENGTH, 0);
+    animationPosition = 0;
+  } else {
     // setze den Farbkreis
-    wheelBoard(bottom, BOTTOM_LENGTH, animationPos);
-    setBoard(matrix, MATRIX_LENGTH, wheelToColor(matrix, animationPos));
-    setBoard(info, INFO_LENGTH, wheelToColor(info, animationPos));
+    wheelBoard(bottom, BOTTOM_LENGTH, animationPosition);
+    setBoard(matrix, MATRIX_LENGTH, wheelToColor(matrix, animationPosition));
+    setBoard(info, INFO_LENGTH, wheelToColor(info, animationPosition));
 
     // erhöhe die Position in der Animation
-    animationPos += 1 + animationPos * ANIMATION_SPEED;
-
-    // beende die Animation
-    if (millis() - animationTimer > ANIMATION_DURATION) {
-      if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
-      setBoard(matrix, MATRIX_LENGTH, 0);
-      setBoard(info, INFO_LENGTH, 0);
-      animationPos = 0;
-    }
+    animationPosition += 1 + animationPosition * ANIMATION_SPEED;
   }
   // übernehme alle Änderungen
   bottom.show();
@@ -74,14 +72,28 @@ void Led::set() {
   showState(matrix, 1, !digitalRead(SWITCH_MOTOR));
   showState(matrix, 2, seeBall, true);
   showState(matrix, 3, hasBall, true);
-  showState(matrix, 4, mate.conn());
+  showState(matrix, 4, !mate.timeout());
   //showState(matrix, 5, Bodensensor verfügbar);
   showState(matrix, 6, isLifted * 3, true);
   showState(matrix, 7, pixyState, true);
   showState(matrix, 8, !onLine);
   showState(matrix, 9, seeGoal, true);
-  showState(matrix, 10, us.check());
+  showState(matrix, 10, !us.timeout() * (2 - us.check()));
   showState(matrix, 11, DEBUG * 3, true);
+}
+
+/*****************************************************
+  Starte die Animation
+*****************************************************/
+void Led::animation() {
+  if (ANIMATION) animationPosition = 1;
+}
+
+/*****************************************************
+  Läuft die Animation gerade?
+*****************************************************/
+bool Led::isAnimation() {
+  return animationPosition;
 }
 
 /*****************************************************

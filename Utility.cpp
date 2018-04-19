@@ -62,8 +62,11 @@ void calculateStates() {
     // Kamera nicht angeschlossen
     pixyState = 3;
   }
-
   hasBall = analogRead(LIGHT_BARRIER) > LIGHT_BARRIER_TRIGGER_LEVEL;
+
+  // erkenne Hochheben
+  if (accel_event.acceleration.z >= 8) flatTimer = millis();
+  isLifted = millis() - flatTimer > 300;
 }
 
 /*****************************************************

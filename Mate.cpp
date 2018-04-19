@@ -82,13 +82,14 @@ byte Mate::receive() {
     */
     role = cache[1];
     seeBall = cache[2] < 2;
-    if(cache[2]==1) ball = -cache[3];
+    if (cache[2] == 1) ball = -cache[3];
     else ball = cache[3];
     ballWidth = cache[3] + 254 * cache[4];  // speichere die Ballbreite
     distanceRight = cache[5];
     distanceFront = cache[6];
     distanceLeft = cache[7];
     distanceBack = cache[8];
+    responseTimer = millis();
   }
   if (messageLength > 0) {
     return cache[0];
@@ -113,6 +114,7 @@ byte Mate::back() {
   return distanceBack;
 }
 
-bool Mate::conn() {
-  return millis() - responseTimer < 500;
+unsigned long Mate::timeout() {
+  if(millis() - responseTimer < 500) return 0;
+  else return millis() - responseTimer;
 }
