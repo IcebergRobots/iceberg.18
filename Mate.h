@@ -19,7 +19,7 @@ class Mate
     void send(byte * data, byte numberOfElements);
 
     bool seeBall = false;
-    bool role = 0;
+    byte role = 0;
     int ball = 0;
     unsigned int ballWidth = 0;
 
