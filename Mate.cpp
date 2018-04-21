@@ -85,8 +85,8 @@ byte Mate::receive() {
     if (cache[2] == 1) ball = -cache[3];
     else ball = cache[3];
     ballWidth = cache[4] + 254 * cache[5];  // speichere die Ballbreite
-    distanceRight = cache[7];
-    distanceFront = cache[8];
+    distanceRight = cache[6];
+    distanceFront = cache[7];
     distanceLeft = cache[8];
     distanceBack = cache[9];
     responseTimer = millis();
