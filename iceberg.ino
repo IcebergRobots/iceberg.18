@@ -213,14 +213,6 @@ void loop() {
 
   readCompass();
 
-  // starte über Funk wenn Schalter Keeper aktiviert
-  if (!digitalRead(SWITCH_MOTOR)) {
-    m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
-  } else {
-    m.setMotEn(false);
-    start = false;
-  }
-
   if (millis() - kickTimer > 30)  digitalWrite(SCHUSS, 0);  // schuß wieder ausschalten
 
   if (batState == 3) analogWrite(BUZZER, 127 * (millis() % 250 < 125));
@@ -283,12 +275,7 @@ void loop() {
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
     if (!startLast || millis() - startTimer < 100) {
-      byte data[1] = {'s'};
-      mate.send(data, 1);
       start = true;
-      /*if (!isHeadstart && digitalRead(SWITCH_B)) {
-        headstartTimer = millis();
-      }*/
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
       mate.send(data, 1);
@@ -301,7 +288,15 @@ void loop() {
     startTimer = millis();
   }
 
-  if (millis() - bluetoothTimer > 100)  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
+  // starte über Funk wenn Schalter Keeper aktiviert
+  if (!digitalRead(SWITCH_MOTOR)) {
+    m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
+  } else {
+    m.setMotEn(false);
+    start = false;
+  }
+
+  if (millis() - bluetoothTimer > 100 || start != startLast)  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
 
   // bluetooth auslesen
   byte command = mate.receive();
@@ -375,7 +370,6 @@ void loop() {
       driveDirection = -90;
     }
   } else {
-    if (seeGoal) driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
     drivePower = SPEED;
 
     if (seeBall && !(!mate.timeout() && mate.seeBall && mate.ballWidth > ballWidth)) {
@@ -391,8 +385,10 @@ void loop() {
       if (hasBall) {
         if (seeGoal && abs(heading < 20)) {
           drivePower = SPEED_HEADSTART;
+          driveState = "headstart";
         }
         driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+        driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
       } else {
         // verhindere das Driften
         if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {

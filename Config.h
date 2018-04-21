@@ -135,7 +135,7 @@ extern bool wasSelect, wasBack;
 #define PID_FILTER_D .03 // [0 bis *]~.03 d:Schwung herausnehmen (nicht zu weit drehen)
 
 // LIGHTBARRIER
-#define LIGHT_BARRIER_TRIGGER_LEVEL 50  // [0 bis 1023]~50 Wert, ab dem Lichtschranke ausschlägt
+#define LIGHT_BARRIER_TRIGGER_LEVEL 200  // [0 bis 1023]~50 Wert, ab dem Lichtschranke ausschlägt
 
 // PIYX
 #define SIGNATURE_BALL 1  // Pixy-Signature des Balls
