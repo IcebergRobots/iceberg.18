@@ -111,11 +111,11 @@ void Led::showState(Adafruit_NeoPixel & board, byte pos, byte state, bool hideRe
   switch (state) {
     default:  //case: 0
       /*
-         Information falsch (rot)
+         Information falsch (weiß)
          hideRed=true Information nicht verfügbar (aus)
          hideRed=true Information nicht relevant (aus)
       */
-      board.setPixelColor(pos, (!hideRed) * 255, 0, 0);
+      board.setPixelColor(pos, (!hideRed) * 150, 0, (!hideRed) * 150);
       break;
     case 1:
       /*
@@ -128,14 +128,14 @@ void Led::showState(Adafruit_NeoPixel & board, byte pos, byte state, bool hideRe
          Wahrnung (magenta)
          Information ungewiss (magenta)
       */
-      board.setPixelColor(pos, 255, 0, 255);
+      board.setPixelColor(pos, 255, 0, 150);
       break;
     case 3:
       /*
-         Kritische Warnung (rot)
-         Information falsch (rot)
+         Kritische Warnung (weiß)
+         Information falsch (weiß)
       */
-      board.setPixelColor(pos, 255, 0, 0);
+      board.setPixelColor(pos, 0, 220, 100);
       break;
   }
 }
