@@ -135,7 +135,7 @@ void Led::showState(Adafruit_NeoPixel & board, byte pos, byte state, bool hideRe
          Kritische Warnung (weiß)
          Information falsch (weiß)
       */
-      board.setPixelColor(pos, 0, 220, 100);
+      board.setPixelColor(pos, 0, 180, 120);
       break;
   }
 }
