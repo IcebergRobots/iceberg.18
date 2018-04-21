@@ -81,6 +81,7 @@ extern Adafruit_NeoPixel bottom, matrix, info;
 //extern Led led;
 
 // Implementierung: BUZZER
+extern byte silent;
 extern unsigned long buzzerStopTimer;
 
 // Implementierung: ROTARY-ENCODER
@@ -139,9 +140,6 @@ extern bool wasSelect, wasBack;
 // PIYX
 #define SIGNATURE_BALL 1  // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
-
-// BUZZER
-#define SILENT false // soll der Roboter stumm sein?
 
 // DISPLAY
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup

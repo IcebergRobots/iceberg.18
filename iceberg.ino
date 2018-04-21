@@ -111,6 +111,7 @@ Adafruit_NeoPixel info = Adafruit_NeoPixel(INFO_LENGTH, INFO_LED, NEO_GRB + NEO_
 Led led;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: BUZZER
+byte silent = false;
 unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 
 // Globale Definition: ROTARY-ENCODER
