@@ -193,12 +193,25 @@ void Display::set() {
       title = "Debug";
       break;
     case 3:
+      char ball;
+      if (!blockCountBall && seeBall) {
+        ball = '*';
+      } else {
+        ball = String(blockCountBall).charAt(0);
+      }
+      char goal;
+      if (!blockCountGoal && seeGoal) {
+        goal = '*';
+      } else {
+        goal = String(blockCountGoal).charAt(0);
+      }
+
       if (subpage == 0) {
-        title = "Pixy Both " + String(blockCountBall) + "+" + String(blockCountGoal);
+        title = "Pixy Both " + String(ball) + "+" + String(goal);
       } else if (subpage == 1) {
-        title = "Pixy Ball " + String(blockCountBall);
+        title = "Pixy Ball " + String(ball);
       } else if (subpage == 2) {
-        title = "Pixy Goal   " + String(blockCountGoal);
+        title = "Pixy Goal   " + String(goal);
       }
       break;
     case 4:
@@ -231,20 +244,24 @@ void Display::set() {
       setLine(6, "Head:", isHeadstart);
       setLine(7, "K.tim:", (millis() - lastKeeperToggle) / 1000);
       setLine(8, "F.tim:", (millis() - flatTimer) / 1000);
+      setLine(9, "R.tim:", (millis() - m._roleTimer) / 1000);
       break;
     case 6:
       title = "Mate";
       setLine(0, "Conn:", mate.timeout() / 1000);
       setLine(1, "^" + String(mate.front()), String(mate.right()) + ">");
       setLine(2, "<" + String(mate.left()), String(mate.back()) + "v");
+      /*if (mate.role == 0) setLine(3, "Role:", "off");
+      if (mate.role == 1) setLine(3, "Role:", "keeper");
+      if (mate.role == 2)*/ setLine(3, "Role:", mate.role);
       if (mate.seeBall) {
-        setLine(3, "B.dif:", ball - mate.ball, true);
-        setLine(4, "B.ang:", mate.ball, true);
+        setLine(4, "B.dif:", ball - mate.ball, true);
+        setLine(5, "B.ang:", mate.ball, true);
       } else {
-        setLine(3, "B.dif:");
-        setLine(4, "B.ang:");
+        setLine(4, "B.dif:");
+        setLine(5, "B.ang:");
       }
-      setLine(5, "B.wid:", mate.ballWidth);
+      setLine(6, "B.wid:", mate.ballWidth);
       break;
   }
   if (batState == 3) {

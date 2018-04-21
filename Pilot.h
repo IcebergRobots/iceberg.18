@@ -34,6 +34,9 @@ class Pilot
     bool isKeeper();
     byte getRole();
 
+    byte _role = 0; // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
+    unsigned long _roleTimer = 0; // Zeitpunkt des letzten Rollenwechsels
+
   private:
     byte _fwd[4];    // digitaler PIN fuer Vorwaertsrotation
     byte _bwd[4];    // digitaler PIN fuer Rueckwaertsrotation
@@ -42,9 +45,7 @@ class Pilot
     int _values[4];  // Zwischenspeicher für Outputsignale
 
     byte _angle;
-    byte _role = 0; // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
     bool _motEn;    // gibt an, ob die Motoren an sind
-    unsigned long _roleTimer = 0; // Zeitpunkt des letzten Rollenwechsels
 };
 
 #endif

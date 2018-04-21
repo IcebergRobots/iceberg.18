@@ -87,15 +87,15 @@ void transmitHeartbeat() {
   byte data[10];
   data[0] = 'h';
   data[1] = m.getRole();
-  if (!seeBall) data[2] = 2;
-  else data[1] = ball < 0;
-  data[2] = abs(ball);
-  data[3] = ballWidth % 254;
-  data[4] = ballWidth / 254;
-  data[5] = us.right();
-  data[6] = us.front();
-  data[7] = us.left();
-  data[8] = us.back();
+  if (!m.getMotEn() || !seeBall) data[2] = 2;
+  else data[2] = ball < 0;
+  data[3] = abs(ball);
+  data[4] = ballWidth % 254;
+  data[5] = ballWidth / 254;
+  data[6] = us.right();
+  data[7] = us.front();
+  data[8] = us.left();
+  data[9] = us.back();
   mate.send(data, 10); // heartbeat
   bluetoothTimer = millis();
 }
@@ -227,7 +227,7 @@ void readPixy() {
   blockCountGoal = 0;
   // Liest alle Blöcke aus und zählt diese
   // Sendet "cs error" über USB bei Fehler in Prüfsumme eines empfangenen Objekts
-
+  
   for (byte i = 0; i < blockCount; i++) { // geht alle erkannten Bloecke durch
     int height = pixy.blocks[i].height;
     int width = pixy.blocks[i].width;

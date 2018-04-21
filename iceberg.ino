@@ -223,7 +223,7 @@ void loop() {
 
   if (millis() - kickTimer > 30)  digitalWrite(SCHUSS, 0);  // schuß wieder ausschalten
 
-  if(batState == 3) analogWrite(BUZZER, 127 * (millis() % 250 < 125));
+  if (batState == 3) analogWrite(BUZZER, 127 * (millis() % 250 < 125));
   else analogWrite(BUZZER, 127 * millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
 
   // Seitenauswahl
@@ -301,8 +301,6 @@ void loop() {
     startTimer = millis();
   }
 
-  if (m.isKeeper() && !isLifted && !mate.timeout() && mate.seeBall && mate.ballWidth < ballWidth) m.setRusher();  // werde zum Stürmer
-
   if (millis() - bluetoothTimer > 100)  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
 
   // bluetooth auslesen
@@ -310,7 +308,6 @@ void loop() {
   switch (command) {
     case 'h': // heartbeat
       if (mate.role > 0) start = true;
-      if (mate.role == 2) m.setKeeper();
       break;
     case 's': // start
       start = true;
@@ -322,6 +319,22 @@ void loop() {
       }
       break;
   }
+
+  if (mate.timeout() || !mate.role) {
+    m._role = 1;
+  } else if (isTypeA) {
+    if (seeBall && !mate.seeBall) m.setRusher();
+    if (!seeBall && mate.seeBall) m.setKeeper();
+    if (seeBall && mate.seeBall) {
+      if (ballWidth > mate.ballWidth) m.setRusher();
+      if (ballWidth < mate.ballWidth) m.setKeeper();
+    }
+  } else {
+    if (mate.role == 1) m._role = 2;
+    if (mate.role == 2) m._role = 1;
+  }
+
+  if (!m.getMotEn()) m._role = 0;
 
   // Fahre
   if (!seeBall) {

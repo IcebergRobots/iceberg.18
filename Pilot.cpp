@@ -172,17 +172,19 @@ void Pilot::brake(bool activ) {
 }
 
 void Pilot::setMotEn(bool motEn) {
-  _motEn = motEn;
-  if (motEn) {
-    if (!mate.timeout() && mate.role == 1) {
-      _role = 2;
-      _roleTimer = millis();
+  if (_motEn != motEn) {
+    _motEn = motEn;
+    if (motEn) {
+      if (!mate.timeout() && mate.role == 1) {
+        _role = 2;
+        _roleTimer = millis();
+      } else {
+        _role = 1;
+      }
     } else {
-      _role = 1;
+      _role = 0;
+      brake(true);
     }
-  } else {
-    _role = 0;
-    brake(true);
   }
 }
 
@@ -195,22 +197,16 @@ bool Pilot::getMotEn() {
 }
 
 bool Pilot::setRusher() {
-  if (_motEn && millis() - _roleTimer > ROLE_COOLDOWN) {
+  if (millis() - _roleTimer > ROLE_COOLDOWN) {
     _role = 2;
     _roleTimer = millis();
-    return true;
-  } else {
-    return false;
   }
 }
 
 bool Pilot::setKeeper() {
-  if (_motEn) {
+  if (millis() - _roleTimer > ROLE_COOLDOWN) {
     _role = 1;
     _roleTimer = millis();
-    return true;
-  } else {
-    return false;
   }
 }
 
