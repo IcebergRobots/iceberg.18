@@ -286,9 +286,9 @@ void loop() {
       byte data[1] = {'s'};
       mate.send(data, 1);
       start = true;
-      if (!isHeadstart && digitalRead(SWITCH_B)) {
+      /*if (!isHeadstart && digitalRead(SWITCH_B)) {
         headstartTimer = millis();
-      }
+      }*/
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
       mate.send(data, 1);
