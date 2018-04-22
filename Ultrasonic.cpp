@@ -97,7 +97,7 @@ byte Ultrasonic::left() {
 }
 
 byte Ultrasonic::back() {
-  if (m.isRusher()) return max(0, us.back() - 60);
+  if (m.isRusher()) return max(1, distanceBack - 40);
   else return distanceBack;
 }
 

@@ -197,14 +197,14 @@ bool Pilot::getMotEn() {
 }
 
 bool Pilot::setRusher() {
-  if (millis() - _roleTimer > ROLE_COOLDOWN) {
+  if (_role != 2 && millis() - _roleTimer > ROLE_COOLDOWN) {
     _role = 2;
     _roleTimer = millis();
   }
 }
 
 bool Pilot::setKeeper() {
-  if (millis() - _roleTimer > ROLE_COOLDOWN) {
+  if (_role != 1 && millis() - _roleTimer > ROLE_COOLDOWN) {
     _role = 1;
     _roleTimer = millis();
   }

@@ -120,6 +120,8 @@ int rotaryPositionLast = 0; // letzter Zustand des Reglers
 bool wasSelect = false;     // war der Auswählen-Knopf gedrückt?
 bool wasBack = false;       // war der Zurück-Knopf gedrückt?
 
+unsigned long buttonTimer = 0;
+
 //###################################################################################################
 
 void setup() {
@@ -204,7 +206,24 @@ void setup() {
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
-  while (millis() < 1000) {}
+  while (millis() < 250000) {
+    m.setMotEn(true);
+    m.steerMotor(0, 100);
+    delay(1000);
+    m.steerMotor(0, 0);
+    
+    m.steerMotor(1, 100);
+    delay(1000);
+    m.steerMotor(1, 0);
+    
+    m.steerMotor(2, 100);
+    delay(1000);
+    m.steerMotor(2, 0);
+    
+    m.steerMotor(3, 100);
+    delay(1000);
+    m.steerMotor(3, 0);
+  }
 }
 //###################################################################################################
 
@@ -226,7 +245,8 @@ void loop() {
   wasSelect = !digitalRead(ROTARY_BUTTON);
   // zurück
   if (!digitalRead(BUTTON_3) && !wasBack ) {
-    d.back();
+    //d.back();
+    buttonTimer = millis();
   }
   wasBack = !digitalRead(BUTTON_3);
   // drehen
@@ -344,119 +364,138 @@ void loop() {
     rotMulti = ROTATION_AWAY;
   }
 
-  driveState = "";
-  driveOrientation = 0;
-  if (isLifted) {
-    // hochgehoben
-    driveState = "lifted";
-    drivePower = 0; // stoppe
-    driveRotation = 0; // stoppe
-  } else if (onLine) {
-    // weiche einer Linie aus
-    driveState = "avoid line";
-    drivePower = SPEED_LINE;
-  } else if (isHeadstart) {
-    // führe einen Schnellstart aus
-    driveState = "headstart";
-    drivePower = SPEED_HEADSTART;
-    driveDirection = 0;
-  } else if (isDrift) {
-    // steuere gegen
-    driveState = "avoid drift";
-    drivePower = SPEED_HEADSTART;
-    if (driftLeft) {
-      driveDirection = 90;
-    } else {
-      driveDirection = -90;
-    }
-  } else {
-    drivePower = SPEED;
-
-    if (seeBall && !(!mate.timeout() && mate.seeBall && mate.ballWidth > ballWidth)) {
-      // fahre in Richtung des Balls
-      if (ball > 50) {
-        debug("setLeft ");
-        ballLeftTimer = millis();
-      }
-      if (ball < -50) {
-        debug("setRight ");
-        ballRightTimer = millis();
-      }
-      if (hasBall) {
-        if (seeGoal && abs(heading < 20)) {
-          drivePower = SPEED_HEADSTART;
-          driveState = "headstart";
-        }
-        driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
-        driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
+  /*
+    driveState = "";
+    driveOrientation = 0;
+    if (isLifted) {
+      // hochgehoben
+      driveState = "lifted";
+      drivePower = 0; // stoppe
+      driveRotation = 0; // stoppe
+    } else if (onLine) {
+      // weiche einer Linie aus
+      driveState = "avoid line";
+      drivePower = SPEED_LINE;
+    } else if (isHeadstart) {
+      // führe einen Schnellstart aus
+      driveState = "headstart";
+      drivePower = SPEED_HEADSTART;
+      driveDirection = 0;
+    } else if (isDrift) {
+      // steuere gegen
+      driveState = "avoid drift";
+      drivePower = SPEED_HEADSTART;
+      if (driftLeft) {
+        driveDirection = 90;
       } else {
-        // verhindere das Driften
-        if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {
-          debug("runRight ");
-          buzzerTone(500);
-          driftTimer = millis();
-          driftLeft = false;
-        }
-        if (ball < 0 && millis() - ballLeftTimer < DRIFT_DURATION) {
-          debug("runLeft ");
-          buzzerTone(500);
-          driftTimer = millis();
-          driftLeft = true;
-        }
+        driveDirection = -90;
+      }
+    } else {
+      drivePower = SPEED;
+
+      if (seeBall && !(!mate.timeout() && mate.seeBall && mate.ballWidth > ballWidth)) {
         // fahre in Richtung des Balls
-        driveState = "follow";
-        driveDirection = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
-        if (driveDirection > 60) {
-          // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
-          driveState = "sideway ri";
-          driveDirection = 100;
-          drivePower = SPEED_SIDEWAY;
+        if (ball > 50) {
+          debug("setLeft ");
+          ballLeftTimer = millis();
         }
-        if (driveDirection < -60) {
-          // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
-          driveState = "sideway le";
-          driveDirection = -100;
-          drivePower = SPEED_SIDEWAY;
+        if (ball < -50) {
+          debug("setRight ");
+          ballRightTimer = millis();
         }
-        if (-15 < ball && ball < 15 && abs(heading) < 20) {
-          // fahre geradeaus
-          driveState = "straight";
-          drivePower = SPEED_BALL_IN_FRONT;
-        } else if (ballWidth > 50) {
-          drivePower *= 0.6;
+        if (hasBall) {
+          if (seeGoal && abs(heading < 20)) {
+            drivePower = SPEED_HEADSTART;
+            driveState = "headstart";
+          }
+          driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+          driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
+        } else {
+          // verhindere das Driften
+          if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {
+            debug("runRight ");
+            buzzerTone(500);
+            driftTimer = millis();
+            driftLeft = false;
+          }
+          if (ball < 0 && millis() - ballLeftTimer < DRIFT_DURATION) {
+            debug("runLeft ");
+            buzzerTone(500);
+            driftTimer = millis();
+            driftLeft = true;
+          }
+          // fahre in Richtung des Balls
+          driveState = "follow";
+          driveDirection = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
+          if (driveDirection > 60) {
+            // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+            driveState = "sideway ri";
+            driveDirection = 100;
+            drivePower = SPEED_SIDEWAY;
+          }
+          if (driveDirection < -60) {
+            // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
+            driveState = "sideway le";
+            driveDirection = -100;
+            drivePower = SPEED_SIDEWAY;
+          }
+          if (-15 < ball && ball < 15 && abs(heading) < 20) {
+            // fahre geradeaus
+            driveState = "straight";
+            drivePower = SPEED_BALL_IN_FRONT;
+          } else if (ballWidth > 50) {
+            drivePower *= 0.6;
+          }
         }
-      }
-    } else {
-      // sehen den Ball nicht bzw. sollen ihn nicht sehen
-      if (us.back() && us.back() < 50 && us.left() && us.right() && abs(heading) < 40) {
-        // verteidige das Tor im Strafraum oder davor
-        if (seeBall) {
-          if (ball > 0 && !keeper.atGatepost()) keeper.left();
-          if (ball < 0 && !keeper.atGatepost()) keeper.right();
-        } else if (keeper.lastToggle() > 4000) {
-          keeper.toggle();  // Richtungsänderung nach max. 4 Sekungen
-        } else if (keeper.lastToggle() > 800 && keeper.atGatepost()) { 
-          keeper.toggle();  // Richtungsänderung am Torpfosten
-        }
-
-        keeper.set(); // übernehme die Steuerwerte
-      } else if (!us.timeout() && us.back() && us.back() < 80) {
-        // fahre nach hinten
-        driveState = "penalty";
-        driveDirection = 180;
-        drivePower = SPEED_PENALTY;
       } else {
-        // fahre nach hinten
-        driveState = "passive";
-        driveDirection = 180;
-        drivePower = SPEED_BACKWARDS;
+        // sehen den Ball nicht bzw. sollen ihn nicht sehen
+        if (us.back() && us.back() < 50 && us.left() && us.right() && abs(heading) < 40) {
+          // verteidige das Tor im Strafraum oder davor
+          if (seeBall) {
+            if (ball > 0 && !keeper.atGatepost()) keeper.left();
+            if (ball < 0 && !keeper.atGatepost()) keeper.right();
+          } else if (keeper.lastToggle() > 4000) {
+            keeper.toggle();  // Richtungsänderung nach max. 4 Sekungen
+          } else if (keeper.lastToggle() > 800 && keeper.atGatepost()) {
+            keeper.toggle();  // Richtungsänderung am Torpfosten
+          }
+
+          keeper.set(); // übernehme die Steuerwerte
+        } else if (!us.timeout() && us.back() && us.back() < 80) {
+          // fahre nach hinten
+          driveState = "penalty";
+          driveDirection = 180;
+          drivePower = SPEED_PENALTY;
+        } else {
+          // fahre nach hinten
+          driveState = "passive";
+          driveDirection = 180;
+          drivePower = SPEED_BACKWARDS;
+        }
       }
     }
-  }
 
-  drivePower = max(drivePower - abs(driveRotation), 0);
-  driveRotation = ausrichten(driveOrientation);
-  m.drive(driveDirection, drivePower, driveRotation);
+    drivePower = max(drivePower - abs(driveRotation), 0);
+    driveRotation = ausrichten(driveOrientation);
+    m.drive(driveDirection, drivePower, driveRotation);
+  */
+
+  if (millis() - buttonTimer < 2000) {
+
+    m.setMotEn(true);
+
+    Serial.print(String(analogRead(M0_CURR)) + ",");
+    Serial.print(String(analogRead(M1_CURR)) + ",");
+    Serial.print(String(analogRead(M2_CURR)) + ",");
+    Serial.println(String(analogRead(M3_CURR)));
+
+    drivePower = map(analogRead(POTI), 0, 1023, 0, 255);
+
+    
+
+  } else {
+    m.brake(false);
+  }
 
   if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200)) {
     debug("display ");

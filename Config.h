@@ -90,10 +90,10 @@ extern int rotaryPositionLast;
 extern bool wasSelect, wasBack;
 
 // Fahren
-#define ROLE_COOLDOWN 4000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
+#define ROLE_COOLDOWN 1000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
-#define ANGLE_KEEPER_MAX 30     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
+#define ANGLE_KEEPER_MAX 20     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
 #define ROTATION_18CM 50        // [0 bis *]~70
@@ -145,7 +145,7 @@ extern bool wasSelect, wasBack;
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup
 
 // Serielle Kommunikationen
-#define DEBUG true                // soll eine Usb-Kommunikation bestehen?
+#define DEBUG false               // soll eine Usb-Kommunikation bestehen?
 #define DEBUG_SERIAL Serial       // Serial der Usb-Schnittstelle
 #define BLUETOOTH true            // soll eine Bluetooth-Kommunikation bestehen?
 #define BLUETOOTH_SERIAL Serial1  // Serial des Bluetooth-Moduls
