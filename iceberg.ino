@@ -255,7 +255,7 @@ void loop() {
     BOTTOM_SERIAL.read();
   }
 
-  if ((seeGoal && abs(goal < 100) && hasBall) || !digitalRead(SCHUSS_BUTTON)) kick(); // schieße
+  if ((seeGoal && abs(heading - pidSetpoint) < 45 && hasBall) || !digitalRead(SCHUSS_BUTTON)) kick(); // schieße
 
   calculateStates();  // Berechne alle Statuswerte und Zustände
 
@@ -435,7 +435,7 @@ void loop() {
           if (ball < 0 && !keeper.atGatepost()) keeper.right();
         } else if (keeper.lastToggle() > 4000) {
           keeper.toggle();  // Richtungsänderung nach max. 4 Sekungen
-        } else if (keeper.lastToggle() > 1500 && keeper.atGatepost()) {
+        } else if (keeper.lastToggle() > 800 && keeper.atGatepost()) { 
           keeper.toggle();  // Richtungsänderung am Torpfosten
         }
 
@@ -458,7 +458,7 @@ void loop() {
   driveRotation = ausrichten(driveOrientation);
   m.drive(driveDirection, drivePower, driveRotation);
 
-  if (millis() - lastDisplay > 1000 || (d.getPage()==3  && millis() - lastDisplay > 200)) {
+  if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200)) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs
   }

@@ -97,8 +97,8 @@ byte Ultrasonic::left() {
 }
 
 byte Ultrasonic::back() {
-  /*if (!mate.timeout() && mate.back() < 80) return max(0, us.back() - 80);
-    else*/ return distanceBack;
+  if (m.isRusher()) return max(0, us.back() - 60);
+  else return distanceBack;
 }
 
 bool Ultrasonic::check() {

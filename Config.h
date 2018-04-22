@@ -93,7 +93,7 @@ extern bool wasSelect, wasBack;
 #define ROLE_COOLDOWN 4000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
-#define ANGLE_KEEPER_MAX 20     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
+#define ANGLE_KEEPER_MAX 30     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
 #define ROTATION_18CM 50        // [0 bis *]~70
@@ -104,8 +104,8 @@ extern bool wasSelect, wasBack;
 #define SPEED_BALL_IN_FRONT 120 // [0 bis 255]~255
 #define SPEED_BACKWARDS 50      // [0 bis 255]~40
 #define SPEED_PENALTY 40        // [0 bis 255]~40
-#define SPEED_KEEPER 40         // [0 bis 255]~40
-#define SPEED_HEADSTART 120     // [0 bis 255]~120
+#define SPEED_KEEPER 60         // [0 bis 255]~40
+#define SPEED_HEADSTART 140     // [0 bis 255]~120
 #define SPEED_LINE 80           // [0 bis 255]~80
 
 // TIMES
@@ -115,8 +115,8 @@ extern bool wasSelect, wasBack;
 #define PIXY_RESPONSE_DURATION 20000  // wie lange soll die Pixy-Led grün nachleuchten?
 
 // Feld
-#define COURT_WIDTH 140         // Summe der Abstände nach rechts und links
-#define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
+#define COURT_WIDTH 150         // Summe der Abstände nach rechts und links
+#define COURT_GOAL_TO_BORDER 65 // Abstand nach rechts bzw. links am Torpfosten
 
 // LEDS
 #define ANIMATION true          // soll die Animation stattfinden?
