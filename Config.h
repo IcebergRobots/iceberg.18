@@ -93,7 +93,8 @@ extern bool wasSelect, wasBack;
 #define ROLE_COOLDOWN 4000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
-#define ANGLE_KEEPER_MAX 30     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
+#define ANGLE_KEEPER_MAX 20     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
+#define ANGLE_PASSIVE_MAX 35    // [0 bis 180]~45 maximaler Orientierungswinkel beim Zurückfahren
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
 #define ROTATION_18CM 50        // [0 bis *]~70

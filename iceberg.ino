@@ -274,6 +274,7 @@ void loop() {
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
+    if (!startLast && digitalRead(SWITCH_DEBUG)) headstartTimer = millis();
     if (!startLast || millis() - startTimer < 100) {
       start = true;
     } else if (millis() - startTimer > 1000) {
@@ -435,21 +436,23 @@ void loop() {
           if (ball < 0 && !keeper.atGatepost()) keeper.right();
         } else if (keeper.lastToggle() > 4000) {
           keeper.toggle();  // Richtungsänderung nach max. 4 Sekungen
-        } else if (keeper.lastToggle() > 800 && keeper.atGatepost()) { 
+        } else if (keeper.lastToggle() > 800 && keeper.atGatepost()) {
           keeper.toggle();  // Richtungsänderung am Torpfosten
         }
 
         keeper.set(); // übernehme die Steuerwerte
-      } else if (!us.timeout() && us.back() && us.back() < 80) {
-        // fahre nach hinten
-        driveState = "penalty";
-        driveDirection = 180;
-        drivePower = SPEED_PENALTY;
       } else {
         // fahre nach hinten
-        driveState = "passive";
-        driveDirection = 180;
-        drivePower = SPEED_BACKWARDS;
+        if (!us.timeout() && us.back() && us.back() < 80) {
+          driveState = "penalty";
+          drivePower = SPEED_PENALTY;
+        } else {
+          driveState = "passive";
+          drivePower = SPEED_BACKWARDS;
+        }
+        if (us.left() && us.left() < COURT_GOAL_TO_BORDER) driveDirection = -constrain(map(COURT_GOAL_TO_BORDER - us.left(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
+        else if (us.right() && us.right() < COURT_GOAL_TO_BORDER) driveDirection = constrain(map(COURT_GOAL_TO_BORDER - us.right(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
+        else driveDirection = 180;
       }
     }
   }

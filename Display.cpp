@@ -243,8 +243,9 @@ void Display::set() {
       setLine(5, "Line:", onLine);
       setLine(6, "Head:", isHeadstart);
       setLine(7, "K.tim:", (millis() - lastKeeperToggle) / 1000);
-      setLine(8, "F.tim:", (millis() - flatTimer) / 1000);
-      setLine(9, "R.tim:", (millis() - m._roleTimer) / 1000);
+      setLine(8, "H.tim:", (millis() - headstartTimer) / 1000);
+      setLine(9, "F.tim:", (millis() - flatTimer) / 1000);
+      setLine(10, "R.tim:", (millis() - m._roleTimer) / 1000);
       break;
     case 6:
       title = "Mate";
@@ -252,8 +253,8 @@ void Display::set() {
       setLine(1, "^" + String(mate.front()), String(mate.right()) + ">");
       setLine(2, "<" + String(mate.left()), String(mate.back()) + "v");
       /*if (mate.role == 0) setLine(3, "Role:", "off");
-      if (mate.role == 1) setLine(3, "Role:", "keeper");
-      if (mate.role == 2)*/ setLine(3, "Role:", mate.role);
+        if (mate.role == 1) setLine(3, "Role:", "keeper");
+        if (mate.role == 2)*/ setLine(3, "Role:", mate.role);
       if (mate.seeBall) {
         setLine(4, "B.dif:", ball - mate.ball, true);
         setLine(5, "B.ang:", mate.ball, true);

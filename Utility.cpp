@@ -54,6 +54,7 @@ void calculateStates() {
   seeBall = !isLifted && millis() - seeBallTimer < 50;
   seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
   isDrift = millis() - driftTimer < 100;
+  isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
     // Kamera war in den letzen 30 Sekunden bereits aktiv
     pixyState = 1;
