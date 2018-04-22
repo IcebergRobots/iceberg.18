@@ -4,7 +4,7 @@
 extern Display d;
 extern Keeper keeper;
 extern Led led;
-extern Mate mate;
+//extern Mate mate;
 extern Pilot m;
 extern Ultrasonic us;
 

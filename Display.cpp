@@ -1,7 +1,7 @@
 #include "Display.h"
 
 // Implementierung: OBJEKTE
-extern Display d;
+//extern Display d;
 extern Keeper keeper;
 extern Led led;
 extern Mate mate;

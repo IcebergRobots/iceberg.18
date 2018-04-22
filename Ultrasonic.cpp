@@ -6,7 +6,7 @@ extern Keeper keeper;
 extern Led led;
 extern Mate mate;
 extern Pilot m;
-extern Ultrasonic us;
+//extern Ultrasonic us;
 
 Ultrasonic::Ultrasonic() {
 }
@@ -97,7 +97,7 @@ byte Ultrasonic::left() {
 }
 
 byte Ultrasonic::back() {
-  if (m.isRusher()) return max(0, us.back() - 60);
+  if (m.isRusher()) return max(1, distanceBack - 40);
   else return distanceBack;
 }
 

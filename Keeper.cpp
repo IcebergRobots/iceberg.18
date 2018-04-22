@@ -2,7 +2,7 @@
 
 // Implementierung: OBJEKTE
 extern Display d;
-extern Keeper keeper;
+//extern Keeper keeper;
 extern Led led;
 extern Mate mate;
 extern Pilot m;
@@ -16,11 +16,11 @@ void Keeper::set() {
   if (movingLeft) {
     driveState = "keeper <";
     driveDirection = ANGLE_SIDEWAY;
-    if(lastToggle > 600) driveOrientation = -constrain(map(us.left() - COURT_GOAL_TO_BORDER, 0, 30, ANGLE_KEEPER_MAX, 0), 0, ANGLE_KEEPER_MAX);
+    if(lastToggle() > 600) driveOrientation = -constrain(map(us.left() - COURT_GOAL_TO_BORDER, 0, 30, ANGLE_KEEPER_MAX, 0), 0, ANGLE_KEEPER_MAX);
   } else {
     driveState = "keeper >";
     driveDirection = -ANGLE_SIDEWAY;
-    if(lastToggle > 600) driveOrientation = constrain(map(us.right() - COURT_GOAL_TO_BORDER, 0, 30, ANGLE_KEEPER_MAX, 0), 0, ANGLE_KEEPER_MAX);
+    if(lastToggle() > 600) driveOrientation = constrain(map(us.right() - COURT_GOAL_TO_BORDER, 0, 30, ANGLE_KEEPER_MAX, 0), 0, ANGLE_KEEPER_MAX);
   }
   if (us.back() < 15) driveDirection *= 0.8;
 }
