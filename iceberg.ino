@@ -458,7 +458,7 @@ void loop() {
   driveRotation = ausrichten(driveOrientation);
   m.drive(driveDirection, drivePower, driveRotation);
 
-  if (millis() - lastDisplay > 100) {
+  if (millis() - lastDisplay > 1000 || (d.getPage()==3  && millis() - lastDisplay > 200)) {
     debug("display ");
     d.update();   // aktualisiere Bildschirm und LEDs
   }

@@ -311,3 +311,7 @@ String Display::intToStr(int number) {
   }
 }
 
+byte Display::getPage() {
+  return page;
+}
+

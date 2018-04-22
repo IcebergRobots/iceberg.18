@@ -16,6 +16,7 @@ class Display: public Adafruit_SSD1306
     void select();
     void back();
     void change(int change);
+    byte getPage();
   private:
     void set();
     void setLine(int line, String title, String value);
