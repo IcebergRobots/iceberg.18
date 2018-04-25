@@ -86,7 +86,7 @@ void Led::set() {
   Starte die Animation
 *****************************************************/
 void Led::animation() {
-  if (ANIMATION) animationPosition = 1;
+  if (ANIMATION && !silent) animationPosition = 1;
 }
 
 /*****************************************************

@@ -11,24 +11,26 @@ extern Ultrasonic us;
 void Display::init() {
   begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialisiere das Displays
   clearDisplay(); // leere den Bildschirm
-  drawBitmap(0, 0, LOGO, 114, 64, WHITE); // zeige das Logo
+  if (!silent) drawBitmap(0, 0, LOGO, 114, 64, WHITE); // zeige das Logo
   display();  //wendet Aenderungen an
 }
 
 void Display::setupMessage(byte pos, String title, String description) {
-  fillRect(47, 0, 81, 31, BLACK); // lösche das Textfeld
-  drawRect(0, 29, map(pos, 0, SETUP_MESSAGE_RANGE, 0, 128), 2, WHITE);
-  setTextColor(WHITE);
+  if (!silent) {
+    fillRect(47, 0, 81, 31, BLACK); // lösche das Textfeld
+    drawRect(0, 29, map(pos, 0, SETUP_MESSAGE_RANGE, 0, 128), 2, WHITE);
+    setTextColor(WHITE);
 
-  setTextSize(2);
-  setCursor(47, 0);
-  print(title.substring(0, 6));
+    setTextSize(2);
+    setCursor(47, 0);
+    print(title.substring(0, 6));
 
-  setTextSize(1);
-  setCursor(47, 17);
-  print(description.substring(0, 13));
+    setTextSize(1);
+    setCursor(47, 17);
+    print(description.substring(0, 13));
 
-  display();
+    display();
+  }
 }
 
 // Infos auf dem Bildschirm anzeigen

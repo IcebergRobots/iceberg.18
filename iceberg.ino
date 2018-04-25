@@ -127,6 +127,8 @@ void setup() {
   SPI.begin();
   pixyResponseTimer = SPI.transfer(0x00) == 255;
 
+  silent = !digitalRead(SWITCH_DEBUG);  // Schnellstart?
+
   // initialisiere Display mit Iceberg Schriftzug
   d.init();
 
@@ -211,6 +213,8 @@ void setup() {
 void loop() {
   debug(String(millis()) + " ");
 
+  displayDebug = "";
+
   readCompass();
 
   if (millis() - kickTimer > 30)  digitalWrite(SCHUSS, 0);  // schuß wieder ausschalten
@@ -274,7 +278,7 @@ void loop() {
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
-    if (!startLast && digitalRead(SWITCH_DEBUG)) headstartTimer = millis();
+    if (!startLast && digitalRead(SWITCH_B)) headstartTimer = millis();
     if (!startLast || millis() - startTimer < 100) {
       start = true;
     } else if (millis() - startTimer > 1000) {

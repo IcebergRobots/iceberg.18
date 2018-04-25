@@ -49,7 +49,7 @@ void calculateStates() {
   } else {
     batState = 0; // no battery
   }
-  silent = !digitalRead(SWITCH_B);
+  silent = !digitalRead(SWITCH_DEBUG);
   
   seeBall = !isLifted && millis() - seeBallTimer < 50;
   seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
