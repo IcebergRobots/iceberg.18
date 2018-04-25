@@ -368,7 +368,7 @@ void loop() {
   } else if (isDrift) {
     // steuere gegen
     driveState = "avoid drift";
-    drivePower = SPEED_HEADSTART;
+    drivePower = SPEED_DRIFT;
     if (driftLeft) {
       driveDirection = 90;
     } else {
@@ -389,7 +389,7 @@ void loop() {
       }
       if (hasBall) {
         if (seeGoal && abs(heading < 20)) {
-          drivePower = SPEED_HEADSTART;
+          drivePower = SPEED_DRIFT;
           driveState = "headstart";
         }
         driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);

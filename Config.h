@@ -106,12 +106,13 @@ extern bool wasSelect, wasBack;
 #define SPEED_BACKWARDS 50      // [0 bis 255]~40
 #define SPEED_PENALTY 40        // [0 bis 255]~40
 #define SPEED_KEEPER 60         // [0 bis 255]~40
-#define SPEED_HEADSTART 140     // [0 bis 255]~120
+#define SPEED_HEADSTART 255     // [0 bis 255]~255
+#define SPEED_DRIFT 140         // [0 bis 255]~140
 #define SPEED_LINE 80           // [0 bis 255]~80
 
 // TIMES
 #define LINE_DURATION 100             // wie lange steuern wir der Linie entgegen?
-#define HEADSTART_DURATION 700        // wie lange fahren wir volle Geschwindigkeit?
+#define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?
 #define DRIFT_DURATION 200            // wie lange steuern wir einem Drift entgegen?
 #define PIXY_RESPONSE_DURATION 20000  // wie lange soll die Pixy-Led grün nachleuchten?
 
