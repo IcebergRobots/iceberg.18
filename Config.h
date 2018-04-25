@@ -65,6 +65,7 @@ extern unsigned long usTimer;
 // Implementierung: KICK, LIGHT-BARRIER
 extern bool hasBall;
 extern unsigned long kickTimer;
+extern unsigned int lightBarrierTriggerLevel;
 
 // Implementierung: LIFT
 extern bool isLifted;
@@ -135,9 +136,6 @@ extern bool wasSelect, wasBack;
 #define PID_FILTER_P .27 // [0 bis *]~.27 p:proportional
 #define PID_FILTER_I 0   // [0 bis *]~0   i:vorausschauend
 #define PID_FILTER_D .03 // [0 bis *]~.03 d:Schwung herausnehmen (nicht zu weit drehen)
-
-// LIGHTBARRIER
-#define LIGHT_BARRIER_TRIGGER_LEVEL 200  // [0 bis 1023]~50 Wert, ab dem Lichtschranke ausschlägt
 
 // PIYX
 #define SIGNATURE_BALL 1  // Pixy-Signature des Balls

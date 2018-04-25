@@ -92,6 +92,7 @@ Ultrasonic us;  // OBJEKTINITIALISIERUNG
 // Globale Definition: KICK, LIGHT-BARRIER
 bool hasBall = false;   // besitzen der Roboter den Ball?
 unsigned long kickTimer = 0;  // Zeitpunkt des letzten Schießens
+unsigned int lightBarrierTriggerLevel = 80; // [0 bis 1023]~50 Wert, ab dem Lichtschranke ausschlägt
 
 // Globale Definition: LIFT
 bool isLifted = false;  // ist der Roboter hochgehoben?
@@ -128,9 +129,9 @@ void setup() {
   pixyResponseTimer = SPI.transfer(0x00) == 255;
 
   silent = !digitalRead(SWITCH_DEBUG);  // Schnellstart?
+  if (analogRead(LIGHT_BARRIER) > 50 && analogRead(LIGHT_BARRIER) < 400) lightBarrierTriggerLevel = analogRead(LIGHT_BARRIER) + 100;
 
-  // initialisiere Display mit Iceberg Schriftzug
-  d.init();
+  d.init();  // initialisiere Display mit Iceberg Schriftzug
 
   // Roboter bremst aktiv
   m.brake(true);
@@ -202,7 +203,7 @@ void setup() {
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
   led.animation();
-  d.setupMessage(10, "DONE", "");
+  d.setupMessage(10, "B: " + String(lightBarrierTriggerLevel), "");
   debugln("setup done");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
@@ -278,7 +279,7 @@ void loop() {
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
-    if (!startLast && digitalRead(SWITCH_B)) headstartTimer = millis();
+    if (!startLast && digitalRead(SWITCH_B) && !m.getMotEn()) headstartTimer = millis();
     if (!startLast || millis() - startTimer < 100) {
       start = true;
     } else if (millis() - startTimer > 1000) {
@@ -363,8 +364,6 @@ void loop() {
   } else if (isHeadstart) {
     // führe einen Schnellstart aus
     driveState = "headstart";
-    drivePower = SPEED_HEADSTART;
-    driveDirection = 0;
   } else if (isDrift) {
     // steuere gegen
     driveState = "avoid drift";
@@ -463,7 +462,14 @@ void loop() {
 
   drivePower = max(drivePower - abs(driveRotation), 0);
   driveRotation = ausrichten(driveOrientation);
-  m.drive(driveDirection, drivePower, driveRotation);
+  if (isHeadstart) {
+    for (int i = 0; i < 4; i++) {
+      m.steerMotor(i, 255);
+    }
+  } else {
+    m.drive(driveDirection, drivePower, driveRotation);
+  }
+
 
   if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200)) {
     debug("display ");
