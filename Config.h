@@ -109,7 +109,7 @@ extern bool wasSelect, wasBack;
 #define SPEED_KEEPER 60         // [0 bis 255]~40
 #define SPEED_HEADSTART 255     // [0 bis 255]~255
 #define SPEED_DRIFT 140         // [0 bis 255]~140
-#define SPEED_LINE 120           // [0 bis 255]~80
+#define SPEED_LINE 90           // [0 bis 255]~80
 
 // TIMES
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
