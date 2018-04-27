@@ -79,7 +79,7 @@ void Led::set() {
   showState(matrix, 8, !onLine);
   showState(matrix, 9, seeGoal, true);
   showState(matrix, 10, !us.timeout() * (2 - us.check()));
-  showState(matrix, 11, DEBUG * 3, true);
+  showState(matrix, 11, us.right() + us.left() >= COURT_WIDTH_FREE);
 }
 
 /*****************************************************

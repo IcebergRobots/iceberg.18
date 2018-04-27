@@ -268,7 +268,7 @@ void Display::set() {
       break;
   }
   if (batState == 3) {
-    if (255 * (millis() % 250 < 170)) {
+    if (255 * (millis() % 2000 < 1000)) {
       line2 = "critVoltag";
     } else {
       line2 = "";

@@ -50,7 +50,7 @@ void calculateStates() {
     batState = 0; // no battery
   }
   silent = !digitalRead(SWITCH_DEBUG);
-  
+
   seeBall = !isLifted && millis() - seeBallTimer < 50;
   seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
   isDrift = millis() - driftTimer < 100;
@@ -66,6 +66,8 @@ void calculateStates() {
     pixyState = 3;
   }
   hasBall = analogRead(LIGHT_BARRIER) > lightBarrierTriggerLevel;
+
+  if (us.right() + us.left() >= COURT_WIDTH_FREE) lastGoalFree = millis();
 
   // erkenne Hochheben
   if (accel_event.acceleration.z >= 8) flatTimer = millis();
@@ -228,7 +230,7 @@ void readPixy() {
   blockCountGoal = 0;
   // Liest alle Blöcke aus und zählt diese
   // Sendet "cs error" über USB bei Fehler in Prüfsumme eines empfangenen Objekts
-  
+
   for (byte i = 0; i < blockCount; i++) { // geht alle erkannten Bloecke durch
     int height = pixy.blocks[i].height;
     int width = pixy.blocks[i].width;
