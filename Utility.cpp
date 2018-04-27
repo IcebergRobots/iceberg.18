@@ -119,7 +119,7 @@ void avoidLine() {
     BOTTOM_SERIAL.read();
   }
   if (BOTTOM_SERIAL.available() > 0) {
-    lineDir = BOTTOM_SERIAL.read() * 90 + 90;
+    lineDir = (BOTTOM_SERIAL.read() * 22.5) - 180;
     driveDirection = lineDir;
     m.drive(driveDirection, SPEED_LINE, 0);
     lineTimer = millis();
