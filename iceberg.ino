@@ -462,7 +462,8 @@ void loop() {
   }
 
   drivePower = max(drivePower - abs(driveRotation), 0);
-  driveRotation = ausrichten(driveOrientation);
+  //driveRotation = ausrichten(driveOrientation);
+  driveRotation = ausrichten(0);
   if (isHeadstart) {
     for (int i = 0; i < 4; i++) {
       m.steerMotor(i, 255);

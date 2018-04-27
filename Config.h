@@ -101,10 +101,10 @@ extern bool wasSelect, wasBack;
 #define ROTATION_18CM 50        // [0 bis *]~70
 #define ROTATION_10CM 70        // [0 bis *]~90
 #define ROTATION_TOUCH 40       // [0 bis *]~20
-#define SPEED 60                // [0 bis 255]~60
-#define SPEED_SIDEWAY 60        // [0 bis 255]~60
+#define SPEED 80                // [0 bis 255]~60
+#define SPEED_SIDEWAY 100        // [0 bis 255]~60
 #define SPEED_BALL_IN_FRONT 120 // [0 bis 255]~255
-#define SPEED_BACKWARDS 50      // [0 bis 255]~40
+#define SPEED_BACKWARDS 70      // [0 bis 255]~40
 #define SPEED_PENALTY 40        // [0 bis 255]~40
 #define SPEED_KEEPER 60         // [0 bis 255]~40
 #define SPEED_HEADSTART 255     // [0 bis 255]~255
