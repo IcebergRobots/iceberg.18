@@ -429,7 +429,6 @@ void loop() {
           if(us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 60, 120);
         } else if (ballWidth > 50) {
           if(us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 40, 60);
-          drivePower *= 0.6;
         }
       }
     } else {
