@@ -224,6 +224,10 @@ void loop() {
   if (batState == 3) analogWrite(BUZZER, 127 * (millis() % 250 < 125));
   else analogWrite(BUZZER, 127 * millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
 
+  while (BOTTOM_SERIAL.available() > 1) { 
+    BOTTOM_SERIAL.read(); 
+  } 
+
   // Seitenauswahl
   // auswählen
   if (!digitalRead(ROTARY_BUTTON) && !wasSelect) {
