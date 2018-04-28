@@ -431,6 +431,7 @@ void loop() {
           // fahre geradeaus
           driveState = "straight";
           if (us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 40, 120);
+          driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
         } else if (ballWidth > 50) {
           if (us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 40, 60);
         }
