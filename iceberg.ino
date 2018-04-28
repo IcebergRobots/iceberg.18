@@ -327,7 +327,7 @@ void loop() {
   } else if (isTypeA) {
     if (seeBall && !mate.seeBall) m.setRusher();
     if (!seeBall && mate.seeBall) m.setKeeper();
-    if (seeBall && mate.seeBall) {
+    if (seeBall && mate.seeBall && abs(ballWidth - mate.ballWidth) >= 5) {
       if (ballWidth > mate.ballWidth) m.setRusher();
       if (ballWidth < mate.ballWidth) m.setKeeper();
     }
@@ -426,9 +426,9 @@ void loop() {
         if (-15 < ball && ball < 15 && abs(heading) < 20) {
           // fahre geradeaus
           driveState = "straight";
-          if(us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 60, 120);
+          if (us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 60, 120);
         } else if (ballWidth > 50) {
-          if(us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 40, 60);
+          if (us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 40, 60);
         }
       }
     } else {
