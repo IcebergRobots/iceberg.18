@@ -1,4 +1,4 @@
-/*** 
+/***
   _____ _______ _______ ______  _______  ______  ______
     |   |       |______ |_____] |______ |_____/ |  ____
   __|__ |_____  |______ |_____] |______ |    \_ |_____|
@@ -224,9 +224,9 @@ void loop() {
   if (batState == 3) analogWrite(BUZZER, 127 * (millis() % 250 < 125));
   else analogWrite(BUZZER, 127 * millis() <= buzzerStopTimer);  // buzzer anschalten bzw. wieder ausschalten
 
-  while (BOTTOM_SERIAL.available() > 1) { 
-    BOTTOM_SERIAL.read(); 
-  } 
+  while (BOTTOM_SERIAL.available() > 1) {
+    BOTTOM_SERIAL.read();
+  }
 
   // Seitenauswahl
   // auswählen
@@ -313,7 +313,10 @@ void loop() {
   byte command = mate.receive();
   switch (command) {
     case 'h': // heartbeat
-      if (mate.role > 0) start = true;
+      if (mate.role > 0) {
+        start = true;
+        if (!startLast && digitalRead(SWITCH_B) && !m.getMotEn()) headstartTimer = millis();
+      }
       break;
     case 's': // start
       start = true;
@@ -469,7 +472,7 @@ void loop() {
   drivePower = max(drivePower - abs(driveRotation), 0);
   driveRotation = ausrichten(driveOrientation);
   //driveRotation = ausrichten(0);
-  if (isHeadstart) {
+  if (!isLifted && isHeadstart) {
     for (int i = 0; i < 4; i++) {
       m.steerMotor(i, 255);
     }
