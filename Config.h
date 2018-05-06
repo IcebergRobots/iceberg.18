@@ -3,9 +3,9 @@
 
 #include "Arduino.h"
 #include "Display.h"
-#include "Keeper.h"
 #include "Led.h"
 #include "Pilot.h"
+#include "Player.h"
 #include "Mate.h"
 #include "Ultrasonic.h"
 #include "Utility.h"
@@ -91,7 +91,7 @@ extern int rotaryPositionLast;
 extern bool wasSelect, wasBack;
 
 // Fahren
-#define ROLE_COOLDOWN 500      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
+#define ROLE_COOLDOWN 1000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
 #define ANGLE_KEEPER_MAX 20     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
@@ -112,6 +112,7 @@ extern bool wasSelect, wasBack;
 #define SPEED_LINE 90           // [0 bis 255]~80
 
 // TIMES
+#define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
 #define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?
 #define DRIFT_DURATION 200            // wie lange steuern wir einem Drift entgegen?

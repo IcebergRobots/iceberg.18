@@ -2,7 +2,7 @@
 
 // Implementierung: OBJEKTE
 extern Display d;
-extern Keeper keeper;
+extern Player p;
 extern Led led;
 extern Mate mate;
 extern Pilot m;

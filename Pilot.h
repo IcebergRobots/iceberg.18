@@ -28,15 +28,6 @@ class Pilot
     bool getMotEn();
     void switchMotEn();
 
-    bool setRusher();
-    bool setKeeper();
-    bool isRusher();
-    bool isKeeper();
-    byte getRole();
-
-    byte _role = 0; // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
-    unsigned long _roleTimer = 0; // Zeitpunkt des letzten Rollenwechsels
-
   private:
     byte _fwd[4];    // digitaler PIN fuer Vorwaertsrotation
     byte _bwd[4];    // digitaler PIN fuer Rueckwaertsrotation

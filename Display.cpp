@@ -2,7 +2,7 @@
 
 // Implementierung: OBJEKTE
 //extern Display d;
-extern Keeper keeper;
+extern Player p;
 extern Led led;
 extern Mate mate;
 extern Pilot m;
@@ -152,12 +152,12 @@ void Display::set() {
       }
 
       if (seeBall) {
-        if (m.isRusher())      setLine(0, "rush", ball, true);
-        else if (m.isKeeper()) setLine(0, "keep", ball, true);
+        if (p.isRusher())      setLine(0, "rush", ball, true);
+        else if (p.isKeeper()) setLine(0, "keep", ball, true);
         else                  setLine(0, "off", ball, true);
       } else {
-        if (m.isRusher())      setLine(0, "rush", "blind");
-        else if (m.isKeeper()) setLine(0, "keep", "blind");
+        if (p.isRusher())      setLine(0, "rush", "blind");
+        else if (p.isKeeper()) setLine(0, "keep", "blind");
         else                  setLine(0, "off", "blind");
       }
 
@@ -247,7 +247,7 @@ void Display::set() {
       setLine(7, "K.tim:", (millis() - lastKeeperToggle) / 1000);
       setLine(8, "H.tim:", (millis() - headstartTimer) / 1000);
       setLine(9, "F.tim:", (millis() - flatTimer) / 1000);
-      setLine(10, "R.tim:", (millis() - m._roleTimer) / 1000);
+      setLine(10, "R.tim:", p.lastRoleToggle() / 1000);
       break;
     case 6:
       title = "Mate";

@@ -2,7 +2,7 @@
 
 // Implementierung: OBJEKTE
 extern Display d;
-extern Keeper keeper;
+extern Player p;
 extern Led led;
 extern Mate mate;
 extern Pilot m;
@@ -97,7 +97,7 @@ byte Ultrasonic::left() {
 }
 
 byte Ultrasonic::back() {
-  if (m.isRusher()) return max(1, distanceBack - 40);
+  if (p.isRusher()) return max(1, distanceBack - 40);
   else return distanceBack;
 }
 

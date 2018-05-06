@@ -2,7 +2,7 @@
 
 // Implementierung: OBJEKTE
 extern Display d;
-extern Keeper keeper;
+extern Player p;
 extern Led led;
 extern Mate mate;
 extern Pilot m;
@@ -89,7 +89,7 @@ void calculateStates() {
 void transmitHeartbeat() {
   byte data[10];
   data[0] = 'h';
-  data[1] = m._role;
+  data[1] = p.getRole();
   if (!m.getMotEn() || !seeBall) data[2] = 2;
   else data[2] = ball < 0;
   data[3] = abs(ball);
@@ -221,7 +221,7 @@ int ausrichten(int orientation) {
   4        2              blue
 *****************************************************/
 void readPixy() {
-  pixy.setLED(0, 0, 0); // schalte die Front-LED aus
+  if(silent) pixy.setLED(0, 0, 0); // schalte die Front-LED aus
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 

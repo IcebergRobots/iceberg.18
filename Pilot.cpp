@@ -2,7 +2,7 @@
 
 // Implementierung: OBJEKTE
 extern Display d;
-extern Keeper keeper;
+extern Player p;
 extern Led led;
 extern Mate mate;
 //extern Pilot m;
@@ -175,14 +175,9 @@ void Pilot::setMotEn(bool motEn) {
   if (_motEn != motEn) {
     _motEn = motEn;
     if (motEn) {
-      if (!mate.timeout() && mate.role == 1) {
-        _role = 2;
-        _roleTimer = millis();
-      } else {
-        _role = 1;
-      }
+      p.setRusher(true);
+      p.setKeeper(true);
     } else {
-      _role = 0;
       brake(true);
     }
   }
@@ -195,30 +190,3 @@ void Pilot::switchMotEn() {
 bool Pilot::getMotEn() {
   return _motEn;
 }
-
-bool Pilot::setRusher() {
-  if (millis() - _roleTimer > ROLE_COOLDOWN) {
-    _role = 2;
-    _roleTimer = millis();
-  }
-}
-
-bool Pilot::setKeeper() {
-  if (millis() - _roleTimer > ROLE_COOLDOWN) {
-    _role = 1;
-    _roleTimer = millis();
-  }
-}
-
-bool Pilot::isRusher() {
-  return _role == 2;
-}
-
-bool Pilot::isKeeper() {
-  return _role == 1;
-}
-
-byte Pilot::getRole() {
-  return _role;
-}
-

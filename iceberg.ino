@@ -31,8 +31,8 @@ unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel be
 unsigned long lastGoalFree = 0;     // Zeitpunkt des letzten freien Tors
 unsigned long flatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
 String driveState = "";             // Zustand des Fahrens
-Keeper keeper;  // OBJEKTINITIALISIERUNG
 Pilot m;  // OBJEKTINITIALISIERUNG
+Player p;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: KOMPASS
 int heading = 0;                    // Wert des Kompass
@@ -162,7 +162,6 @@ void setup() {
   // initialisiere Kamera
   d.setupMessage(3, "PIXY", "Kamera");
   pixy.init();
-  pixy.setLED(0, 0, 0); // schalte die Hauptled der Pixy aus
 
   // lies EEPROM aus
   d.setupMessage(4, "EEPROM", "auslesen");
@@ -330,20 +329,18 @@ void loop() {
   }
 
   if (mate.timeout() || !mate.role) {
-    m._role = 1;
+    p.setKeeper(true);
   } else if (isTypeA) {
-    if (seeBall && !mate.seeBall) m.setRusher();
-    if (!seeBall && mate.seeBall) m.setKeeper();
+    if (seeBall && !mate.seeBall) p.setRusher(false);
+    if (!seeBall && mate.seeBall) p.setKeeper(false);
     if (seeBall && mate.seeBall && abs(ballWidth - mate.ballWidth) >= 5) {
-      if (ballWidth > mate.ballWidth) m.setRusher();
-      if (ballWidth < mate.ballWidth) m.setKeeper();
+      if (ballWidth > mate.ballWidth) p.setRusher(false);
+      if (ballWidth < mate.ballWidth) p.setKeeper(false);
     }
   } else {
-    if (mate.role == 1) m._role = 2;
-    if (mate.role == 2) m._role = 1;
+    if (mate.role == 1) p.setRusher(true);
+    if (mate.role == 2) p.setKeeper(true);
   }
-
-  if (!m.getMotEn()) m._role = 0;
 
   // Fahre
   if (!seeBall) {
@@ -442,6 +439,7 @@ void loop() {
     } else {
       // sehen den Ball nicht bzw. sollen ihn nicht sehen
       if (us.back() && us.back() < 50 && us.left() && us.right() && abs(heading) < 40) {
+        /*
         // verteidige das Tor im Strafraum oder davor
         if (seeBall) {
           if (ball > 0 && !keeper.atGatepost()) keeper.left();
@@ -453,6 +451,7 @@ void loop() {
         }
 
         keeper.set(); // übernehme die Steuerwerte
+        */
       } else {
         // fahre nach hinten
         if (!us.timeout() && us.back() && us.back() < 80) {
