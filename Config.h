@@ -94,8 +94,8 @@ extern bool wasSelect, wasBack;
 #define ROLE_COOLDOWN 1000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
-#define ANGLE_KEEPER_MAX 20     // [0 bis 180]~45 maximaler Orientierungswinkel zur Ballsuche
 #define ANGLE_PASSIVE_MAX 35    // [0 bis 180]~45 maximaler Orientierungswinkel beim Zurückfahren
+#define ANGLE_TURN_MAX 90       // [0 bis 180]~90 maximaler Orientierungswinkel zur Ballsuche
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
 #define ROTATION_18CM 50        // [0 bis *]~70
@@ -112,6 +112,12 @@ extern bool wasSelect, wasBack;
 #define SPEED_LINE 90           // [0 bis 255]~80
 
 // TIMES
+#define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
+#define GOAL_STUCK_DURATION 500       // wie lange soll nach vorne gefahren werden?
+#define SIDEWARD_MAX_DURATION 4000    // max Zeit für Seitwärtsfahren
+#define SIDEWARD_MIN_DURATION 800     // min Zeit für Seitwärtsfahren
+#define TURN_MAX_DURATION 4000        // max Zeit für Drehmodus
+#define TURN_BACK_MAX_DURATION 4000   // max Zeit für Drehmodus zurück
 #define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
 #define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?

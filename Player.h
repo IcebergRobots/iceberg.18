@@ -18,12 +18,9 @@ class Player
     void ball();
     void blind();
 
-    void set();
-    void right();
-    void left();
-    void toggle();
     bool atGatepost();
-
+    void setState(byte s);
+    void toggleStateDirection();
 
   private:
     void nextState(); // nächste Torwartrolle annehmen
