@@ -61,34 +61,13 @@ unsigned long Player::lastRoleToggle() {
 }
 
 void Player::blind() {
+  // set state
   switch (state) {
     case 0: // fahre rückwärts
-      if (us.back() <= BACK_IDEAL) {
-        setState(1);
-        break;
-      } else if (millis() - stateTimer > BACKWARD_MAX_DURATION + GOAL_STUCK_DURATION) {
-        // fahre wieder rückwärts und warte erneut * Sekunden
-        stateTimer = millis();
-      } else if (millis() - stateTimer > BACKWARD_MAX_DURATION) {
-        // fahre * Sekunden geradeaus, um nicht mehr am Tor hängenzubleiben
-        driveState = "^ free";
-        driveDirection = 0;
-        break;
-      }
-
-      debug(".");
-      // fahre rückwärts und lenke zur Mitte vor dem Tor
-      if (us.left() && us.left() < COURT_GOAL_TO_BORDER) driveDirection = -constrain(map(COURT_GOAL_TO_BORDER - us.left(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
-      else if (us.right() && us.right() < COURT_GOAL_TO_BORDER) driveDirection = constrain(map(COURT_GOAL_TO_BORDER - us.right(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
-      else driveDirection = 180;
-      if (us.back() && us.back() < 80) {
-        driveState = "v penalty";
-        drivePower = SPEED_PENALTY;
-      } else {
-        driveState = "v backward";
-        drivePower = SPEED_BACKWARDS;
-      }
+      if (us.back() <= BACK_IDEAL) setState(1);
+      else if (millis() - stateTimer > BACKWARD_MAX_DURATION) setState(4);
       break;
+
     case 1: // fahre seitwärts
       if ( millis() - stateTimer > SIDEWARD_MAX_DURATION) {
         if (us.back() > BACK_IDEAL) setState(0); // fahre rückwärts
@@ -102,48 +81,83 @@ void Player::blind() {
           else toggleStateDirection();  // wechsle Fahrrichtung
         }
       }
-      if (state != 1) break; // beende Case
-
-      debug(":");
-      drivePower = SPEED_KEEPER;
-      if (stateLeft) {
-        driveState = "< sideward";
-        driveDirection = ANGLE_SIDEWAY;
-        if (us.left() < 60) drivePower *= 0.7;  // fahre langsamer am Spielfeldrand
-      } else {
-        driveState = "> sideward";
-        driveDirection = -ANGLE_SIDEWAY;
-        if (us.right() < 60) drivePower *= 0.7; // fahre langsamer am Spielfeldrand
-      }
-      if (us.back() < 15) driveDirection *= 0.8;  // fahre leicht schräg nach vorne
       break;
 
     case 2: // Pfostendrehung hin
       if ( millis() - stateTimer > TURN_MAX_DURATION) setState(3);
       else if (stateLeft && heading < -ANGLE_TURN_MAX) setState(3);
       else if (!stateLeft && heading > ANGLE_TURN_MAX) setState(3);
-      if (state != 2) break; //beende Case
-
-      drivePower = 0;
-      if (stateLeft) {
-        driveState = "< turn";
-        driveOrientation = ANGLE_TURN_MAX;
-      } else {
-        driveState = "> turn";
-        driveOrientation = -ANGLE_TURN_MAX;
-      }
       break;
 
     case 3: // Pfostendrehung zurück
       if ( millis() - stateTimer > TURN_BACK_MAX_DURATION) toggleStateDirection();
       else if (abs(heading) < 20) toggleStateDirection();
+      break;
 
-      if (state != 3) break;
+    case 4: // befreie dich vom Tor
+      if (millis() - stateTimer > GOAL_STUCK_DURATION) setState(0); // fahre wieder rückwärts und warte erneut * Sekunden
+      break;
+  }
 
+  // set pilot values
+  switch (state) {
+    case 0: // fahre rückwärts
+      if (us.back() && us.back() < 80) {
+        drivePower = SPEED_PENALTY;
+        driveState = "v penalty";
+      } else {
+        drivePower = SPEED_BACKWARDS;
+        driveState = "v backward";
+      }
+      // fahre rückwärts und lenke zur Mitte vor dem Tor
+      if (us.left() && us.left() < COURT_GOAL_TO_BORDER) driveDirection = -constrain(map(COURT_GOAL_TO_BORDER - us.left(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
+      else if (us.right() && us.right() < COURT_GOAL_TO_BORDER) driveDirection = constrain(map(COURT_GOAL_TO_BORDER - us.right(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
+      else driveDirection = 180;
+      driveOrientation = 0;
+      break;
+      
+    case 1: // fahre seitwärts
+      drivePower = SPEED_KEEPER;
+      driveOrientation = 0;
+      if (stateLeft) {
+        driveDirection = ANGLE_SIDEWAY;
+        driveState = "< sideward";
+        if (us.left() < 60) drivePower *= 0.7;  // fahre langsamer am Spielfeldrand
+      } else {
+        driveDirection = -ANGLE_SIDEWAY;
+        driveState = "> sideward";
+        if (us.right() < 60) drivePower *= 0.7; // fahre langsamer am Spielfeldrand
+      }
+      if (us.back() < 15) driveDirection *= 0.8;  // fahre leicht schräg nach vorne
+      break;
+
+    case 2: // Pfostendrehung hin
+      drivePower = SPEED_FREE;
+      driveDirection = 0;
+      if (stateLeft) {
+        driveOrientation = ANGLE_TURN_MAX;
+        driveState = "< turn";
+      } else {
+        driveOrientation = -ANGLE_TURN_MAX;
+        driveState = "> turn";
+      }
+      break;
+
+    case 3: // Pfostendrehung zurück
       drivePower = 0;
+      driveDirection = 0;
+      driveOrientation = 0;
       if (stateLeft) driveState = "< return";
       else driveState = "> return";
+      break;
+
+    case 4: // befreie dich vom Tor
+      // fahre * Sekunden geradeaus, um nicht mehr am Tor hängenzubleiben
+      drivePower = SPEED_FREE;
+      driveDirection = 0;
       driveOrientation = 0;
+      driveState = "^ free";
+      break;
   }
 }
 

@@ -30,7 +30,7 @@ class Player
     unsigned long roleTimer = 0;
 
     bool stateLeft = 0; // Fahrrichtung: rechts(0) / links(1)
-    byte state = 0;  // Torwartrolle: rückwärts(0) / seitwärtsfahren(1) / Pfostendrehung hin(2) / Pfostendrehung zurück(3)
+    byte state = 0;  // Torwartrolle: rückwärts(0) / seitwärtsfahren(1) / Pfostendrehung hin(2) / Pfostendrehung zurück(3) / vorwärts(4)
     unsigned long stateTimer = 0; // Zeitpunkt des letzten Statuswechsels
 };
 
