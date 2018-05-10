@@ -110,15 +110,15 @@ extern bool wasSelect, wasBack;
 #define SPEED_HEADSTART 255     // [0 bis 255]~255
 #define SPEED_DRIFT 140         // [0 bis 255]~140
 #define SPEED_LINE 90           // [0 bis 255]~80
-#define SPEED_FREE 255          // [0 bis 255]~255
+#define SPEED_FREE 70           // [0 bis 255]~255
 
 // TIMES
 #define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
-#define GOAL_STUCK_DURATION 100       // wie lange soll nach vorne gefahren werden?
-#define SIDEWARD_MAX_DURATION 4000    // max Zeit für Seitwärtsfahren
+#define GOAL_STUCK_DURATION 500       // wie lange soll nach vorne gefahren werden?
+#define SIDEWARD_MAX_DURATION 2000    // max Zeit für Seitwärtsfahren
 #define SIDEWARD_MIN_DURATION 800     // min Zeit für Seitwärtsfahren
-#define TURN_MAX_DURATION 4000        // max Zeit für Drehmodus
-#define TURN_BACK_MAX_DURATION 4000   // max Zeit für Drehmodus zurück
+#define TURN_MAX_DURATION 2000        // max Zeit für Drehmodus
+#define TURN_BACK_MAX_DURATION 2000   // max Zeit für Drehmodus zurück
 #define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
 #define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?
