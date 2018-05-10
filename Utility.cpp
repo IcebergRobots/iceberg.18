@@ -53,6 +53,8 @@ void calculateStates() {
 
   seeBall = !isLifted && millis() - seeBallTimer < 50;
   seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
+  seeEast = !isLifted && millis() - seeEastTimer < 500;
+  seeWest = !isLifted && millis() - seeWestTimer < 500;
   isDrift = millis() - driftTimer < 100;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
@@ -222,12 +224,16 @@ int ausrichten(int orientation) {
 *****************************************************/
 void readPixy() {
   if (silent) pixy.setLED(0, 0, 0); // schalte die Front-LED aus
-  int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
-  int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
+  int ballAreaMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
+  int goalAreaMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
+  int eastHeightMax = 0;  // Farbmarkierungsgröße,  0: blind, >0: Flächeninhalt
+  int westHeightMax = 0;  // Farbmarkierungsgröße,  0: blind, >0: Flächeninhalt
 
   blockCount = pixy.getBlocks();
   blockCountBall = 0;
   blockCountGoal = 0;
+  blockCountEast = 0;
+  blockCountWest = 0;
   // Liest alle Blöcke aus und zählt diese
   // Sendet "cs error" über USB bei Fehler in Prüfsumme eines empfangenen Objekts
 
@@ -235,30 +241,49 @@ void readPixy() {
     int height = pixy.blocks[i].height;
     int width = pixy.blocks[i].width;
     int x = pixy.blocks[i].x - X_CENTER;
-    switch (pixy.blocks[i].signature) { // Was sehe ich?
+    int signature = pixy.blocks[i].signature;
+    int angle = pixy.blocks[i].angle;
+    int area = height * width;
+    switch (signature) { // Was sehe ich?
       case SIGNATURE_BALL:
         blockCountBall++;
-        ballSizeMax = max(ballSizeMax, height * width);
-        ball = x;           // merke Ballwinkel
-        ballWidth = width;  // merke Ballbreite
+        if (area > ballAreaMax) {
+          ballAreaMax = area;
+          ball = x;         // merke Ballwinkel
+          ballWidth = width;  // merke Ballbreite
+          seeBallTimer = millis();
+        }
         break;
       case SIGNATURE_GOAL:
         blockCountGoal++;
-        goalSizeMax = max(goalSizeMax, height * width);
-        goal = x;           // merke Torwinkel
-        goalWidth = width;  // merke Torbreite
+        if (area > ballAreaMax) {
+          ballAreaMax = area;
+          goal = x;          // merke Torwinkel
+          goalWidth = width;  // merke Torbreite
+          seeGoalTimer = millis();
+        }
+        break;
+      case SIGNATURE_CC:
+        if (angle < 0) {
+          blockCountEast++;
+          if (height > eastHeightMax) {
+            eastHeightMax = height;
+            east = x;
+            eastHeight = height;
+            seeEastTimer = millis();
+          }
+        } else {
+          blockCountWest++;
+          if (height > westHeightMax) {
+            westHeightMax = height;
+            west = x;
+            westHeight = height;
+            seeWestTimer = millis();
+          }
+        }
         break;
     }
     pixyResponseTimer = millis();
-  }
-
-  if (ballSizeMax > 0) {
-    ballSize = ballSizeMax;
-    seeBallTimer = millis();
-  }
-  if (goalSizeMax > 0) {
-    goalSize = goalSizeMax;
-    seeGoalTimer = millis();
   }
 
   pixyTimer = millis(); // merke Zeitpunkt
@@ -268,15 +293,15 @@ void readPixy() {
   sende Text zum PC
 *****************************************************/
 void debug(String str) {
-  if(DEBUG && !silent) DEBUG_SERIAL.print(str + " ");                   
+  if (DEBUG && !silent) DEBUG_SERIAL.print(str + " ");
 }
 
 /*****************************************************
   sende Text zum PC
 *****************************************************/
 void debugln(String str) {
-  if(DEBUG && !silent) DEBUG_SERIAL.println(str);                   
+  if (DEBUG && !silent) DEBUG_SERIAL.println(str);
 }
 void debugln() {
-  debugln("");                
+  debugln("");
 }

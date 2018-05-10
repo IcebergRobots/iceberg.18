@@ -63,8 +63,9 @@ void Display::update() {
     for (byte i = 0; i < blockCount; i++) { // geht alle erkannten Bloecke durch
       int width = map(pixy.blocks[i].width, 0, PIXY_MAX_X - PIXY_MIN_X + 1, 0, 121);
       int height = map(pixy.blocks[i].height, 0, PIXY_MAX_Y - PIXY_MIN_Y + 1, 0, 47);
-      int x = map(pixy.blocks[i].x, PIXY_MIN_X, PIXY_MAX_X, 3, 123);
-      int y = map(pixy.blocks[i].y , PIXY_MIN_Y, PIXY_MAX_Y, 13, 59);
+      int x = map(pixy.blocks[i].x - width / 2, PIXY_MIN_X, PIXY_MAX_X, 3, 123);
+      int y = map(pixy.blocks[i].y - height / 2, PIXY_MIN_Y, PIXY_MAX_Y, 13, 59);
+      int angle = pixy.blocks[i].angle;
       switch (pixy.blocks[i].signature) { // Was sehe ich?
         case SIGNATURE_BALL:
           if (subpage < 2) fillRect(x, y, width, height, WHITE);
@@ -72,6 +73,13 @@ void Display::update() {
         case SIGNATURE_GOAL:
           if (subpage == 0) drawRect(x, y, width, height, WHITE);
           else if (subpage == 2) fillRect(x, y, width, height, WHITE);
+          break;
+        case SIGNATURE_CC:
+          DEBUG_SERIAL.println(angle);
+          if (subpage == 0 || subpage == 3) {
+            if (angle < 0) drawLine(x + width, y, x, y + height, WHITE);
+            else drawLine(x, y, x + width, y + height, WHITE);
+          }
           break;
       }
     }
@@ -207,13 +215,27 @@ void Display::set() {
       } else {
         goal = String(blockCountGoal).charAt(0);
       }
+      char east;
+      if (!blockCountEast && seeEast) {
+        east = '*';
+      } else {
+        east = String(blockCountEast).charAt(0);
+      }
+      char west;
+      if (!blockCountWest && seeWest) {
+        west = '*';
+      } else {
+        west = String(blockCountWest).charAt(0);
+      }
 
       if (subpage == 0) {
-        title = "Pixy Both " + String(ball) + "+" + String(goal);
+        title = "Pixy " + String(ball) + "+" + String(goal) + "+" + String(west) + "+" + String(east);
       } else if (subpage == 1) {
         title = "Pixy Ball " + String(ball);
       } else if (subpage == 2) {
         title = "Pixy Goal   " + String(goal);
+      } else if (subpage == 3) {
+        title = "Pixy CC " + String(west) + "+" + String(east);
       }
       break;
     case 4:
@@ -224,7 +246,7 @@ void Display::set() {
         setLine(0, "B.ang:");
       }
       setLine(1, "B.wid:", ballWidth);
-      setLine(2, "B.siz:", ballSize);
+      setLine(2, "B.siz:", ballArea);
       setLine(3, "B.tim:", (millis() - seeBallTimer) / 1000);
       if (seeGoal) {
         setLine(4, "G.ang:", goal, true);
@@ -232,7 +254,7 @@ void Display::set() {
         setLine(4, "G.ang:");
       }
       setLine(5, "G.wid:", goalWidth);
-      setLine(6, "G.siz:", goalSize);
+      setLine(6, "G.siz:", goalArea);
       setLine(7, "G.tim", (millis() - seeGoalTimer) / 1000);
       break;
     case 5:

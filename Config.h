@@ -53,10 +53,10 @@ extern byte batState;
 extern int batVol;
 
 // Implementierung: PIXY
-extern bool seeBall, seeGoal, isDrift, driftLeft;
-extern byte pixyState, blockCount, blockCountBall, blockCountGoal;
-extern int ball, ballWidth, ballSize, goal, goalWidth, goalSize;
-extern unsigned long seeBallTimer, seeGoalTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
+extern bool seeBall, seeGoal, seeEast, seeWest, isDrift, driftLeft;
+extern byte pixyState, blockCount, blockCountBall, blockCountGoal, blockCountEast, blockCountWest;
+extern int ball, ballWidth, ballArea, goal, goalWidth, goalArea, east, eastHeight, west, westHeight;
+extern unsigned long seeBallTimer, seeGoalTimer, seeEastTimer, seeWestTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
 extern Pixy pixy;
 
 // Implementierung: ULTRASCHALL
@@ -151,6 +151,7 @@ extern bool wasSelect, wasBack;
 // PIYX
 #define SIGNATURE_BALL 1  // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
+#define SIGNATURE_CC 28   // Pixy-Signature des Tors
 
 // DISPLAY
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup
