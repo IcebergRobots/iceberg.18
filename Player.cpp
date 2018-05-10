@@ -85,8 +85,8 @@ void Player::blind() {
 
     case 2: // Pfostendrehung hin
       if ( millis() - stateTimer > TURN_MAX_DURATION) setState(3);
-      else if (stateLeft && heading < -ANGLE_TURN_MAX) setState(3);
-      else if (!stateLeft && heading > ANGLE_TURN_MAX) setState(3);
+      else if (stateLeft && heading > ANGLE_TURN_MAX * 0.9) setState(3);
+      else if (!stateLeft && heading < -ANGLE_TURN_MAX * 0.9) setState(3);
       break;
 
     case 3: // Pfostendrehung zurück
@@ -132,13 +132,13 @@ void Player::blind() {
       break;
 
     case 2: // Pfostendrehung hin
-      drivePower = SPEED_FREE;
+      drivePower = 0;
       driveDirection = 0;
       if (stateLeft) {
-        driveOrientation = ANGLE_TURN_MAX;
+        driveOrientation = -ANGLE_TURN_MAX;
         driveState = "< turn";
       } else {
-        driveOrientation = -ANGLE_TURN_MAX;
+        driveOrientation = ANGLE_TURN_MAX;
         driveState = "> turn";
       }
       break;

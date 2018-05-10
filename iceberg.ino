@@ -205,7 +205,7 @@ void setup() {
   led.animation();
   d.setupMessage(10, "B: " + String(lightBarrierTriggerLevel), "");
   DEBUG_SERIAL.println("\nICEBERG ROBOTS");
-  if(silent) DEBUG_SERIAL.println("Debug mode off");
+  if (silent) DEBUG_SERIAL.println("Debug mode off");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 1000) {}
@@ -213,7 +213,7 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  debug(String(millis()) + " r=" + p.getRole() + " s=" + p.getState() + driveState.substring(0,1));
+  debug(String(millis()) + " r=" + p.getRole() + " s=" + p.getState() + driveState.substring(0, 1));
   displayDebug = "";
 
   readCompass();
@@ -439,13 +439,12 @@ void loop() {
     } else {
       // sehen den Ball nicht bzw. sollen ihn nicht sehen
       p.blind();
-      if (abs(heading) + pidSetpoint < 40) drivePower = 0;
+      //if (abs(heading) + driveOrientation > 40) drivePower /= 3;  // drossle die Fahrgeschwindigkeit, wenn der Roboter sehr falsch gedreht ist
     }
   }
 
-  drivePower = max(drivePower - abs(driveRotation), 0);
   driveRotation = ausrichten(driveOrientation);
-  //driveRotation = ausrichten(0);
+  drivePower = max(drivePower - abs(driveRotation), 0);
   if (!isLifted && isHeadstart) {
     for (int i = 0; i < 4; i++) {
       m.steerMotor(i, 255);
