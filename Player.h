@@ -21,6 +21,7 @@ class Player
     bool atGatepost();
     void setState(byte s);
     void toggleStateDirection();
+    byte getState();
 
   private:
     void nextState(); // nächste Torwartrolle annehmen

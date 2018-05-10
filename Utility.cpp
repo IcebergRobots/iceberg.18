@@ -221,7 +221,7 @@ int ausrichten(int orientation) {
   4        2              blue
 *****************************************************/
 void readPixy() {
-  if(silent) pixy.setLED(0, 0, 0); // schalte die Front-LED aus
+  if (silent) pixy.setLED(0, 0, 0); // schalte die Front-LED aus
   int ballSizeMax = 0;  // Ballgröße, 0: blind, >0: Flächeninhalt
   int goalSizeMax = 0;  // Torgröße,  0: blind, >0: Flächeninhalt
 
@@ -262,4 +262,21 @@ void readPixy() {
   }
 
   pixyTimer = millis(); // merke Zeitpunkt
+}
+
+/*****************************************************
+  sende Text zum PC
+*****************************************************/
+void debug(String str) {
+  if(DEBUG && !silent) DEBUG_SERIAL.print(str + " ");                   
+}
+
+/*****************************************************
+  sende Text zum PC
+*****************************************************/
+void debugln(String str) {
+  if(DEBUG && !silent) DEBUG_SERIAL.println(str);                   
+}
+void debugln() {
+  debugln("");                
 }

@@ -204,7 +204,8 @@ void setup() {
   info.begin();     // STATUS-LEDS initialisieren
   led.animation();
   d.setupMessage(10, "B: " + String(lightBarrierTriggerLevel), "");
-  debugln("setup done");
+  DEBUG_SERIAL.println("\nICEBERG ROBOTS");
+  if(silent) DEBUG_SERIAL.println("Debug mode off");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 1000) {}
@@ -212,8 +213,7 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  debug(String(millis()) + " ");
-
+  debug(String(millis()) + " r=" + p.getRole() + " s=" + p.getState() + driveState.substring(0,1));
   displayDebug = "";
 
   readCompass();
@@ -269,13 +269,13 @@ void loop() {
   calculateStates();  // Berechne alle Statuswerte und Zustände
 
   if (led.isAnimation() || millis() - ledTimer > 100) {
-    debug("led ");
+    debug("led");
     led.set();  // Lege Leds auf Statusinformation fest
     led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
   }
 
   if (millis() - pixyTimer > 50) {
-    debug("pixy ");
+    debug("pixy");
     readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
   }
 
@@ -384,11 +384,11 @@ void loop() {
     if (seeBall && !(!mate.timeout() && mate.seeBall && mate.ballWidth > ballWidth)) {
       // fahre in Richtung des Balls
       if (ball > 50) {
-        debug("setLeft ");
+        debug("setLeft");
         ballLeftTimer = millis();
       }
       if (ball < -50) {
-        debug("setRight ");
+        debug("setRight");
         ballRightTimer = millis();
       }
       if (hasBall) {
@@ -401,13 +401,13 @@ void loop() {
       } else {
         // verhindere das Driften
         if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {
-          debug("runRight ");
+          debug("runRight");
           buzzerTone(500);
           driftTimer = millis();
           driftLeft = false;
         }
         if (ball < 0 && millis() - ballLeftTimer < DRIFT_DURATION) {
-          debug("runLeft ");
+          debug("runLeft");
           buzzerTone(500);
           driftTimer = millis();
           driftLeft = true;
@@ -456,7 +456,7 @@ void loop() {
 
 
   if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200)) {
-    debug("display ");
+    debug("display");
     d.update();   // aktualisiere Bildschirm und LEDs
   }
 

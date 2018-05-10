@@ -14,4 +14,7 @@ void readCompass();
 void buzzerTone(int duration);
 int ausrichten(int orientation);
 void readPixy();
+void debug(String str);
+void debugln(String str);
+void debugln();
 #endif

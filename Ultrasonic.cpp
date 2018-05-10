@@ -61,7 +61,7 @@ byte Ultrasonic::fetch() {
      3
 *****************************************************/
 void Ultrasonic::receive() {
-  debug("us ");
+  debug("us");
   digitalWrite(INT_US, HIGH);  // sende eine Interrupt Aufforderung an den US-Arduino
   unsigned long timestamp = millis();
   byte messageLength = 0;

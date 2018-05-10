@@ -61,11 +61,12 @@ unsigned long Player::lastRoleToggle() {
 }
 
 void Player::blind() {
-  if (us.back() > 50) setState(0); // fahre rückwärts
-
   switch (state) {
     case 0: // fahre rückwärts
-      if (millis() - stateTimer > BACKWARD_MAX_DURATION + GOAL_STUCK_DURATION) {
+      if (us.back() <= BACK_IDEAL) {
+        setState(1);
+        break;
+      } else if (millis() - stateTimer > BACKWARD_MAX_DURATION + GOAL_STUCK_DURATION) {
         // fahre wieder rückwärts und warte erneut * Sekunden
         stateTimer = millis();
       } else if (millis() - stateTimer > BACKWARD_MAX_DURATION) {
@@ -75,6 +76,7 @@ void Player::blind() {
         break;
       }
 
+      debug(".");
       // fahre rückwärts und lenke zur Mitte vor dem Tor
       if (us.left() && us.left() < COURT_GOAL_TO_BORDER) driveDirection = -constrain(map(COURT_GOAL_TO_BORDER - us.left(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
       else if (us.right() && us.right() < COURT_GOAL_TO_BORDER) driveDirection = constrain(map(COURT_GOAL_TO_BORDER - us.right(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
@@ -88,18 +90,21 @@ void Player::blind() {
       }
       break;
     case 1: // fahre seitwärts
-      if (stateTimer - millis() > SIDEWARD_MAX_DURATION) {
-        if (penalty) setState(2);     // wechsle in Drehmodus
+      if ( millis() - stateTimer > SIDEWARD_MAX_DURATION) {
+        if (us.back() > BACK_IDEAL) setState(0); // fahre rückwärts
+        else if (penalty) setState(2);     // wechsle in Drehmodus
         else toggleStateDirection();  // wechsle Fahrrichtung
-      } else if (stateTimer - millis() > SIDEWARD_MIN_DURATION) {
-        if (onLine) toggleStateDirection();
-        if (atGatepost()) {
+      } else if ( millis() - stateTimer > SIDEWARD_MIN_DURATION) {
+        if (us.back() > BACK_IDEAL) setState(0); // fahre rückwärts
+        else if (onLine) toggleStateDirection();
+        else if (atGatepost()) {
           if (penalty) setState(2);     // wechsle in Drehmodus
           else toggleStateDirection();  // wechsle Fahrrichtung
         }
       }
       if (state != 1) break; // beende Case
 
+      debug(":");
       drivePower = SPEED_KEEPER;
       if (stateLeft) {
         driveState = "< sideward";
@@ -114,7 +119,7 @@ void Player::blind() {
       break;
 
     case 2: // Pfostendrehung hin
-      if (stateTimer - millis() > TURN_MAX_DURATION) setState(3);
+      if ( millis() - stateTimer > TURN_MAX_DURATION) setState(3);
       else if (stateLeft && heading < -ANGLE_TURN_MAX) setState(3);
       else if (!stateLeft && heading > ANGLE_TURN_MAX) setState(3);
       if (state != 2) break; //beende Case
@@ -130,13 +135,13 @@ void Player::blind() {
       break;
 
     case 3: // Pfostendrehung zurück
-      if (stateTimer - millis() > TURN_BACK_MAX_DURATION) toggleStateDirection();
+      if ( millis() - stateTimer > TURN_BACK_MAX_DURATION) toggleStateDirection();
       else if (abs(heading) < 20) toggleStateDirection();
 
       if (state != 3) break;
 
       drivePower = 0;
-      if(stateLeft) driveState = "< return";
+      if (stateLeft) driveState = "< return";
       else driveState = "> return";
       driveOrientation = 0;
   }
@@ -166,3 +171,8 @@ bool Player::atGatepost() {
     else           return us.left() > COURT_POST_TO_BORDER;
   }
 }
+
+byte Player::getState() {
+  return state;
+}
+
