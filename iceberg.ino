@@ -52,20 +52,21 @@ unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
 Mate mate;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: WICHTUNG DER PID-REGLER
-double pidSetpoint;       // Nulllevel [-180 bis 180] Winkel des Tours
-double pidIn;             // Kompasswert [-180 bis 180]
-double pidOut;            // Rotationsstärke [-255 bis 255]
+double pidSetpoint; // Nulllevel [-180 bis 180] Winkel des Tours
+double pidIn;       // Kompasswert [-180 bis 180]
+double pidOut;      // Rotationsstärke [-255 bis 255]
 PID myPID = PID(&pidIn, &pidOut, &pidSetpoint, PID_FILTER_P, PID_FILTER_I, PID_FILTER_D, DIRECT); // OBJEKTINITIALISIERUNG
 
 // Globale Definition: BATTERY
 byte batState = 0;  // ist du Spannung zu gering?
-int batVol = 0;       // Spannung MAL 10!
+int batVol = 0;     // Spannung MAL 10!
 
 // Globale Definition: PIXY
 bool seeBall = false;   // sehen wir den Ball?
 bool seeGoal = false;   // sehen wir das Tor?
-bool seeEast = false;// sehen wir eine Farbmarkierung nach rechts
-bool seeWest = false; // sehen wir eine Farbmarkierung nach links
+bool seeEast = false;   // sehen wir eine Farbmarkierung nach rechts
+bool seeWest = false;   // sehen wir eine Farbmarkierung nach links
+bool closeBall = false; // ist der Ball groß
 bool isDrift = false;   // driften wir
 bool driftLeft = false; // steuern wir nach links gegen
 byte pixyState = 0;     // Verbindungsstatus per Pixy
@@ -74,20 +75,21 @@ byte blockCountBall = 0;// Anzahl der Ball Blöcke
 byte blockCountGoal = 0;// Anzahl der Tor Blöcke
 byte blockCountEast = 0;// Anzahl der Color Code Blöcke
 byte blockCountWest = 0;// Anzahl der Color Code Blöcke
-int ball = 0;       // Abweichung der Ball X-Koordinate
-int ballWidth = 0;  // Ballbreite
-int ballArea = 0;   // Ballgröße (Flächeninhalt)
-int goal = 0;       // Abweichung der Tor X-Koordinate
-int goalWidth = 0;  // Torbreite
-int goalArea = 0;   // Torgröße (Flächeninhalt)
-int east = 0;       // Abweichung des Farbmarkierungs X-Koordinate
-int eastHeight = 0; // Farbmarkierungshöhe
-int west = 0;       // Abweichung des Farbmarkierungs X-Koordinate
-int westHeight = 0; // Farbmarkierungshöhe
+int ball = 0;           // Abweichung der Ball X-Koordinate
+int ballWidth = 0;      // Ballbreite
+int ballArea = 0;       // Ballgröße (Flächeninhalt)
+int goal = 0;           // Abweichung der Tor X-Koordinate
+int goalWidth = 0;      // Torbreite
+int goalArea = 0;       // Torgröße (Flächeninhalt)
+int east = 0;           // Abweichung des Farbmarkierungs X-Koordinate
+int eastHeight = 0;     // Farbmarkierungshöhe
+int west = 0;           // Abweichung des Farbmarkierungs X-Koordinate
+int westHeight = 0;     // Farbmarkierungshöhe
 unsigned long seeBallTimer = 0;   // Zeitpunkt des letzten Ball Sehens
 unsigned long seeGoalTimer = 0;   // Zeitpunkt des letzen Tor Sehens
 unsigned long seeEastTimer = 0;   // Zeitpunkt der letzen Ost Sehens
 unsigned long seeWestTimer = 0;   // Zeitpunkt der letzen West Sehens
+unsigned long closeBallTimer = 0; // Zeitpunkt des letzten großen Balls
 unsigned long driftTimer = 0;     // Zeitpunkt seit wann wir gegensteuern
 unsigned long ballLeftTimer = 0;  // Zeitpunkt wann der Ball zuletzt links war
 unsigned long ballRightTimer = 0; // Zeitpunkt wann der Ball zuletzt rechts war
@@ -223,7 +225,10 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  debug(String(millis()) + " r=" + p.getRole() + " s=" + p.getState() + driveState.substring(0, 1));
+  debug(millis());
+  if(p.isRusher()) debug("r");
+  else debug("k");
+  debug(driveState + String("          ").substring(0, 10 - driveState.length()));
   displayDebug = "";
 
   readCompass();
@@ -274,7 +279,7 @@ void loop() {
     BOTTOM_SERIAL.read();
   }
 
-  if ((seeGoal && abs(heading - pidSetpoint) < 45 && hasBall) || !digitalRead(SCHUSS_BUTTON)) kick(); // schieße
+  if (!digitalRead(SCHUSS_BUTTON)) kick(); // schieße
 
   calculateStates();  // Berechne alle Statuswerte und Zustände
 
@@ -353,20 +358,6 @@ void loop() {
   }
 
   // Fahre
-  if (!seeBall) {
-    rotMulti = ROTATION_SIDEWAY;
-  } else if (ballWidth > 100) {
-    rotMulti = ROTATION_TOUCH;
-  } else if (ballWidth > 40) {
-    rotMulti = ROTATION_10CM;
-  } else if (ballWidth > 20) {
-    rotMulti = ROTATION_18CM;
-  } else {
-    rotMulti = ROTATION_AWAY;
-  }
-
-  driveState = "";
-  driveOrientation = 0;
   if (isLifted) {
     // hochgehoben
     driveState = "lifted";
@@ -374,14 +365,14 @@ void loop() {
     driveRotation = 0; // stoppe
   } else if (onLine) {
     // weiche einer Linie aus
-    driveState = "avoid line";
+    driveState = "line";
     drivePower = SPEED_LINE;
   } else if (isHeadstart) {
     // führe einen Schnellstart aus
     driveState = "headstart";
   } else if (isDrift) {
     // steuere gegen
-    driveState = "avoid drift";
+    driveState = "drift";
     drivePower = SPEED_DRIFT;
     if (driftLeft) {
       driveDirection = 90;
@@ -389,68 +380,8 @@ void loop() {
       driveDirection = -90;
     }
   } else {
-    drivePower = SPEED;
-
-    if (seeBall && !(!mate.timeout() && mate.seeBall && mate.ballWidth > ballWidth)) {
-      // fahre in Richtung des Balls
-      if (ball > 50) {
-        debug("setLeft");
-        ballLeftTimer = millis();
-      }
-      if (ball < -50) {
-        debug("setRight");
-        ballRightTimer = millis();
-      }
-      if (hasBall) {
-        if (seeGoal && abs(heading < 20)) {
-          drivePower = SPEED_DRIFT;
-          driveState = "headstart";
-        }
-        driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
-        driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
-      } else {
-        // verhindere das Driften
-        if (ball > 0 && millis() - ballRightTimer < DRIFT_DURATION) {
-          debug("runRight");
-          buzzerTone(500);
-          driftTimer = millis();
-          driftLeft = false;
-        }
-        if (ball < 0 && millis() - ballLeftTimer < DRIFT_DURATION) {
-          debug("runLeft");
-          buzzerTone(500);
-          driftTimer = millis();
-          driftLeft = true;
-        }
-        // fahre in Richtung des Balls
-        driveState = "follow";
-        driveDirection = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
-        if (driveDirection > 60) {
-          // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
-          driveState = "sideway ri";
-          driveDirection = 100;
-          drivePower = SPEED_SIDEWAY;
-        }
-        if (driveDirection < -60) {
-          // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten
-          driveState = "sideway le";
-          driveDirection = -100;
-          drivePower = SPEED_SIDEWAY;
-        }
-        if (-15 < ball && ball < 15 && abs(heading) < 20) {
-          // fahre geradeaus
-          driveState = "straight";
-          if (us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 40, 120);
-          driveOrientation = constrain(goal / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
-        } else if (ballWidth > 50) {
-          if (us.right() && us.left()) drivePower = map(constrain(min(us.left(), us.right()), 35, 65), 35, 65, 40, 60);
-        }
-      }
-    } else {
-      // sehen den Ball nicht bzw. sollen ihn nicht sehen
-      p.blind();
-      //if (abs(heading) + driveOrientation > 40) drivePower /= 3;  // drossle die Fahrgeschwindigkeit, wenn der Roboter sehr falsch gedreht ist
-    }
+    p.setState();
+    p.play();
   }
 
   driveRotation = ausrichten(driveOrientation);

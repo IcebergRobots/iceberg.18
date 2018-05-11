@@ -12,25 +12,20 @@ class Player
     bool isRusher();
     void setKeeper(bool force);
     void setRusher(bool force);
-    byte getRole();
     unsigned long lastRoleToggle();
 
-    void ball();
-    void blind();
+    void setState();
+    void play();
 
     bool atGatepost();
-    void setState(byte s);
-    void toggleStateDirection();
-    byte getState();
 
   private:
-    void nextState(); // nächste Torwartrolle annehmen
+    byte role = 0;                // Spielrolle: Torwart(0) / Stürmer(1)
+    unsigned long roleTimer = 0;  // Zeitpunkt des letzten Rollenwechsels
 
-    bool penalty = true;  // Spielrolle: Stürmer(0) / Torwart(1)
-    unsigned long roleTimer = 0;
-
-    bool stateLeft = 0; // Fahrrichtung: rechts(0) / links(1)
-    byte state = 0;  // Torwartrolle: rückwärts(0) / seitwärtsfahren(1) / Pfostendrehung hin(2) / Pfostendrehung zurück(3) / vorwärts(4)
+    bool stateLeft = 0;           // Fahrrichtung: rechts(0) / links(1)
+    byte state = 0;               // Verteidigerrolle: rückwärts(0) / seitwärtsfahren(1) / Pfostendrehung hin(2) / Pfostendrehung zurück(3) / vorwärts(4) / seitlich verloren(5)
+                                  // Angriffsrolle: Kompassausrichtung(6) / Ballorientierung mit Torausrichtung(7) / Richtung gesperrt(8)
     unsigned long stateTimer = 0; // Zeitpunkt des letzten Statuswechsels
 };
 

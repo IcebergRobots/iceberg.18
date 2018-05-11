@@ -55,6 +55,7 @@ void calculateStates() {
   seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
   seeEast = !isLifted && millis() - seeEastTimer < 500;
   seeWest = !isLifted && millis() - seeWestTimer < 500;
+  closeBall = millis() - closeBallTimer < 500;
   isDrift = millis() - driftTimer < 100;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
@@ -91,7 +92,7 @@ void calculateStates() {
 void transmitHeartbeat() {
   byte data[10];
   data[0] = 'h';
-  data[1] = p.getRole();
+  data[1] = p.isRusher();
   if (!m.getMotEn() || !seeBall) data[2] = 2;
   else data[2] = ball < 0;
   data[3] = abs(ball);
@@ -252,6 +253,7 @@ void readPixy() {
           ball = x;         // merke Ballwinkel
           ballWidth = width;  // merke Ballbreite
           seeBallTimer = millis();
+          if(ballWidth > BALL_WIDTH_TRIGGER) closeBallTimer = millis();
         }
         break;
       case SIGNATURE_GOAL:
@@ -295,12 +297,18 @@ void readPixy() {
 void debug(String str) {
   if (DEBUG && !silent) DEBUG_SERIAL.print(str + " ");
 }
+void debug(long num) {
+  debug(String(num));
+}
 
 /*****************************************************
   sende Text zum PC
 *****************************************************/
 void debugln(String str) {
   if (DEBUG && !silent) DEBUG_SERIAL.println(str);
+}
+void debugln(long num) {
+  debugln(String(num));
 }
 void debugln() {
   debugln("");

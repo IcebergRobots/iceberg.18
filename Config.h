@@ -53,10 +53,10 @@ extern byte batState;
 extern int batVol;
 
 // Implementierung: PIXY
-extern bool seeBall, seeGoal, seeEast, seeWest, isDrift, driftLeft;
+extern bool seeBall, seeGoal, seeEast, seeWest, closeBall, isDrift, driftLeft;
 extern byte pixyState, blockCount, blockCountBall, blockCountGoal, blockCountEast, blockCountWest;
 extern int ball, ballWidth, ballArea, goal, goalWidth, goalArea, east, eastHeight, west, westHeight;
-extern unsigned long seeBallTimer, seeGoalTimer, seeEastTimer, seeWestTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
+extern unsigned long seeBallTimer, seeGoalTimer, seeEastTimer, seeWestTimer, closeBallTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
 extern Pixy pixy;
 
 // Implementierung: ULTRASCHALL
@@ -96,6 +96,7 @@ extern bool wasSelect, wasBack;
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
 #define ANGLE_PASSIVE_MAX 35    // [0 bis 180]~45 maximaler Orientierungswinkel beim Zurückfahren
 #define ANGLE_TURN_MAX 90       // [0 bis 180]~90 maximaler Orientierungswinkel zur Ballsuche
+#define ANGLE_CENTER 15         // [0 bis 180]~15 Toleranz für mittige Objekte
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
 #define ROTATION_18CM 50        // [0 bis *]~70
@@ -111,6 +112,10 @@ extern bool wasSelect, wasBack;
 #define SPEED_DRIFT 140         // [0 bis 255]~140
 #define SPEED_LINE 90           // [0 bis 255]~80
 #define SPEED_FREE 70           // [0 bis 255]~255
+#define SPEED_LOST 100          // [0 bis 255]~100
+#define SPEED_BALL 72           // [0 bis 255]~72
+#define SPEED_CLOSE 100         // [0 bis 255]~100
+#define SPEED_STRAIGHT 100      // [0 bis 255]~100
 
 // TIMES
 #define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
@@ -119,6 +124,7 @@ extern bool wasSelect, wasBack;
 #define SIDEWARD_MIN_DURATION 800     // min Zeit für Seitwärtsfahren
 #define TURN_MAX_DURATION 2000        // max Zeit für Drehmodus
 #define TURN_BACK_MAX_DURATION 2000   // max Zeit für Drehmodus zurück
+#define AVOID_MATE_DURATION 1000      // max Zeit für Ausweichmanöver
 #define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
 #define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?
@@ -152,6 +158,7 @@ extern bool wasSelect, wasBack;
 #define SIGNATURE_BALL 1  // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
 #define SIGNATURE_CC 28   // Pixy-Signature des Tors
+#define BALL_WIDTH_TRIGGER 50 // Schwellwert eines großen Balles
 
 // DISPLAY
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup

@@ -15,6 +15,8 @@ void buzzerTone(int duration);
 int ausrichten(int orientation);
 void readPixy();
 void debug(String str);
+void debug(long num);
 void debugln(String str);
+void debugln(long num);
 void debugln();
 #endif
