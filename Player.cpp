@@ -60,6 +60,20 @@ unsigned long Player::lastRoleToggle() {
   return millis() - roleTimer;
 }
 
+void Player::ball() {
+  if(penalty) {
+    switch(case) {
+      case 0: // fahre rückwärts
+        
+        break;
+      case 1:
+        
+    }
+  } else {
+    
+  }
+}
+
 void Player::blind() {
   // set state
   switch (state) {
