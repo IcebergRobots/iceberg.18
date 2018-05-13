@@ -35,7 +35,7 @@ void Display::setupMessage(byte pos, String title, String description) {
 
 // Infos auf dem Bildschirm anzeigen
 void Display::update() {
-  if(set() == false) {
+  if (set() == false) {
     debug("reload");
     set();
   }
@@ -86,8 +86,9 @@ void Display::update() {
           break;
       }
     }
+    if (subpage == 1 && seeBall) drawLine(63, 59, map(ball, -X_CENTER, X_CENTER, 3, 123), 13, WHITE);
+    if (subpage == 2 && seeGoal) drawLine(63, 59, map(goal, -X_CENTER, X_CENTER, 3, 123), 13, WHITE);
   }
-
   setTextSize(1);
   setCursor(3, 3);
   print(title.substring(0, 14) + String("               ").substring(0, max(1, 15 - title.length())) + runtime);
@@ -125,7 +126,7 @@ void Display::back() {
 }
 
 void Display::toggle() {
-  if(level == 0) select();
+  if (level == 0) select();
   else back();
 }
 
@@ -202,6 +203,7 @@ bool Display::set() {
       break;
     case 2:
       title = "Debug";
+      addLine("==========");
       break;
     case 3:
       char ball;
@@ -300,7 +302,7 @@ bool Display::set() {
       line2 = "";
     }
   }
-  if(subpageRange[page] != lineIndex) {
+  if (subpageRange[page] != lineIndex) {
     subpageRange[page] = lineIndex;
     return false;
   } else {

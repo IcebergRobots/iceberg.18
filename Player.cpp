@@ -66,8 +66,8 @@ void Player::setState() {
       } else if (millis() - stateTimer > SIDEWARD_MIN_DURATION) {
         if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
         else if (onLine) stateLeft = !stateLeft;
-        else if (seeBall && ball < -ANGLE_CENTER) stateLeft = true;
-        else if (seeBall && ball > ANGLE_CENTER) stateLeft = false;
+        else if (seeBall && ball < -BALL_ANGLE_TRIGGER) stateLeft = true;
+        else if (seeBall && ball > BALL_ANGLE_TRIGGER) stateLeft = false;
         else if (atGatepost()) {
           if (isKeeper()) state = 2;  // wechsle in Drehmodus
           else stateLeft = !stateLeft;     // wechsle Fahrrichtung
@@ -76,16 +76,16 @@ void Player::setState() {
       break;
 
     case 2: // Pfostendrehung hin
-      if (seeBall && stateLeft && ball > ANGLE_CENTER) state = 3;
-      else if (seeBall && !stateLeft && ball < -ANGLE_CENTER) state = 3;
+      if (seeBall && stateLeft && ball > BALL_ANGLE_TRIGGER) state = 3;
+      else if (seeBall && !stateLeft && ball < -BALL_ANGLE_TRIGGER) state = 3;
       else if (millis() - stateTimer > TURN_MAX_DURATION) state = 3;
       else if (stateLeft && heading > ANGLE_TURN_MAX * 0.9) state = 3;
       else if (!stateLeft && heading < -ANGLE_TURN_MAX * 0.9) state = 3;
       break;
 
     case 3: // Pfostendrehung zurück
-      if (seeBall && stateLeft && ball < -ANGLE_CENTER * 2) state = 2;
-      else if (seeBall && !stateLeft && ball > ANGLE_CENTER * 2) state = 2;
+      if (seeBall && stateLeft && ball < -BALL_ANGLE_TRIGGER * 2) state = 2;
+      else if (seeBall && !stateLeft && ball > BALL_ANGLE_TRIGGER * 2) state = 2;
       else if (millis() - stateTimer > TURN_BACK_MAX_DURATION) {
         stateLeft = !stateLeft;
         state = 1;
@@ -102,21 +102,21 @@ void Player::setState() {
 
     case 5: // Seitlich verloren
       if (millis() - stateTimer > AVOID_MATE_DURATION) state = 0;
-      else if (seeBall && stateLeft && ball > ANGLE_CENTER) stateLeft = false;
-      else if (seeBall && !stateLeft && ball < -ANGLE_CENTER) stateLeft = true;
+      else if (seeBall && stateLeft && ball > BALL_ANGLE_TRIGGER) stateLeft = false;
+      else if (seeBall && !stateLeft && ball < -BALL_ANGLE_TRIGGER) stateLeft = true;
       break;
 
 
     // Aktivspiel
     case 6: // Ballverfolgung
       if (closeBall && seeGoal) state = 7;
-      if (ball < ANGLE_CENTER)
-        break;
+      //if (ball < BALL_ANGLE_TRIGGER)
+      break;
 
     case 7: // Torausrichtung
       if (!closeBall || !seeGoal) state = 6;
-      else if(goal < -ANGLE_CENTER * 2) stateLeft = true;
-      else if(goal > ANGLE_CENTER * 2) stateLeft = false;
+      else if (goal < -BALL_ANGLE_TRIGGER) stateLeft = true;
+      else if (goal > BALL_ANGLE_TRIGGER) stateLeft = false;
       else state = 8;
       break;
 
@@ -164,11 +164,11 @@ void Player::play() {
       drivePower = 0;
       driveDirection = 0;
       if (stateLeft) {
-        if(seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
+        if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
         else driveOrientation = -ANGLE_TURN_MAX;
         driveState = "< turn";
       } else {
-        if(seeBall) driveOrientation = constrain(ball / 3 + heading, 0, ANGLE_TURN_MAX);
+        if (seeBall) driveOrientation = constrain(ball / 3 + heading, 0, ANGLE_TURN_MAX);
         else driveOrientation = ANGLE_TURN_MAX;
         driveState = "> turn";
       }
@@ -178,11 +178,11 @@ void Player::play() {
       drivePower = 0;
       driveDirection = 0;
       if (stateLeft) {
-        if(seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
+        if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
         else driveOrientation = 0;
         driveState = "< return";
       } else {
-        if(seeBall) driveOrientation = constrain(ball / 3 + heading, 0, ANGLE_TURN_MAX);
+        if (seeBall) driveOrientation = constrain(ball / 3 + heading, 0, ANGLE_TURN_MAX);
         else driveOrientation = 0;
         driveState = "> return";
       }
@@ -253,7 +253,7 @@ void Player::play() {
 
     case 8: // Angriff
       drivePower = SPEED_ATTACK;
-      if(seeGoal) driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+      if (seeGoal) driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       else driveDirection = 0;
       driveState = "^ straight";
       if (hasBall) kick();

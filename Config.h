@@ -26,7 +26,7 @@
 #include <Adafruit_L3GD20_U.h>
 
 // Implementierung: FAHREN
-extern bool isMotor, start, onLine, isHeadstart, isKeeperLeft;
+extern bool start, onLine, isHeadstart, isKeeperLeft;
 extern byte role;
 extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
 extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastGoalFree, flatTimer;
@@ -159,6 +159,8 @@ extern bool wasSelect, wasBack;
 #define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
 #define SIGNATURE_CC 28   // Pixy-Signature des Tors
 #define BALL_WIDTH_TRIGGER 50 // Schwellwert eines großen Balles
+#define BALL_ANGLE_TRIGGER 30 // Schwellenwert der Ballrichtung
+
 
 // DISPLAY
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup

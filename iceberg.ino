@@ -13,7 +13,6 @@
 #include "Config.h"
 
 // Globale Definition: FAHREN
-bool isMotor = false;       // sind die Motoren aktiviert?
 bool start = false;         // ist der funkstart aktiviert
 bool onLine = false;        // befinden wir uns auf einer Linie?
 bool isHeadstart = false;   // fahren wir mit voller Geschwindigkeit?
@@ -232,6 +231,7 @@ void loop() {
   displayDebug = "";
 
   readCompass();
+  calculateStates();  // Berechne alle Statuswerte und Zustände
 
   if (millis() - kickTimer > map(analogRead(POTI), 0, 1023, 0, 35)) digitalWrite(SCHUSS, 0); // schuß wieder ausschalten
 
@@ -280,8 +280,6 @@ void loop() {
   }
 
   if (!digitalRead(SCHUSS_BUTTON)) kick(); // schieße
-
-  calculateStates();  // Berechne alle Statuswerte und Zustände
 
   if (led.isAnimation() || millis() - ledTimer > 100) {
     debug("led");

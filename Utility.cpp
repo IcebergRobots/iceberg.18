@@ -31,13 +31,13 @@ void startSound() {
   Berechne alle Statuswerte und Zustände
 *****************************************************/
 void calculateStates() {
-  isMotor = m.getMotEn();
+  isLifted = millis() - flatTimer > 300;
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
   if (batVol > VOLTAGE_MIN) {
     batState = 1; // ok
-    if (isMotor) {
+    if (m.getMotEn()) {
       if (batVol < VOLTAGE_MOTOR_CRIT) {
         batState = 3; // kritisch
       } else if (batVol < VOLTAGE_MOTOR_LOW) {
@@ -55,7 +55,7 @@ void calculateStates() {
   }
   silent = !digitalRead(SWITCH_DEBUG);
 
-  seeBall = !isLifted && millis() - seeBallTimer < 50;
+  seeBall = !isLifted && millis() - seeBallTimer < 100;
   seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
   seeEast = !isLifted && millis() - seeEastTimer < 500;
   seeWest = !isLifted && millis() - seeWestTimer < 500;
@@ -78,7 +78,6 @@ void calculateStates() {
 
   // erkenne Hochheben
   if (accel_event.acceleration.z >= 8) flatTimer = millis();
-  isLifted = millis() - flatTimer > 300;
 }
 
 /*****************************************************
