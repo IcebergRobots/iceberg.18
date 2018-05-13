@@ -327,7 +327,7 @@ void loop() {
   byte command = mate.receive();
   switch (command) {
     case 'h': // heartbeat
-      if (mate.role > 0) {
+      if (mate.getMotEn()) {
         start = true;
         if (!startLast && digitalRead(SWITCH_B) && !m.getMotEn()) headstartTimer = millis();
       }
@@ -343,7 +343,7 @@ void loop() {
       break;
   }
 
-  if (mate.timeout() || !mate.role) {
+  if (mate.timeout() || !mate.getMotEn()) {
     p.setKeeper(true);
   } else if (isTypeA) {
     if (seeBall && !mate.seeBall) p.setRusher(false);
@@ -353,8 +353,8 @@ void loop() {
       if (ballWidth < mate.ballWidth) p.setKeeper(false);
     }
   } else {
-    if (mate.role == 1) p.setRusher(true);
-    if (mate.role == 2) p.setKeeper(true);
+    if (mate.isKeeper()) p.setRusher(true);
+    if (mate.isRusher()) p.setKeeper(true);
   }
 
   // Fahre

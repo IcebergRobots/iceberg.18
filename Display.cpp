@@ -276,9 +276,9 @@ void Display::set() {
       setLine(0, "Conn:", mate.timeout() / 1000);
       setLine(1, "^" + String(mate.front()), String(mate.right()) + ">");
       setLine(2, "<" + String(mate.left()), String(mate.back()) + "v");
-      /*if (mate.role == 0) setLine(3, "Role:", "off");
-        if (mate.role == 1) setLine(3, "Role:", "keeper");
-        if (mate.role == 2)*/ setLine(3, "Role:", mate.role);
+      if (!mate.getMotEn()) setLine(3, "Role:", "off");
+      else if (mate.isKeeper()) setLine(3, "Role:", "keeper");
+      else if (mate.isRusher()) setLine(3, "Role:", "rusher");
       if (mate.seeBall) {
         setLine(4, "B.dif:", ball - mate.ball, true);
         setLine(5, "B.ang:", mate.ball, true);

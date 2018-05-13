@@ -32,11 +32,11 @@ void Player::setKeeper(bool force) {
 }
 
 bool Player::isRusher() {
-  return role == 1;
+  return role;
 }
 
 bool Player::isKeeper() {
-  return role == 0;
+  return !role;
 }
 
 unsigned long Player::lastRoleToggle() {
@@ -251,6 +251,10 @@ void Player::play() {
       if (hasBall) kick();
       break;
   }
+}
+
+byte Player::getState() {
+  return state;
 }
 
 bool Player::atGatepost() {

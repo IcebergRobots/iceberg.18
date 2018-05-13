@@ -15,6 +15,7 @@ class Player
     unsigned long lastRoleToggle();
 
     void setState();
+    byte getState();
     void play();
 
     bool atGatepost();

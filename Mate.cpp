@@ -80,7 +80,8 @@ byte Mate::receive() {
       4,5     Ballbreite    je (0 bis 253)
       6,7,8,9 Ultraschall   je (0 bis 253)
     */
-    role = cache[1];
+    role = cache[1] / 10;
+    state = cache[1] % 10;
     seeBall = cache[2] < 2;
     if (cache[2] == 1) ball = -cache[3];
     else ball = cache[3];
@@ -96,6 +97,22 @@ byte Mate::receive() {
   } else {
     return 255;
   }
+}
+
+bool Mate::getMotEn() {
+  return role > 0;
+}
+
+bool Mate::isKeeper() {
+  return role == 1;
+}
+
+bool Mate::isRusher() {
+  return role == 2;
+}
+
+byte Mate::getState() {
+  return state;
 }
 
 byte Mate::right() {

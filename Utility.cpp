@@ -92,7 +92,9 @@ void calculateStates() {
 void transmitHeartbeat() {
   byte data[10];
   data[0] = 'h';
-  data[1] = p.isRusher();
+  if(!m.getMotEn()) data[1] = p.getState();
+  else if(p.isKeeper()) data[1] = p.getState() + 10;
+  else if(p.isRusher()) data[1] = p.getState() + 20;
   if (!m.getMotEn() || !seeBall) data[2] = 2;
   else data[2] = ball < 0;
   data[3] = abs(ball);
@@ -253,7 +255,7 @@ void readPixy() {
           ball = x;         // merke Ballwinkel
           ballWidth = width;  // merke Ballbreite
           seeBallTimer = millis();
-          if(ballWidth > BALL_WIDTH_TRIGGER) closeBallTimer = millis();
+          if (ballWidth > BALL_WIDTH_TRIGGER) closeBallTimer = millis();
         }
         break;
       case SIGNATURE_GOAL:
