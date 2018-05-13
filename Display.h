@@ -15,27 +15,30 @@ class Display: public Adafruit_SSD1306
     void update();
     void select();
     void back();
+    void toggle();
     void change(int change);
     byte getPage();
   private:
-    void set();
-    void setLine(int line, String title, String value);
-    void setLine(int line, String title, long value, bool showPlus);
-    void setLine(int line, String title, long value);
-    void setLine(int line, String title);
-    void setLine(int line);
+    bool set();
+    void addLine(String title, String value);
+    void addLine(String title, long value, bool showPlus);
+    void addLine(String title, long value);
+    void addLine(String title);
+    void addLine();
     String intToStr(int number);
 
     byte level = 0;
     int page = 0;
     const byte PAGE_RANGE = 7;
     int subpage = 0;
-    const byte SUBPAGE_RANGE[7] = {4, 12, 4, 4, 9, 11, 8};
+    byte subpageRange[7] = {1, 1, 1, 1, 1, 1, 1};
+    //const SUBPAGE_RANGE[7] = {4, 12, 4, 4, 9, 11, 8};
     String runtime = "";
     String title = "";
     String line0 = "";
     String line1 = "";
     String line2 = "";
+    byte lineIndex = 0;
 };
 
 const unsigned char PROGMEM LOGO[] = {

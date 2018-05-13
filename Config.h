@@ -103,7 +103,7 @@ extern bool wasSelect, wasBack;
 #define ROTATION_10CM 70        // [0 bis *]~90
 #define ROTATION_TOUCH 40       // [0 bis *]~20
 #define SPEED_BACKWARDS 70      // [0 bis 255]~40  STATUS 0: Nach hinten
-#define SPEED_PENALTY 40        // [0 bis 255]~40  STATUS 0: Nach hinten
+#define SPEED_PENALTY 50        // [0 bis 255]~40  STATUS 0: Nach hinten
 #define SPEED_KEEPER 60         // [0 bis 255]~40  STATUS 1: Torverteidigung
 #define SPEED_FREE 70           // [0 bis 255]~255 STATUS 4: Befreiung
 #define SPEED_LOST 100          // [0 bis 255]~100 STATUS 5: Seitlich verloren

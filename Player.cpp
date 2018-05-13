@@ -76,20 +76,20 @@ void Player::setState() {
       break;
 
     case 2: // Pfostendrehung hin
-      if (millis() - stateTimer > TURN_MAX_DURATION) state = 3;
-      else if (seeBall && stateLeft && ball > ANGLE_CENTER) state = 3;
+      if (seeBall && stateLeft && ball > ANGLE_CENTER) state = 3;
       else if (seeBall && !stateLeft && ball < -ANGLE_CENTER) state = 3;
+      else if (millis() - stateTimer > TURN_MAX_DURATION) state = 3;
       else if (stateLeft && heading > ANGLE_TURN_MAX * 0.9) state = 3;
       else if (!stateLeft && heading < -ANGLE_TURN_MAX * 0.9) state = 3;
       break;
 
     case 3: // Pfostendrehung zurück
-      if (millis() - stateTimer > TURN_BACK_MAX_DURATION) {
+      if (seeBall && stateLeft && ball < -ANGLE_CENTER * 2) state = 2;
+      else if (seeBall && !stateLeft && ball > ANGLE_CENTER * 2) state = 2;
+      else if (millis() - stateTimer > TURN_BACK_MAX_DURATION) {
         stateLeft = !stateLeft;
         state = 1;
       }
-      else if (seeBall && stateLeft && ball < -ANGLE_CENTER * 2) state = 2;
-      else if (seeBall && !stateLeft && ball > ANGLE_CENTER * 2) state = 2;
       else if (abs(heading) < 20) {
         stateLeft = !stateLeft;
         state = 1;
@@ -164,10 +164,12 @@ void Player::play() {
       drivePower = 0;
       driveDirection = 0;
       if (stateLeft) {
-        driveOrientation = -ANGLE_TURN_MAX;
+        if(seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
+        else driveOrientation = -ANGLE_TURN_MAX;
         driveState = "< turn";
       } else {
-        driveOrientation = ANGLE_TURN_MAX;
+        if(seeBall) driveOrientation = constrain(ball / 3 + heading, 0, ANGLE_TURN_MAX);
+        else driveOrientation = ANGLE_TURN_MAX;
         driveState = "> turn";
       }
       break;
@@ -175,9 +177,15 @@ void Player::play() {
     case 3: // Pfostendrehung zurück
       drivePower = 0;
       driveDirection = 0;
-      driveOrientation = 0;
-      if (stateLeft) driveState = "< return";
-      else driveState = "> return";
+      if (stateLeft) {
+        if(seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
+        else driveOrientation = 0;
+        driveState = "< return";
+      } else {
+        if(seeBall) driveOrientation = constrain(ball / 3 + heading, 0, ANGLE_TURN_MAX);
+        else driveOrientation = 0;
+        driveState = "> return";
+      }
       break;
 
     case 4: // Befreiung

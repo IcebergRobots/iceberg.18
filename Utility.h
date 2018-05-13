@@ -3,6 +3,7 @@
 
 #include "Config.h"
 
+void reset();
 int shift(int &value, int min, int max);
 void startSound();
 void calculateStates();

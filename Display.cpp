@@ -35,7 +35,10 @@ void Display::setupMessage(byte pos, String title, String description) {
 
 // Infos auf dem Bildschirm anzeigen
 void Display::update() {
-  set();
+  if(set() == false) {
+    debug("reload");
+    set();
+  }
 
   clearDisplay();
   setTextColor(WHITE);
@@ -54,8 +57,8 @@ void Display::update() {
   if (level == 0) {
     drawLine(map(page, 0, PAGE_RANGE, 3, 123), 11, map(page, -1, PAGE_RANGE - 1, 3, 123), 11, WHITE);
   } else if (level == 1) {
-    drawLine(3, 11, map(subpage, 0, SUBPAGE_RANGE[page], 3, 123), 11, WHITE);
-    drawLine(map(subpage, -1, SUBPAGE_RANGE[page] - 1, 3, 123), 11, 123, 11, WHITE);
+    drawLine(3, 11, map(subpage, 0, subpageRange[page], 3, 123), 11, WHITE);
+    drawLine(map(subpage, -1, subpageRange[page] - 1, 3, 123), 11, 123, 11, WHITE);
   }
 
   // Pixy Boxen
@@ -114,11 +117,16 @@ void Display::select() {
 
 void Display::back() {
   if (level == 0) {
-    asm ("jmp 0");   // starte den Arduino neu
+    reset();
   } else {
     level--;
     update();
   }
+}
+
+void Display::toggle() {
+  if(level == 0) select();
+  else back();
 }
 
 void Display::change(int change) {
@@ -128,12 +136,12 @@ void Display::change(int change) {
     subpage = 0;
   } else if (level == 1) {
     subpage += change;
-    shift(subpage, 0, SUBPAGE_RANGE[page]);
+    shift(subpage, 0, subpageRange[page]);
   }
   update();
 }
 
-void Display::set() {
+bool Display::set() {
   runtime = "";
   int min = numberOfMinutes(millis());
   if (min < 10) {
@@ -150,54 +158,47 @@ void Display::set() {
   line0 = "";
   line1 = "";
   line2 = "";
+  lineIndex = 0;
 
   switch (page) {
     case 0:
-      if (isTypeA) {
-        title = "IcebergRobotsA";
-      } else {
-        title = "IcebergRobotsB";
-      }
+      if (isTypeA) title = "IcebergRobotsA";
+      else title = "IcebergRobotsB";
 
       if (seeBall) {
-        if (p.isRusher())      setLine(0, "rush", ball, true);
-        else if (p.isKeeper()) setLine(0, "keep", ball, true);
-        else                  setLine(0, "off", ball, true);
+        if (p.isRusher())      addLine("rush", ball, true);
+        else if (p.isKeeper()) addLine("keep", ball, true);
+        else                   addLine("off", ball, true);
       } else {
-        if (p.isRusher())      setLine(0, "rush", "blind");
-        else if (p.isKeeper()) setLine(0, "keep", "blind");
-        else                  setLine(0, "off", "blind");
+        if (p.isRusher())      addLine("rush", "blind");
+        else if (p.isKeeper()) addLine("keep", "blind");
+        else                   addLine("off", "blind");
       }
-
-      setLine(1, driveState.substring(0, 6), driveDirection, true);
-      if (batState == 2) {
-        setLine(2, "lowVoltage");
-      } else {
-        setLine(2, displayDebug);
-      }
+      addLine(driveState.substring(0, 6), driveDirection, true);
+      if (batState == 2) addLine("lowVoltage");
+      else addLine(displayDebug);
+      addLine("==========");
       break;
     case 1:
       title = "Sensor";
-      setLine(0, "Ball:", ball, true);
+      addLine("Ball:", ball, true);
       if (!us.timeout()) {
-        setLine(1, "^" + String(us.front()), String(us.right()) + ">");
-        setLine(2, "<" + String(us.left()), String(us.back()) + "v");
-      } else {
-        setLine(1, "^", ">");
-        setLine(2, "<", "v");
+        addLine("^" + String(us.front()), String(us.right()) + ">");
+        addLine("<" + String(us.left()), String(us.back()) + "v");
       }
-      setLine(3, "Barr:", analogRead(LIGHT_BARRIER));
-      setLine(4, "Volt:", String(batVol / 10) + "." + String(batVol % 10)); // battery voltage
+      addLine("Barr:", analogRead(LIGHT_BARRIER));
+      addLine("Volt:", String(batVol / 10) + "." + String(batVol % 10)); // battery voltage
       if (onLine) {
-        setLine(5, "Line:", lineDir, true);
+        addLine("Line:", lineDir, true);
       } else {
-        setLine(5, "Line:");
+        addLine("Line:");
       }
-      setLine(6, "Head:", heading, true);
-      setLine(7, "Time:", millis() / 1000);
-      setLine(8, "acc.X:", accel_event.acceleration.x, true);
-      setLine(9, "acc.Y:", accel_event.acceleration.y, true);
-      setLine(10, "acc.Z:", accel_event.acceleration.z, true);
+      addLine("Head:", heading, true);
+      addLine("Time:", millis() / 1000);
+      addLine("acc.X:", accel_event.acceleration.x, true);
+      addLine("acc.Y:", accel_event.acceleration.y, true);
+      addLine("acc.Z:", accel_event.acceleration.z, true);
+      addLine("==========");
       break;
     case 2:
       title = "Debug";
@@ -237,56 +238,59 @@ void Display::set() {
       } else if (subpage == 3) {
         title = "Pixy CC " + String(west) + "+" + String(east);
       }
+      addLine();
+      addLine();
+      addLine();
+      addLine();
       break;
     case 4:
       title = "Pixy";
-      if (seeBall) {
-        setLine(0, "B.ang:", ball, true);
-      } else {
-        setLine(0, "B.ang:");
-      }
-      setLine(1, "B.wid:", ballWidth);
-      setLine(2, "B.siz:", ballArea);
-      setLine(3, "B.tim:", (millis() - seeBallTimer) / 1000);
-      if (seeGoal) {
-        setLine(4, "G.ang:", goal, true);
-      } else {
-        setLine(4, "G.ang:");
-      }
-      setLine(5, "G.wid:", goalWidth);
-      setLine(6, "G.siz:", goalArea);
-      setLine(7, "G.tim", (millis() - seeGoalTimer) / 1000);
+      if (seeBall) addLine("B.ang:", ball, true);
+      else addLine("B.ang:");
+      addLine("B.wid:", ballWidth);
+      addLine("B.siz:", ballArea);
+      addLine("B.tim:", (millis() - seeBallTimer) / 1000);
+      if (seeGoal) addLine("G.ang:", goal, true);
+      else addLine("G.ang:");
+      addLine("G.wid:", goalWidth);
+      addLine("G.siz:", goalArea);
+      addLine("G.tim", (millis() - seeGoalTimer) / 1000);
+      addLine("==========");
       break;
     case 5:
       title = "Driving";
-      setLine(0, "Dir:", driveDirection, true);
-      setLine(1, "Rot:", driveRotation, true);
-      setLine(2, "Pwr:", drivePower, true);
-      setLine(3, driveState);
-      setLine(4, "Ori:", pidSetpoint, true);
-      setLine(5, "Line:", onLine);
-      setLine(6, "Head:", isHeadstart);
-      setLine(7, "K.tim:", (millis() - lastKeeperToggle) / 1000);
-      setLine(8, "H.tim:", (millis() - headstartTimer) / 1000);
-      setLine(9, "F.tim:", (millis() - flatTimer) / 1000);
-      setLine(10, "R.tim:", p.lastRoleToggle() / 1000);
+      addLine("Dir:", driveDirection, true);
+      addLine("Rot:", driveRotation, true);
+      addLine("Pwr:", drivePower, true);
+      addLine(driveState);
+      addLine("Ori:", pidSetpoint, true);
+      addLine("Line:", onLine);
+      addLine("Head:", isHeadstart);
+      addLine("K.tim:", (millis() - lastKeeperToggle) / 1000);
+      addLine("H.tim:", (millis() - headstartTimer) / 1000);
+      addLine("F.tim:", (millis() - flatTimer) / 1000);
+      addLine("R.tim:", p.lastRoleToggle() / 1000);
+      addLine("==========");
       break;
     case 6:
       title = "Mate";
-      setLine(0, "Conn:", mate.timeout() / 1000);
-      setLine(1, "^" + String(mate.front()), String(mate.right()) + ">");
-      setLine(2, "<" + String(mate.left()), String(mate.back()) + "v");
-      if (!mate.getMotEn()) setLine(3, "Role:", "off");
-      else if (mate.isKeeper()) setLine(3, "Role:", "keeper");
-      else if (mate.isRusher()) setLine(3, "Role:", "rusher");
-      if (mate.seeBall) {
-        setLine(4, "B.dif:", ball - mate.ball, true);
-        setLine(5, "B.ang:", mate.ball, true);
-      } else {
-        setLine(4, "B.dif:");
-        setLine(5, "B.ang:");
+      addLine("Conn:", mate.timeout() / 1000);
+      if (!mate.timeout()) {
+        addLine("^" + String(mate.front()), String(mate.right()) + ">");
+        addLine("<" + String(mate.left()), String(mate.back()) + "v");
+        if (!mate.getMotEn()) addLine("Role:", "off");
+        else if (mate.isKeeper()) addLine("Role:", "keeper");
+        else if (mate.isRusher()) addLine("Role:", "rusher");
+        if (mate.seeBall) {
+          addLine("B.dif:", ball - mate.ball, true);
+          addLine("B.ang:", mate.ball, true);
+        } else {
+          addLine("B.dif:");
+          addLine("B.ang:");
+        }
+        addLine("B.wid:", mate.ballWidth);
       }
-      setLine(6, "B.wid:", mate.ballWidth);
+      addLine("==========");
       break;
   }
   if (batState == 3) {
@@ -296,13 +300,19 @@ void Display::set() {
       line2 = "";
     }
   }
+  if(subpageRange[page] != lineIndex) {
+    subpageRange[page] = lineIndex;
+    return false;
+  } else {
+    return true;
+  }
 }
 
-void Display::setLine(int line, String title, String value) {
+void Display::addLine(String title, String value) {
   title += String("          ").substring(0, max(0, 10 - title.length() - value.length()));
   title = String(title + value).substring(0, 10);
-  line -= subpage;
-  shift(line, 0, SUBPAGE_RANGE[page]);
+  int line = lineIndex - subpage;
+  shift(line, 0, subpageRange[page]);
   if (line == 0) {
     line0 = title;
   } else if (line == 1) {
@@ -310,22 +320,24 @@ void Display::setLine(int line, String title, String value) {
   } else if (line == 2) {
     line2 = title;
   }
+  lineIndex++;
+
 }
-void Display::setLine(int line, String title, long value, bool showPlus) {
+void Display::addLine(String title, long value, bool showPlus) {
   if (showPlus) {
-    setLine(line, title, intToStr(value));
+    addLine(title, intToStr(value));
   } else {
-    setLine(line, title, String(value));
+    addLine(title, String(value));
   }
 }
-void Display::setLine(int line, String title, long value) {
-  setLine(line, title, String(value));
+void Display::addLine(String title, long value) {
+  addLine(title, String(value));
 }
-void Display::setLine(int line, String title) {
-  setLine(line, title, "");
+void Display::addLine(String title) {
+  addLine(title, "");
 }
-void Display::setLine(int line) {
-  setLine(line, "", "");
+void Display::addLine() {
+  addLine("", "");
 }
 
 String Display::intToStr(int number) {

@@ -8,6 +8,10 @@ extern Mate mate;
 extern Pilot m;
 extern Ultrasonic us;
 
+void reset() {
+  asm ("jmp 0");   // starte den Arduino neu
+}
+
 int shift(int &value, int min, int max) {
   max -= min;
   value = (max + (value - min % max)) % max + min; // wandle Drehposition in Zustand von 0 bis ROTARY_RANGE um

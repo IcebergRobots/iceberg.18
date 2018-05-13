@@ -245,12 +245,12 @@ void loop() {
   // Seitenauswahl
   // auswählen
   if (!digitalRead(ROTARY_BUTTON) && !wasSelect) {
-    d.select();
+    d.toggle();
   }
   wasSelect = !digitalRead(ROTARY_BUTTON);
   // zurück
   if (!digitalRead(BUTTON_3) && !wasBack ) {
-    d.back();
+    reset;
   }
   wasBack = !digitalRead(BUTTON_3);
   // drehen
