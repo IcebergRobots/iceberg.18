@@ -92,7 +92,7 @@ extern bool wasSelect, wasBack;
 
 // Fahren
 #define ROLE_COOLDOWN 1000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
-#define ANGLE_SIDEWAY 90       // [0 bis 180]~100
+#define ANGLE_SIDEWAY 100       // [0 bis 180]~100
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
 #define ANGLE_PASSIVE_MAX 35    // [0 bis 180]~45 maximaler Orientierungswinkel beim Zurückfahren
 #define ANGLE_TURN_MAX 90       // [0 bis 180]~90 maximaler Orientierungswinkel zur Ballsuche
@@ -102,20 +102,19 @@ extern bool wasSelect, wasBack;
 #define ROTATION_18CM 50        // [0 bis *]~70
 #define ROTATION_10CM 70        // [0 bis *]~90
 #define ROTATION_TOUCH 40       // [0 bis *]~20
-#define SPEED 72                // [0 bis 255]~60
-#define SPEED_SIDEWAY 100        // [0 bis 255]~60
-#define SPEED_BALL_IN_FRONT 100 // [0 bis 255]~255
-#define SPEED_BACKWARDS 70      // [0 bis 255]~40
-#define SPEED_PENALTY 40        // [0 bis 255]~40
-#define SPEED_KEEPER 60         // [0 bis 255]~40
-#define SPEED_HEADSTART 255     // [0 bis 255]~255
+#define SPEED_BACKWARDS 70      // [0 bis 255]~40  STATUS 0: Nach hinten
+#define SPEED_PENALTY 40        // [0 bis 255]~40  STATUS 0: Nach hinten
+#define SPEED_KEEPER 60         // [0 bis 255]~40  STATUS 1: Torverteidigung
+#define SPEED_FREE 70           // [0 bis 255]~255 STATUS 4: Befreiung
+#define SPEED_LOST 100          // [0 bis 255]~100 STATUS 5: Seitlich verloren
+#define SPEED_SIDEWAY 100       // [0 bis 255]~60  STATUS 6: Ballverfolgung
+#define SPEED_BALL 72           // [0 bis 255]~72  STATUS 6: Ballverfolgung
+#define SPEED_CLOSE 100         // [0 bis 255]~100 STATUS 7: Torausrichtung
+#define SPEED_ATTACK 100        // [0 bis 255]~100 STATUS 8: Angriff
 #define SPEED_DRIFT 140         // [0 bis 255]~140
 #define SPEED_LINE 90           // [0 bis 255]~80
-#define SPEED_FREE 70           // [0 bis 255]~255
-#define SPEED_LOST 100          // [0 bis 255]~100
-#define SPEED_BALL 72           // [0 bis 255]~72
-#define SPEED_CLOSE 100         // [0 bis 255]~100
-#define SPEED_STRAIGHT 100      // [0 bis 255]~100
+
+
 
 // TIMES
 #define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
@@ -132,7 +131,8 @@ extern bool wasSelect, wasBack;
 #define PIXY_RESPONSE_DURATION 20000  // wie lange soll die Pixy-Led grün nachleuchten?
 
 // Feld
-#define BACK_IDEAL 50           // optimaler Abstand nach hinten
+#define COURT_REARWARD_MAX 50           // optimaler Abstand nach hinten
+#define COURT_REARWARD_MIN 15           // optimaler Abstand nach hinten
 #define COURT_WIDTH 150         // Summe der Abstände nach rechts und links
 #define COURT_GOAL_TO_BORDER 65 // Abstand nach rechts bzw. links am Torpfosten
 #define COURT_WIDTH_FREE 140

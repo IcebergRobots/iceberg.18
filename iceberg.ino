@@ -226,7 +226,7 @@ void setup() {
 
 void loop() {
   debug(millis());
-  if(p.isRusher()) debug("r");
+  if (p.isRusher()) debug("r");
   else debug("k");
   debug(driveState + String("          ").substring(0, 10 - driveState.length()));
   displayDebug = "";
@@ -343,9 +343,8 @@ void loop() {
       break;
   }
 
-  if (mate.timeout() || !mate.getMotEn()) {
-    p.setKeeper(true);
-  } else if (isTypeA) {
+  if (mate.timeout() || !mate.getMotEn()) p.setKeeper(true);
+  else if (isTypeA) {
     if (seeBall && !mate.seeBall) p.setRusher(false);
     if (!seeBall && mate.seeBall) p.setKeeper(false);
     if (seeBall && mate.seeBall && abs(ballWidth - mate.ballWidth) >= 5) {

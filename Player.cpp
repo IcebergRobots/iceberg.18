@@ -53,18 +53,18 @@ void Player::setState() {
 
   switch (state) {
     // Passivspiel
-    case 0: // fahre rückwärts
-      if (us.back() <= BACK_IDEAL) state = 1;
+    case 0: // Nach hinten
+      if (us.back() <= COURT_REARWARD_MAX) state = 1;
       else if (millis() - stateTimer > BACKWARD_MAX_DURATION) state = 4;
       break;
 
-    case 1: // fahre seitwärts
+    case 1: // Torverteidigung
       if (!seeBall && millis() - stateTimer > SIDEWARD_MAX_DURATION) {
-        if (us.back() > BACK_IDEAL) state = 0; // fahre rückwärts
+        if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
         else if (isKeeper()) state = 2;     // wechsle in Drehmodus
         else stateLeft = !stateLeft;  // wechsle Fahrrichtung
       } else if (millis() - stateTimer > SIDEWARD_MIN_DURATION) {
-        if (us.back() > BACK_IDEAL) state = 0; // fahre rückwärts
+        if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
         else if (onLine) stateLeft = !stateLeft;
         else if (seeBall && ball < -ANGLE_CENTER) stateLeft = true;
         else if (seeBall && ball > ANGLE_CENTER) stateLeft = false;
@@ -96,11 +96,11 @@ void Player::setState() {
       }
       break;
 
-    case 4: // befreie dich vom Tor
+    case 4: // Befreiung
       if (millis() - stateTimer > GOAL_STUCK_DURATION) state = 0; // fahre wieder rückwärts und warte erneut * Sekunden
       break;
 
-    case 5: // seitlich verloren
+    case 5: // Seitlich verloren
       if (millis() - stateTimer > AVOID_MATE_DURATION) state = 0;
       else if (seeBall && stateLeft && ball > ANGLE_CENTER) stateLeft = false;
       else if (seeBall && !stateLeft && ball < -ANGLE_CENTER) stateLeft = true;
@@ -108,19 +108,19 @@ void Player::setState() {
 
 
     // Aktivspiel
-    case 6: // Kompassausrichtung
+    case 6: // Ballverfolgung
       if (closeBall && seeGoal) state = 7;
       if (ball < ANGLE_CENTER)
         break;
 
-    case 7: // Ballorientierung mit Torausrichtung
+    case 7: // Torausrichtung
       if (!closeBall || !seeGoal) state = 6;
       else if(goal < -ANGLE_CENTER * 2) stateLeft = true;
       else if(goal > ANGLE_CENTER * 2) stateLeft = false;
       else state = 8;
       break;
 
-    case 8: // Richtung gesperrt
+    case 8: // Angriff
       if (!closeBall) state = 6;
       break;
   }
@@ -129,7 +129,7 @@ void Player::setState() {
 
 void Player::play() {
   switch (state) {
-    case 0: // fahre rückwärts
+    case 0: // Nach hinten
       if (us.back() && us.back() < 80) {
         drivePower = SPEED_PENALTY;
         driveState = "v penalty";
@@ -144,7 +144,8 @@ void Player::play() {
       driveOrientation = 0;
       break;
 
-    case 1: // fahre seitwärts
+    case 1: // Torverteidigung
+      // fahre seitlich vor dem Tor
       drivePower = SPEED_KEEPER;
       driveOrientation = 0;
       if (stateLeft) {
@@ -156,7 +157,7 @@ void Player::play() {
         driveState = "> sideward";
         if (us.right() < 60) drivePower *= 0.7; // fahre langsamer am Spielfeldrand
       }
-      if (us.back() < 15) driveDirection *= 0.8;  // fahre leicht schräg nach vorne
+      if (us.back() < COURT_REARWARD_MIN) driveDirection *= 0.8;  // fahre leicht schräg nach vorne
       break;
 
     case 2: // Pfostendrehung hin
@@ -179,7 +180,7 @@ void Player::play() {
       else driveState = "> return";
       break;
 
-    case 4: // befreie dich vom Tor
+    case 4: // Befreiung
       // fahre * Sekunden geradeaus, um nicht mehr am Tor hängenzubleiben
       drivePower = SPEED_FREE;
       driveDirection = 0;
@@ -187,7 +188,7 @@ void Player::play() {
       driveState = "^ free";
       break;
 
-    case 5: // seitlich verloren
+    case 5: // Seitlich verloren
       // fahre * Sekunden zur Seite, um den Ball wiederzufinden
       drivePower = SPEED_LOST;
       if (stateLeft) {
@@ -202,14 +203,13 @@ void Player::play() {
       driveOrientation = 0;
       break;
 
-    case 6: // Kompassausrichtung
+    case 6: // Ballverfolgung
       if (!seeBall) rotMulti = ROTATION_SIDEWAY;
       else if (ballWidth > 100) rotMulti = ROTATION_TOUCH;
       else if (ballWidth > 40) rotMulti = ROTATION_10CM;
       else if (ballWidth > 20) rotMulti = ROTATION_18CM;
       else rotMulti = ROTATION_AWAY;
 
-      // folge dem Ball
       drivePower = SPEED_BALL;
       driveDirection = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
       if (driveDirection > 60) {
@@ -229,8 +229,9 @@ void Player::play() {
       driveState = "^ free";
       break;
 
-    case 7:
-      // Drehe dich zum Tor
+    case 7: // Torausrichtung
+      // orientiere dich zum Ball
+      // bringe Ball und Tor in eine Linie
       drivePower = SPEED_CLOSE;
       if (stateLeft) {
         driveDirection = ANGLE_SIDEWAY;
@@ -242,9 +243,8 @@ void Player::play() {
       driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
       break;
 
-    case 8:
-      // Fahre zum Tor
-      drivePower = SPEED_STRAIGHT;
+    case 8: // Angriff
+      drivePower = SPEED_ATTACK;
       if(seeGoal) driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       else driveDirection = 0;
       driveState = "^ straight";
