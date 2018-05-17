@@ -167,6 +167,7 @@ void Player::play() {
       drivePower = 0;
       driveDirection = 0;
       driveRotation = 200;
+      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 160;
       if (stateLeft) {
         if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
         else driveOrientation = -ANGLE_TURN_MAX;
@@ -182,6 +183,7 @@ void Player::play() {
       drivePower = 0;
       driveDirection = 0;
       driveRotation = 200;
+      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 160;
       if (stateLeft) {
         if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
         else driveOrientation = 0;
