@@ -52,7 +52,7 @@ unsigned long Player::lastRoleToggle() {
 void Player::setState() {
   // set state
   byte tempState = state;
-  if (state < 6 && seeBall && isRusher()) state = 6; // wir werden aktiv
+  if (state < 6 && seeBall && (isRusher() || mate.timeout())) state = 6; // wir werden aktiv
   if (state > 5 && !seeBall) state = 5; // wir werden blind
   if (state > 5 && isKeeper()) state = 0; // wir werden passiv
   if (tempState != state) stateTimer = millis();
@@ -71,7 +71,7 @@ void Player::setState() {
         else toggleDirection();  // wechsle Fahrrichtung
       } else if (millis() - stateTimer > SIDEWARD_MIN_DURATION) {
         if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
-        else if (onLine) toggleDirection();
+        else if (millis() - lineTimer < 100) toggleDirection();
         else if (seeBall && ball < -BALL_ANGLE_TRIGGER) {
           stateLeft = true;
           stateTimer = max(0, millis() - SIDEWARD_MIN_DURATION + 200);
@@ -80,10 +80,7 @@ void Player::setState() {
           stateLeft = false;
           stateTimer = max(0, millis() - SIDEWARD_MIN_DURATION + 200);
         }
-        else if (atGatepost()) {
-          if (isKeeper()) state = 2;  // wechsle in Drehmodus
-          else toggleDirection();     // wechsle Fahrrichtung
-        }
+        else if (atGatepost() && isKeeper()) state = 2;  // wechsle in Drehmodus
       }
       break;
 
@@ -155,8 +152,8 @@ void Player::play() {
         driveState = "v backward";
       }
       // fahre rückwärts und lenke zur Mitte vor dem Tor
-      if (us.left() && us.left() < COURT_GOAL_TO_BORDER) driveDirection = -constrain(map(COURT_GOAL_TO_BORDER - us.left(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
-      else if (us.right() && us.right() < COURT_GOAL_TO_BORDER) driveDirection = constrain(map(COURT_GOAL_TO_BORDER - us.right(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
+      if (us.left() && us.left() < COURT_BORDER_MIN) driveDirection = -constrain(map(COURT_BORDER_MIN - us.left(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
+      else if (us.right() && us.right() < COURT_BORDER_MIN) driveDirection = constrain(map(COURT_BORDER_MIN - us.right(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
       else driveDirection = 180;
       driveOrientation = 0;
       break;
@@ -169,13 +166,13 @@ void Player::play() {
       if (stateLeft) {
         driveDirection = ANGLE_SIDEWAY;
         driveState = "< sideward";
-        if (us.left() < 60) drivePower = max(40, SPEED_KEEPER * 0.7); // fahre langsamer am Spielfeldrand
+        if (us.left() < COURT_BORDER_MIN) drivePower = max(40, SPEED_KEEPER * 0.7); // fahre langsamer am Spielfeldrand
       } else {
         driveDirection = -ANGLE_SIDEWAY;
         driveState = "> sideward";
-        if (us.right() < 60) drivePower = max(40, SPEED_KEEPER * 0.7); // fahre langsamer am Spielfeldrand
+        if (us.right() < COURT_BORDER_MIN) drivePower = max(40, SPEED_KEEPER * 0.7); // fahre langsamer am Spielfeldrand
       }
-      if (us.back() < COURT_REARWARD_MIN) driveDirection *= 0.8;  // fahre leicht schräg nach vorne
+      if (us.back() < COURT_REARWARD_MIN) driveDirection *= map(us.back(), 0, COURT_REARWARD_MIN, 8, 10) / 10.0; // fahre leicht schräg nach vorne
       break;
 
     case 2: // Pfostendrehung hin
@@ -290,8 +287,8 @@ byte Player::getState() {
 bool Player::atGatepost() {
   if (true || isPenaltyFree) {
     // benutze Abstand in Bewegungsrichtung
-    if (stateLeft) return us.left() < COURT_GOAL_TO_BORDER;
-    else           return us.right() < COURT_GOAL_TO_BORDER;
+    if (stateLeft) return us.left() < COURT_BORDER_MIN;
+    else           return us.right() < COURT_BORDER_MIN;
   } else {
     // benutze Abstand gegen Bewegungsrichtung
     if (stateLeft) return us.right() > COURT_POST_TO_BORDER;

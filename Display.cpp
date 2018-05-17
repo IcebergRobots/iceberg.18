@@ -283,6 +283,7 @@ bool Display::set() {
         if (!mate.getMotEn()) addLine("Role:", "off");
         else if (mate.isKeeper()) addLine("Role:", "keeper");
         else if (mate.isRusher()) addLine("Role:", "rusher");
+        else addLine("Role:", "?");
         if (mate.seeBall) {
           addLine("B.dif:", ball - mate.ball, true);
           addLine("B.ang:", mate.ball, true);
@@ -311,8 +312,9 @@ bool Display::set() {
 }
 
 void Display::addLine(String title, String value) {
-  title += String("          ").substring(0, max(0, 10 - title.length() - value.length()));
-  title = String(title + value).substring(0, 10);
+  if(title.length() + value.length() < 10) title += String("          ").substring(0, 10 - title.length() - value.length());
+  title += value;
+  title = title.substring(0, 10);
   int line = lineIndex - subpage;
   shift(line, 0, subpageRange[page]);
   if (line == 0) {

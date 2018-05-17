@@ -314,7 +314,7 @@ void loop() {
 
   // starte über Funk wenn Schalter Keeper aktiviert
   if (!digitalRead(SWITCH_MOTOR)) {
-    m.setMotEn(!digitalRead(SWITCH_KEEPER) || start);
+    m.setMotEn(start);
   } else {
     m.setMotEn(false);
     start = false;
@@ -336,9 +336,7 @@ void loop() {
       break;
     case 'b': // brake
       start = false;
-      if (digitalRead(SWITCH_KEEPER)) {
-        m.brake(true);
-      }
+      m.brake(true);
       break;
   }
 
@@ -384,9 +382,10 @@ void loop() {
     p.play();
   }
 
+
   int rotationValue = (float)driveRotation / 255 * ausrichten(driveOrientation);
   drivePower = max(drivePower - abs(rotationValue), 0);
-  if(drivePower > 0) drivePower = max(40, drivePower);
+  if (drivePower > 0) drivePower = max(40, drivePower);
   if (!isLifted && isHeadstart) {
     for (int i = 0; i < 4; i++) {
       m.steerMotor(i, 255);

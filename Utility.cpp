@@ -32,7 +32,7 @@ void startSound() {
 *****************************************************/
 void calculateStates() {
   isLifted = millis() - flatTimer > 600;
-  onLine = millis() <= lineTimer;
+  onLine = millis() - lineTimer < LINE_DURATION;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
   if (batVol > VOLTAGE_MIN) {
@@ -136,13 +136,13 @@ void avoidLine() {
     m.drive(driveDirection, SPEED_LINE, 0);
     lineTimer = millis();
     headstartTimer = 0;
-    if (drivePower > 200) {
+    /*if (drivePower > 200) {
       lineTimer = millis() + (2 * LINE_DURATION);
     } else if (drivePower > 100) {
       lineTimer = millis() + (1.5 * LINE_DURATION);
     } else {
       lineTimer = millis() + LINE_DURATION;
-    }
+    }*/
     displayDebug = driveDirection;
   }
 

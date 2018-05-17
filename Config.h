@@ -136,7 +136,7 @@ extern bool wasSelect, wasBack;
 #define COURT_REARWARD_MAX 50           // optimaler Abstand nach hinten
 #define COURT_REARWARD_MIN 15           // optimaler Abstand nach hinten
 #define COURT_WIDTH 150         // Summe der Abstände nach rechts und links
-#define COURT_GOAL_TO_BORDER 70 // Abstand nach rechts bzw. links am Torpfosten
+#define COURT_BORDER_MIN 70 // Abstand nach rechts bzw. links am Torpfosten
 #define COURT_WIDTH_FREE 140
 #define COURT_POST_TO_BORDER 110 // Abstand nach rechts bzw. links am Torpfosten
 

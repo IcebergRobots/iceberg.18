@@ -17,7 +17,7 @@ Mate::Mate() {
   @param numberOfElements: Länge des Arrays
 *****************************************************/
 void Mate::send(byte * data, byte numberOfElements) {
-  if (BLUETOOTH) {
+  if (BLUETOOTH && digitalRead(SWITCH_KEEPER)) {
     BLUETOOTH_SERIAL.write(START_MARKER);
     for (byte i = 0; i < numberOfElements; i++) {
       BLUETOOTH_SERIAL.write(constrain(data[i], 0, 253));
@@ -32,35 +32,37 @@ void Mate::send(byte * data, byte numberOfElements) {
 *****************************************************/
 byte Mate::fetch() {
   // returns length of incomming message
-  while (BLUETOOTH_SERIAL.available()) {
-    byte b = BLUETOOTH_SERIAL.read();
-    if (cacheIndex != 255) { // aktives Zuhören?
-      if (b == START_MARKER) {
-        cacheIndex = 0;  // aktiviere Zuhören
-        for (byte i = 0; i < CACHE_SIZE; i++) {
-          cache[i] = 255; // überschreibe den Cache
-        }
-      } else if (b == END_MARKER) {
-        byte messageLength = cacheIndex;
-        cacheIndex = 255; // deaktiviere Zuhören
-        return messageLength; // Befehl empfangen!
-      } else {
-        if (cacheIndex >= CACHE_SIZE) {
+  if (BLUETOOTH && digitalRead(SWITCH_KEEPER)) {
+    while (BLUETOOTH_SERIAL.available()) {
+      byte b = BLUETOOTH_SERIAL.read();
+      if (cacheIndex != 255) { // aktives Zuhören?
+        if (b == START_MARKER) {
+          cacheIndex = 0;  // aktiviere Zuhören
+          for (byte i = 0; i < CACHE_SIZE; i++) {
+            cache[i] = 255; // überschreibe den Cache
+          }
+        } else if (b == END_MARKER) {
+          byte messageLength = cacheIndex;
           cacheIndex = 255; // deaktiviere Zuhören
+          return messageLength; // Befehl empfangen!
         } else {
-          cache[cacheIndex] = b;  // speichere in Cache
-          cacheIndex += 1;  // speichere index
+          if (cacheIndex >= CACHE_SIZE) {
+            cacheIndex = 255; // deaktiviere Zuhören
+          } else {
+            cache[cacheIndex] = b;  // speichere in Cache
+            cacheIndex += 1;  // speichere index
+          }
+        }
+      } else {
+        if (b == START_MARKER) {
+          cacheIndex = 0; // aktiviere Zuhören
+          for (byte i = 0; i < CACHE_SIZE; i++) {
+            cache[i] = 255; // überschreibe den Cache
+          }
         }
       }
-    } else {
-      if (b == START_MARKER) {
-        cacheIndex = 0; // aktiviere Zuhören
-        for (byte i = 0; i < CACHE_SIZE; i++) {
-          cache[i] = 255; // überschreibe den Cache
-        }
-      }
-    }
 
+    }
   }
   return 0;
 }
@@ -132,6 +134,6 @@ byte Mate::back() {
 }
 
 unsigned long Mate::timeout() {
-  if(millis() - responseTimer < 500) return 0;
+  if (millis() - responseTimer < 500) return 0;
   else return millis() - responseTimer;
 }
