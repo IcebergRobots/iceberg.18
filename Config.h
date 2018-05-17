@@ -97,6 +97,7 @@ extern bool wasSelect, wasBack;
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
 #define ANGLE_PASSIVE_MAX 35    // [0 bis 180]~45 maximaler Orientierungswinkel beim Zurückfahren
 #define ANGLE_TURN_MAX 90       // [0 bis 180]~90 maximaler Orientierungswinkel zur Ballsuche
+#define ANGLE_RETURN_MIN 20     // [0 bis 180]~90 minimaler Orientierungswinkel beim Zurücckdrehen
 #define ANGLE_CENTER 15         // [0 bis 180]~15 Toleranz für mittige Objekte
 #define ROTATION_SIDEWAY 100    // [0 bis *]~100
 #define ROTATION_AWAY 40        // [0 bis *]~40
@@ -122,8 +123,8 @@ extern bool wasSelect, wasBack;
 #define GOAL_STUCK_DURATION 500       // wie lange soll nach vorne gefahren werden?
 #define SIDEWARD_MAX_DURATION 2000    // max Zeit für Seitwärtsfahren
 #define SIDEWARD_MIN_DURATION 800     // min Zeit für Seitwärtsfahren
-#define TURN_MAX_DURATION 2000        // max Zeit für Drehmodus
-#define TURN_BACK_MAX_DURATION 2000   // max Zeit für Drehmodus zurück
+#define TURN_MAX_DURATION 1500        // max Zeit für Drehmodus
+#define RETURN_MAX_DURATION 1500      // max Zeit für Drehmodus zurück
 #define AVOID_MATE_DURATION 1000      // max Zeit für Ausweichmanöver
 #define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
@@ -152,7 +153,7 @@ extern bool wasSelect, wasBack;
 
 // PID-Regler
 #define PID_FILTER_P .27 // [0 bis *]~.27 p:proportional
-#define PID_FILTER_I 0   // [0 bis *]~0   i:vorausschauend
+#define PID_FILTER_I .02   // [0 bis *]~0   i:vorausschauend
 #define PID_FILTER_D .03 // [0 bis *]~.03 d:Schwung herausnehmen (nicht zu weit drehen)
 
 // PIYX
