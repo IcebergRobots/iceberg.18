@@ -160,7 +160,7 @@ extern bool wasSelect, wasBack;
 #define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
 #define SIGNATURE_CC 28   // Pixy-Signature des Tors
 #define BALL_WIDTH_TRIGGER 50 // Schwellwert eines großen Balles
-#define BALL_ANGLE_TRIGGER 30 // Schwellenwert der Ballrichtung
+#define BALL_ANGLE_TRIGGER 50 // Schwellenwert der Ballrichtung
 
 
 // DISPLAY

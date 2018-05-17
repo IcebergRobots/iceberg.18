@@ -356,6 +356,7 @@ void loop() {
   }
 
   // Fahre
+  driveRotation = 255;
   if (isLifted) {
     // hochgehoben
     driveState = "lifted";
@@ -368,6 +369,7 @@ void loop() {
   } else if (isHeadstart) {
     // führe einen Schnellstart aus
     driveState = "headstart";
+    driveRotation = 0;
   } else if (isDrift) {
     // steuere gegen
     driveState = "drift";
@@ -382,14 +384,15 @@ void loop() {
     p.play();
   }
 
-  driveRotation = ausrichten(driveOrientation);
-  drivePower = max(drivePower - abs(driveRotation), 0);
+
+  int rotationValue = (float)driveRotation / 255 * ausrichten(driveOrientation);
+  drivePower = max(drivePower - abs(rotationValue), 0);
   if (!isLifted && isHeadstart) {
     for (int i = 0; i < 4; i++) {
       m.steerMotor(i, 255);
     }
   } else {
-    m.drive(driveDirection, drivePower, driveRotation);
+    m.drive(driveDirection, drivePower, rotationValue);
   }
 
 

@@ -124,10 +124,12 @@ void Player::setState() {
       if (!closeBall) state = 6;
       break;
   }
-  if (tempState != state) stateTimer = millis();
+  if (tempState == 0 && state == 1) stateTimer = max(0, millis() - SIDEWARD_MIN_DURATION / 2);
+  else if (tempState != state) stateTimer = millis();
 }
 
 void Player::play() {
+  driveRotation = 255;
   switch (state) {
     case 0: // Nach hinten
       if (us.back() && us.back() < 80) {
@@ -164,6 +166,7 @@ void Player::play() {
     case 2: // Pfostendrehung hin
       drivePower = 0;
       driveDirection = 0;
+      driveRotation = 200;
       if (stateLeft) {
         if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
         else driveOrientation = -ANGLE_TURN_MAX;
@@ -178,6 +181,7 @@ void Player::play() {
     case 3: // Pfostendrehung zurück
       drivePower = 0;
       driveDirection = 0;
+      driveRotation = 200;
       if (stateLeft) {
         if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
         else driveOrientation = 0;
