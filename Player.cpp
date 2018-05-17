@@ -85,8 +85,8 @@ void Player::setState() {
       if (seeBall && stateLeft && ball > BALL_ANGLE_TRIGGER) state = 3;
       else if (seeBall && !stateLeft && ball < -BALL_ANGLE_TRIGGER) state = 3;
       else if (millis() - stateTimer > TURN_MAX_DURATION) state = 3;
-      else if (stateLeft && heading > ANGLE_TURN_MAX * 0.9) state = 3;
-      else if (!stateLeft && heading < -ANGLE_TURN_MAX * 0.9) state = 3;
+      else if (stateLeft && heading < -ANGLE_TURN_MAX * 0.9) state = 3;
+      else if (!stateLeft && heading > ANGLE_TURN_MAX * 0.9) state = 3;
       break;
 
     case 3: // Pfostendrehung zurück
