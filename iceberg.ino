@@ -384,10 +384,9 @@ void loop() {
     p.play();
   }
 
-
   int rotationValue = (float)driveRotation / 255 * ausrichten(driveOrientation);
   drivePower = max(drivePower - abs(rotationValue), 0);
-  if(drivePower > 0) drivePower = max(drivePower, 40);
+  if(drivePower > 0) drivePower = max(40, drivePower);
   if (!isLifted && isHeadstart) {
     for (int i = 0; i < 4; i++) {
       m.steerMotor(i, 255);

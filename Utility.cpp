@@ -31,7 +31,7 @@ void startSound() {
   Berechne alle Statuswerte und Zustände
 *****************************************************/
 void calculateStates() {
-  isLifted = millis() - flatTimer > 300;
+  isLifted = millis() - flatTimer > 600;
   onLine = millis() <= lineTimer;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
@@ -78,7 +78,8 @@ void calculateStates() {
   isPenaltyFree = us.right() + us.left() >= COURT_WIDTH_FREE;
 
   // erkenne Hochheben
-  if (accel_event.acceleration.z >= 8) flatTimer = millis();
+  dof.accelGetOrientation(&accel_event, &orientation);
+  if (!((orientation.roll > 30 && abs(orientation.pitch) < 20) || accel_event.acceleration.z < 7)) flatTimer = millis();
 }
 
 /*****************************************************
@@ -96,9 +97,9 @@ void calculateStates() {
 void transmitHeartbeat() {
   byte data[10];
   data[0] = 'h';
-  if(!m.getMotEn()) data[1] = p.getState();
-  else if(p.isKeeper()) data[1] = p.getState() + 10;
-  else if(p.isRusher()) data[1] = p.getState() + 20;
+  if (!m.getMotEn()) data[1] = p.getState();
+  else if (p.isKeeper()) data[1] = p.getState() + 10;
+  else if (p.isRusher()) data[1] = p.getState() + 20;
   if (!m.getMotEn() || !seeBall) data[2] = 2;
   else data[2] = ball < 0;
   data[3] = abs(ball);
