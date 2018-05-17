@@ -12,6 +12,7 @@ class Player
     bool isRusher();
     void setKeeper(bool force);
     void setRusher(bool force);
+    void toggleDirection();
     unsigned long lastRoleToggle();
 
     void setState();

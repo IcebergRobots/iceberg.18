@@ -27,7 +27,6 @@ int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;        // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
 unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
-unsigned long lastGoalFree = 0;     // Zeitpunkt des letzten freien Tors
 unsigned long flatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
 String driveState = "";             // Zustand des Fahrens
 Pilot m;  // OBJEKTINITIALISIERUNG
@@ -97,6 +96,8 @@ unsigned long pixyTimer = 0;  // Zeitpunkt des letzten Auslesens der Pixy
 Pixy pixy;  // OBJEKTINITIALISIERUNG
 
 // Globale Definition: ULTRASCHALL
+bool isPenaltyFree = true;
+unsigned long penaltyFreeTimer = 0;
 unsigned long usTimer = 0;  // Zeitpunkt des letzten Auslesens
 Ultrasonic us;  // OBJEKTINITIALISIERUNG
 

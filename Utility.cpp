@@ -74,7 +74,8 @@ void calculateStates() {
   }
   hasBall = analogRead(LIGHT_BARRIER) > lightBarrierTriggerLevel;
 
-  if (us.right() + us.left() >= COURT_WIDTH_FREE) lastGoalFree = millis();
+  if (us.right() + us.left() >= COURT_WIDTH_FREE) penaltyFreeTimer = millis();
+  isPenaltyFree = us.right() + us.left() >= COURT_WIDTH_FREE;
 
   // erkenne Hochheben
   if (accel_event.acceleration.z >= 8) flatTimer = millis();

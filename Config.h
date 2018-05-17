@@ -29,7 +29,7 @@
 extern bool start, onLine, isHeadstart, isKeeperLeft;
 extern byte role;
 extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
-extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, lastGoalFree, flatTimer;
+extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, flatTimer;
 extern String driveState;
 
 // Implementierung: KOMPASS
@@ -60,7 +60,8 @@ extern unsigned long seeBallTimer, seeGoalTimer, seeEastTimer, seeWestTimer, clo
 extern Pixy pixy;
 
 // Implementierung: ULTRASCHALL
-extern unsigned long usTimer;
+extern bool isPenaltyFree;
+extern unsigned long penaltyFreeTimer, usTimer;
 
 // Implementierung: KICK, LIGHT-BARRIER
 extern bool hasBall;
@@ -134,7 +135,7 @@ extern bool wasSelect, wasBack;
 #define COURT_REARWARD_MAX 50           // optimaler Abstand nach hinten
 #define COURT_REARWARD_MIN 15           // optimaler Abstand nach hinten
 #define COURT_WIDTH 150         // Summe der Abstände nach rechts und links
-#define COURT_GOAL_TO_BORDER 65 // Abstand nach rechts bzw. links am Torpfosten
+#define COURT_GOAL_TO_BORDER 50 // Abstand nach rechts bzw. links am Torpfosten
 #define COURT_WIDTH_FREE 140
 #define COURT_POST_TO_BORDER 110 // Abstand nach rechts bzw. links am Torpfosten
 

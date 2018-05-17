@@ -39,6 +39,12 @@ bool Player::isKeeper() {
   return !role;
 }
 
+void Player::toggleDirection() {
+  stateLeft = !stateLeft;
+  stateTimer = millis();
+  state = 1;
+}
+
 unsigned long Player::lastRoleToggle() {
   return millis() - roleTimer;
 }
@@ -62,15 +68,15 @@ void Player::setState() {
       if (!seeBall && millis() - stateTimer > SIDEWARD_MAX_DURATION) {
         if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
         else if (isKeeper()) state = 2;     // wechsle in Drehmodus
-        else stateLeft = !stateLeft;  // wechsle Fahrrichtung
+        else toggleDirection();  // wechsle Fahrrichtung
       } else if (millis() - stateTimer > SIDEWARD_MIN_DURATION) {
         if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
-        else if (onLine) stateLeft = !stateLeft;
+        else if (onLine) toggleDirection();
         else if (seeBall && ball < -BALL_ANGLE_TRIGGER) stateLeft = true;
         else if (seeBall && ball > BALL_ANGLE_TRIGGER) stateLeft = false;
         else if (atGatepost()) {
           if (isKeeper()) state = 2;  // wechsle in Drehmodus
-          else stateLeft = !stateLeft;     // wechsle Fahrrichtung
+          else toggleDirection();     // wechsle Fahrrichtung
         }
       }
       break;
@@ -86,14 +92,8 @@ void Player::setState() {
     case 3: // Pfostendrehung zurück
       if (seeBall && stateLeft && ball < -BALL_ANGLE_TRIGGER * 2) state = 2;
       else if (seeBall && !stateLeft && ball > BALL_ANGLE_TRIGGER * 2) state = 2;
-      else if (millis() - stateTimer > TURN_BACK_MAX_DURATION) {
-        stateLeft = !stateLeft;
-        state = 1;
-      }
-      else if (abs(heading) < 20) {
-        stateLeft = !stateLeft;
-        state = 1;
-      }
+      else if (millis() - stateTimer > TURN_BACK_MAX_DURATION) toggleDirection();
+      else if (abs(heading) < 20) toggleDirection();
       break;
 
     case 4: // Befreiung
@@ -147,6 +147,7 @@ void Player::play() {
     case 1: // Torverteidigung
       // fahre seitlich vor dem Tor
       drivePower = SPEED_KEEPER;
+      if (seeBall && abs(ball) < BALL_ANGLE_TRIGGER * 2) drivePower *= 0.5;
       driveOrientation = 0;
       if (stateLeft) {
         driveDirection = ANGLE_SIDEWAY;
@@ -266,7 +267,7 @@ byte Player::getState() {
 }
 
 bool Player::atGatepost() {
-  if (millis() - lastGoalFree < 200) {
+  if (true || isPenaltyFree) {
     // benutze Abstand in Bewegungsrichtung
     if (stateLeft) return us.left() < COURT_GOAL_TO_BORDER;
     else           return us.right() < COURT_GOAL_TO_BORDER;
