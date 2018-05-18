@@ -206,40 +206,23 @@ bool Display::set() {
       addLine("==========");
       break;
     case 3:
-      char ball;
-      if (!blockCountBall && seeBall) {
-        ball = '*';
-      } else {
-        ball = String(blockCountBall).charAt(0);
-      }
-      char goal;
-      if (!blockCountGoal && seeGoal) {
-        goal = '*';
-      } else {
-        goal = String(blockCountGoal).charAt(0);
-      }
-      char east;
-      if (!blockCountEast && seeEast) {
-        east = '*';
-      } else {
-        east = String(blockCountEast).charAt(0);
-      }
-      char west;
-      if (!blockCountWest && seeWest) {
-        west = '*';
-      } else {
-        west = String(blockCountWest).charAt(0);
-      }
+      char charBall;
+      if (!blockCountBall && seeBall) charBall = '*';
+      else charBall = String(blockCountBall).charAt(0);
+      char charGoal;
+      if (!blockCountGoal && seeGoal) charGoal = '*';
+      else charGoal = String(blockCountGoal).charAt(0);
+      char charEast;
+      if (!blockCountEast && seeEast) charEast = '*';
+      else charEast = String(blockCountEast).charAt(0);
+      char charWest;
+      if (!blockCountWest && seeWest) charWest = '*';
+      else charWest = String(blockCountWest).charAt(0);
 
-      if (subpage == 0) {
-        title = "Pixy " + String(ball) + "+" + String(goal) + "+" + String(west) + "+" + String(east);
-      } else if (subpage == 1) {
-        title = "Pixy Ball " + String(ball);
-      } else if (subpage == 2) {
-        title = "Pixy Goal   " + String(goal);
-      } else if (subpage == 3) {
-        title = "Pixy CC " + String(west) + "+" + String(east);
-      }
+      if (subpage == 0) title = "Pixy " + String(charBall) + "+" + String(charGoal) + "+" + String(charWest) + "+" + String(charEast);
+      else if (subpage == 1) title = "Pixy Ball " + String(charBall);
+      else if (subpage == 2) title = "Pixy Goal   " + String(charGoal);
+      else if (subpage == 3) title = "Pixy CC " + String(charWest) + "+" + String(charEast);
       addLine();
       addLine();
       addLine();
@@ -276,8 +259,8 @@ bool Display::set() {
       break;
     case 6:
       title = "Mate";
-      addLine("Conn:", mate.timeout() / 1000);
-      if (!mate.timeout()) {
+      if (mate.timeout()) addLine("Tout:", mate.timeout() / 1000);
+      else {
         addLine("^" + String(mate.front()), String(mate.right()) + ">");
         addLine("<" + String(mate.left()), String(mate.back()) + "v");
         if (!mate.getMotEn()) addLine("Role:", "off");
