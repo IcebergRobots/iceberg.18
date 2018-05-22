@@ -116,7 +116,8 @@ unsigned long lastDisplay = 0; // Zeitpunkt des letzten Displayaktualisierens
 String displayDebug = "";      // unterste Zeile des Bildschirms;
 Display d = Display(PIN_4); // OBJEKTINITIALISIERUNG
 
-// Globale Definition: LEDS
+// Globale Definition: LEDS, DEBUG
+bool hasDebugHead = false;        // wurden bereits die Metadaten gesendet
 bool stateFine = true;            // liegt kein Fehler vor?
 unsigned long ledTimer = 0;       // Zeitpunkt der letzten Led-Aktualisierung
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
@@ -216,8 +217,20 @@ void setup() {
   info.begin();     // STATUS-LEDS initialisieren
   led.animation();
   d.setupMessage(10, "B: " + String(lightBarrierTriggerLevel), "");
-  DEBUG_SERIAL.println("\nICEBERG ROBOTS");
-  if (silent) DEBUG_SERIAL.println("Debug mode off");
+  DEBUG_SERIAL.println();
+  DEBUG_SERIAL.println("ICEBERG ROBOTS");
+  DEBUG_SERIAL.println("-=-=-=-=-=-=-=-");
+  if (silent) DEBUG_SERIAL.println("DEAKTIVIERT");
+  else {
+    DEBUG_SERIAL.println("AKTIVIERT");
+    DEBUG_SERIAL.print(boolToSign(DEBUG_STATE));
+    DEBUG_SERIAL.println("ROLLENSTATUS");
+    DEBUG_SERIAL.print(boolToSign(DEBUG_FUNCTIONS));
+    DEBUG_SERIAL.println("TÄTIGKEITEN");
+    DEBUG_SERIAL.print(boolToSign(DEBUG_LOOP));
+    DEBUG_SERIAL.println("TICK");
+  }
+  DEBUG_SERIAL.println("-=-=-=-=-=-=-=-");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
   while (millis() < 1000) {}
@@ -225,10 +238,8 @@ void setup() {
 //###################################################################################################
 
 void loop() {
-  debug(millis());
-  if (p.isRusher()) debug("r");
-  else debug("k");
-  debug(driveState + String("          ").substring(0, 10 - driveState.length()));
+  hasDebugHead = false;
+  if (DEBUG_LOOP) debug();
   displayDebug = "";
 
   readCompass();
@@ -283,13 +294,13 @@ void loop() {
   if (!digitalRead(SCHUSS_BUTTON)) kick(); // schieße
 
   if (led.isAnimation() || millis() - ledTimer > 100) {
-    debug("led");
+    if (DEBUG_FUNCTIONS) debug("led");
     led.set();  // Lege Leds auf Statusinformation fest
     led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
   }
 
   if (millis() - pixyTimer > 50) {
-    debug("pixy");
+    if (DEBUG_FUNCTIONS) debug("pixy");
     readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
   }
 
@@ -378,14 +389,13 @@ void loop() {
       driveDirection = -90;
     }
   } else {
-    p.setState();
     p.play();
   }
 
 
   int rotationValue = (float)driveRotation / 255 * ausrichten(driveOrientation);
   drivePower = max(drivePower - abs(rotationValue), 0);
-  if (drivePower > 0) drivePower = max(40, drivePower);
+  if (drivePower > 0) drivePower = max(30, drivePower);
   if (!isLifted && isHeadstart) {
     for (int i = 0; i < 4; i++) {
       m.steerMotor(i, 255);
@@ -396,9 +406,9 @@ void loop() {
 
 
   if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200)) {
-    debug("display");
+    if (DEBUG_FUNCTIONS) debug("display");
     d.update();   // aktualisiere Bildschirm und LEDs
   }
 
-  debugln();
+  if (hasDebugHead) debugln();
 }

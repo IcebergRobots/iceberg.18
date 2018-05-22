@@ -77,7 +77,7 @@ extern unsigned long lastDisplay;
 extern String displayDebug;
 
 // Implementierung: LEDS
-extern bool stateFine;
+extern bool hasDebugHead, stateFine;
 extern unsigned long ledTimer;
 extern Adafruit_NeoPixel bottom, matrix, info;
 //extern Led led;
@@ -115,8 +115,6 @@ extern bool wasSelect, wasBack;
 #define SPEED_ATTACK 100        // [0 bis 255]~100 STATUS 8: Angriff
 #define SPEED_DRIFT 140         // [0 bis 255]~140
 #define SPEED_LINE 90           // [0 bis 255]~80
-
-
 
 // TIMES
 #define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
@@ -169,6 +167,9 @@ extern bool wasSelect, wasBack;
 
 // Serielle Kommunikationen
 #define DEBUG true                // soll eine Usb-Kommunikation bestehen?
+#define DEBUG_STATE true          // soll der Statuswechsel gezeigt werden?
+#define DEBUG_FUNCTIONS false     // sollen Methoden gezeigt werden?
+#define DEBUG_LOOP false          // soll jeder Schleifendurchlauf gezeigt werden?
 #define DEBUG_SERIAL Serial       // Serial der Usb-Schnittstelle
 #define BLUETOOTH true            // soll eine Bluetooth-Kommunikation bestehen?
 #define BLUETOOTH_SERIAL Serial1  // Serial des Bluetooth-Moduls

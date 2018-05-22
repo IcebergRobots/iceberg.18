@@ -11,129 +11,96 @@ extern Ultrasonic us;
 Player::Player() {
 }
 
-void Player::setRusher(bool force) {
-  if (isKeeper()) {
-    if (force || millis() - roleTimer > ROLE_COOLDOWN) {
-      role = 1;
-      roleTimer = millis();
-      ledTimer = millis() - 101;
-    }
-  }
-}
-
-void Player::setKeeper(bool force) {
-  if (isRusher()) {
-    if (force || millis() - roleTimer > ROLE_COOLDOWN) {
-      role = 0;
-      roleTimer = millis();
-      ledTimer = millis() - 101;
-    }
-  }
-}
-
-bool Player::isRusher() {
-  return role;
-}
-
-bool Player::isKeeper() {
-  return !role;
-}
-
-void Player::toggleDirection() {
-  stateLeft = !stateLeft;
-  stateTimer = millis();
-  state = 1;
-}
-
-unsigned long Player::lastRoleToggle() {
-  return millis() - roleTimer;
-}
-
-void Player::setState() {
+void Player::changeState() {
   // set state
   byte tempState = state;
-  if (state < 6 && seeBall && (isRusher() || mate.timeout())) state = 6; // wir werden aktiv
-  if (state > 5 && !seeBall) state = 5; // wir werden blind
-  if (state > 5 && isKeeper()) state = 0; // wir werden passiv
-  if (tempState != state) stateTimer = millis();
+  if (state >= 6) {
+    // aktiv
+    if (isKeeper() && !mate.timeout()) setState(0, "passive"); // werden passiv
+    else if (!seeBall) setState(5, "blind"); // wir werden blind
+  } else {
+    // passiv
+    if (seeBall && (isRusher() || mate.timeout())) setState(6, "active"); // wir werden aktiv
+  }
 
   switch (state) {
     // Passivspiel
     case 0: // Nach hinten
-      if (us.back() <= COURT_REARWARD_MAX) state = 1;
-      else if (millis() - stateTimer > BACKWARD_MAX_DURATION) state = 4;
+      if (us.back() <= COURT_REARWARD_MAX) setState(1, "rearward<");
+      else if (millis() - stateTimer > BACKWARD_MAX_DURATION) setState(4, "time>");
       break;
 
     case 1: // Torverteidigung
       if (!seeBall && millis() - stateTimer > SIDEWARD_MAX_DURATION) {
-        if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
-        else if (isKeeper()) state = 2;     // wechsle in Drehmodus
-        else toggleDirection();  // wechsle Fahrrichtung
+        if (us.back() > COURT_REARWARD_MAX) setState(0, "rearward>"); // fahre rückwärts
+        else if (isKeeper()) setState(2, "time>,keeper");     // wechsle in Drehmodus
+        else setDirection(TOGGLE, "time>,rusher");  // wechsle Fahrrichtung
       } else if (millis() - stateTimer > SIDEWARD_MIN_DURATION) {
-        if (us.back() > COURT_REARWARD_MAX) state = 0; // fahre rückwärts
-        else if (millis() - lineTimer < 100) toggleDirection();
-        else if (seeBall && ball < -BALL_ANGLE_TRIGGER) {
-          stateLeft = true;
-          stateTimer = max(0, millis() - SIDEWARD_MIN_DURATION + 200);
-        }
-        else if (seeBall && ball > BALL_ANGLE_TRIGGER) {
-          stateLeft = false;
-          stateTimer = max(0, millis() - SIDEWARD_MIN_DURATION + 200);
-        }
-        else if (atGatepost() && isKeeper()) state = 2;  // wechsle in Drehmodus
+        if (us.back() > COURT_REARWARD_MAX) setState(0, "rearward>"); // fahre rückwärts
+        else if (millis() - lineTimer < 100) setDirection(TOGGLE, "line");
+        else if (seeBall) {
+          if (ball < -BALL_ANGLE_TRIGGER) {
+            setDirection(LEFT, "ball<");
+            stateTimer += 200 - SIDEWARD_MIN_DURATION;
+          } else if (ball > BALL_ANGLE_TRIGGER) {
+            setDirection(RIGHT, "ball>");
+            stateTimer += 200 - SIDEWARD_MIN_DURATION;
+          }
+        } else if (atGatepost() && isKeeper()) setState(2, "gatepost");  // wechsle in Drehmodus
       }
       break;
 
     case 2: // Pfostendrehung hin
       if (seeBall) {
-        if (stateLeft && ball > BALL_ANGLE_TRIGGER) state = 3;
-        else if (seeBall && !stateLeft && ball < -BALL_ANGLE_TRIGGER) state = 3;
+        if (stateLeft && ball > BALL_ANGLE_TRIGGER) setState(3, "ball>");
+        else if (!stateLeft && ball < -BALL_ANGLE_TRIGGER) setState(3, "ball<");
       }
-      else if (millis() - stateTimer > TURN_MAX_DURATION) state = 3;
-      else if (stateLeft && heading < -ANGLE_TURN_MAX * 0.9) state = 3;
-      else if (!stateLeft && heading > ANGLE_TURN_MAX * 0.9) state = 3;
+      else if (millis() - stateTimer > TURN_MAX_DURATION) setState(3, "time>");
+      else if (stateLeft && heading < -ANGLE_TURN_MAX * 0.9) setState(3, "angle<");
+      else if (!stateLeft && heading > ANGLE_TURN_MAX * 0.9) setState(3, "angle>");
       break;
 
     case 3: // Pfostendrehung zurück
       if (seeBall) {
         if (stateLeft) {
-          if ((ball / 3 + heading) > -ANGLE_RETURN_MIN) toggleDirection();
-          else if (ball < -BALL_ANGLE_TRIGGER) state = 2;
+          if ((ball / 3 + heading) > -ANGLE_RETURN_MIN) setDirection(TOGGLE, "ball|");
+          else if (ball < -BALL_ANGLE_TRIGGER) setState(2, "ball<");
         } else {
-          if ((ball / 3 + heading) < ANGLE_RETURN_MIN) toggleDirection();
-          else if (ball > BALL_ANGLE_TRIGGER) state = 2;
+          if ((ball / 3 + heading) < ANGLE_RETURN_MIN) setDirection(TOGGLE, "ball|");
+          else if (ball > BALL_ANGLE_TRIGGER) setState(2, "ball>");
         }
       }
-      else if (millis() - stateTimer > RETURN_MAX_DURATION) toggleDirection();
-      else if (abs(heading) < ANGLE_RETURN_MIN) toggleDirection();
+      else if (millis() - stateTimer > RETURN_MAX_DURATION) setDirection(TOGGLE, "time>");
+      else if (abs(heading) < ANGLE_RETURN_MIN) setDirection(TOGGLE, "angle|");
       break;
 
     case 4: // Befreiung
-      if (millis() - stateTimer > GOAL_STUCK_DURATION) state = 0; // fahre wieder rückwärts und warte erneut * Sekunden
+      if (millis() - stateTimer > GOAL_STUCK_DURATION) setState(0, "time>"); // fahre wieder rückwärts und warte erneut * Sekunden
       break;
 
     case 5: // Seitlich verloren
-      if (millis() - stateTimer > AVOID_MATE_DURATION) state = 0;
-      else if (seeBall && stateLeft && ball > BALL_ANGLE_TRIGGER) stateLeft = false;
-      else if (seeBall && !stateLeft && ball < -BALL_ANGLE_TRIGGER) stateLeft = true;
+      if (millis() - stateTimer > AVOID_MATE_DURATION) setState(0, "time>");
+      else if (seeBall && stateLeft && ball > BALL_ANGLE_TRIGGER) setDirection(RIGHT, "ball>");
+      else if (seeBall && !stateLeft && ball < -BALL_ANGLE_TRIGGER) setDirection(LEFT, "ball<");
       break;
 
 
     // Aktivspiel
     case 6: // Ballverfolgung
-      if (closeBall && seeGoal) state = 7;
+      if (closeBall && seeGoal) setState(7, "closeBall");
       //if (ball < BALL_ANGLE_TRIGGER)
       break;
 
     case 7: // Torausrichtung
-      if (!closeBall || !seeGoal) state = 6;
-      else if (goal < -BALL_ANGLE_TRIGGER) stateLeft = true;
-      else if (goal > BALL_ANGLE_TRIGGER) stateLeft = false;
-      else state = 8;
+      if (!closeBall) setState(6, "farBall");
+      else if (!seeGoal) setState(6, "!goal");
+      else if (goal < -BALL_ANGLE_TRIGGER) setDirection(LEFT, "goal<");
+      else if (goal > BALL_ANGLE_TRIGGER) setDirection(RIGHT, "goal>");
+      else setState(8, "goal|");
       break;
 
     case 8: // Angriff
-      if (!closeBall) state = 6;
+      if (!closeBall) setState(6, "!closeBall");
       break;
   }
   if (tempState == 0 && state == 1) stateTimer = max(0, millis() - SIDEWARD_MIN_DURATION / 2);
@@ -141,6 +108,8 @@ void Player::setState() {
 }
 
 void Player::play() {
+  changeState();
+
   driveRotation = 255;
   switch (state) {
     case 0: // Nach hinten
@@ -160,17 +129,17 @@ void Player::play() {
 
     case 1: // Torverteidigung
       // fahre seitlich vor dem Tor
-      if (seeBall) drivePower = map(abs(ball), 0, BALL_ANGLE_TRIGGER, SPEED_KEEPER, max(40, 0.6 * SPEED_KEEPER));
+      if (seeBall) drivePower = map(abs(ball), 0, BALL_ANGLE_TRIGGER, SPEED_KEEPER, 0.6 * SPEED_KEEPER);
       else drivePower = SPEED_KEEPER;
       driveOrientation = 0;
       if (stateLeft) {
         driveDirection = ANGLE_SIDEWAY;
         driveState = "< sideward";
-        if (us.left() < COURT_BORDER_MIN) drivePower = max(40, SPEED_KEEPER * 0.7); // fahre langsamer am Spielfeldrand
+        if (us.left() < COURT_BORDER_MIN) drivePower = SPEED_KEEPER * 0.7; // fahre langsamer am Spielfeldrand
       } else {
         driveDirection = -ANGLE_SIDEWAY;
         driveState = "> sideward";
-        if (us.right() < COURT_BORDER_MIN) drivePower = max(40, SPEED_KEEPER * 0.7); // fahre langsamer am Spielfeldrand
+        if (us.right() < COURT_BORDER_MIN) drivePower = SPEED_KEEPER * 0.7; // fahre langsamer am Spielfeldrand
       }
       if (us.back() < COURT_REARWARD_MIN) driveDirection *= map(us.back(), 0, COURT_REARWARD_MIN, 8, 10) / 10.0; // fahre leicht schräg nach vorne
       break;
@@ -253,7 +222,6 @@ void Player::play() {
         driveState = "^ follow";
       }
       driveOrientation = 0;
-      driveState = "^ free";
       break;
 
     case 7: // Torausrichtung
@@ -278,6 +246,57 @@ void Player::play() {
       if (hasBall) kick();
       break;
   }
+}
+
+void Player::setState(byte s, String reason) {
+  if (s != state) {
+    if (DEBUG_STATE) debug(String(state) + "->" + String(s) + ":" + reason);
+    state = s;
+    stateTimer = millis();
+  }
+}
+
+void Player::setDirection(byte dir, String reason) {
+  if (dir > 1) dir = !stateLeft;
+  if (dir != stateLeft) {
+    stateLeft = dir;
+    if (DEBUG_STATE && stateLeft)  debug(String(state) + "<:" + reason);
+    if (DEBUG_STATE && !stateLeft) debug(String(state) + ">:" + reason);
+    stateTimer = millis();
+    setState(1, "toggle");
+  }
+}
+
+void Player::setRusher(bool force) {
+  if (isKeeper()) {
+    if (force || millis() - roleTimer > ROLE_COOLDOWN) {
+      role = 1;
+      roleTimer = millis();
+      ledTimer = millis() - 101;
+    }
+  }
+}
+
+void Player::setKeeper(bool force) {
+  if (isRusher()) {
+    if (force || millis() - roleTimer > ROLE_COOLDOWN) {
+      role = 0;
+      roleTimer = millis();
+      ledTimer = millis() - 101;
+    }
+  }
+}
+
+bool Player::isRusher() {
+  return role;
+}
+
+bool Player::isKeeper() {
+  return !role;
+}
+
+unsigned long Player::lastRoleToggle() {
+  return millis() - roleTimer;
 }
 
 byte Player::getState() {

@@ -138,11 +138,11 @@ void avoidLine() {
     headstartTimer = 0;
     /*if (drivePower > 200) {
       lineTimer = millis() + (2 * LINE_DURATION);
-    } else if (drivePower > 100) {
+      } else if (drivePower > 100) {
       lineTimer = millis() + (1.5 * LINE_DURATION);
-    } else {
+      } else {
       lineTimer = millis() + LINE_DURATION;
-    }*/
+      }*/
     displayDebug = driveDirection;
   }
 
@@ -298,21 +298,42 @@ void readPixy() {
   pixyTimer = millis(); // merke Zeitpunkt
 }
 
+String boolToSign(bool b) {
+  if(b) return "+ ";
+  else return "- ";
+}
+
 /*****************************************************
   sende Text zum PC
 *****************************************************/
 void debug(String str) {
-  if (DEBUG && !silent) DEBUG_SERIAL.print(str + " ");
+  if (DEBUG && !silent) {
+    if (!hasDebugHead) {
+      hasDebugHead = true;
+      debug(millis());
+      if (p.isRusher()) debug("r");
+      else debug("k");
+      if (seeBall) {
+        if (ball < 0) debug(String("    ").substring(0, 4 - String(ball).length()) + String(ball));
+        else debug(String("   ").substring(0, 3 - String(ball).length()) + "+" + String(ball));
+      } else debug("####");
+      debug(driveState + String("          ").substring(0, 10 - driveState.length()));
+    }
+    DEBUG_SERIAL.print(str + " ");
+  }
 }
 void debug(long num) {
   debug(String(num));
+}
+void debug() {
+  debug("");
 }
 
 /*****************************************************
   sende Text zum PC
 *****************************************************/
 void debugln(String str) {
-  if (DEBUG && !silent) DEBUG_SERIAL.println(str);
+  debug(str + "\n");
 }
 void debugln(long num) {
   debugln(String(num));

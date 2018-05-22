@@ -36,7 +36,7 @@ void Display::setupMessage(byte pos, String title, String description) {
 // Infos auf dem Bildschirm anzeigen
 void Display::update() {
   if (set() == false) {
-    debug("reload");
+    if(DEBUG_FUNCTIONS) debug("reload");
     set();
   }
 
