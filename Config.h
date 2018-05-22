@@ -28,8 +28,8 @@
 // Implementierung: FAHREN
 extern bool start, onLine, isHeadstart, isKeeperLeft;
 extern byte role;
-extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
-extern unsigned long lineTimer, headstartTimer, lastKeeperToggle, flatTimer;
+extern int rotMulti, drivePower, driveRotation, rotationValue, driveDirection, driveOrientation, lineDir;
+extern unsigned long lineTimer, headstartTimer, flatTimer;
 extern String driveState;
 
 // Implementierung: KOMPASS
@@ -111,7 +111,7 @@ extern bool wasSelect, wasBack;
 #define SPEED_LOST 100          // [0 bis 255]~100 STATUS 5: Seitlich verloren
 #define SPEED_SIDEWAY 100       // [0 bis 255]~60  STATUS 6: Ballverfolgung
 #define SPEED_BALL 72           // [0 bis 255]~72  STATUS 6: Ballverfolgung
-#define SPEED_CLOSE 100         // [0 bis 255]~100 STATUS 7: Torausrichtung
+#define SPEED_CLOSE 60         // [0 bis 255]~100 STATUS 7: Torausrichtung
 #define SPEED_ATTACK 100        // [0 bis 255]~100 STATUS 8: Angriff
 #define SPEED_DRIFT 140         // [0 bis 255]~140
 #define SPEED_LINE 90           // [0 bis 255]~80
@@ -150,14 +150,14 @@ extern bool wasSelect, wasBack;
 #define INFO_BRIGHTNESS 100     // [0 bis 255] Helligkeit der Info-Leds
 
 // PID-Regler
-#define PID_FILTER_P .27 // [0 bis *]~.27 p:proportional
-#define PID_FILTER_I .02   // [0 bis *]~0   i:vorausschauend
-#define PID_FILTER_D .03 // [0 bis *]~.03 d:Schwung herausnehmen (nicht zu weit drehen)
+#define PID_FILTER_P .27  // [0 bis *]~.27 p:proportional
+#define PID_FILTER_I .02  // [0 bis *]~0   i:vorausschauend
+#define PID_FILTER_D .03  // [0 bis *]~.03 d:Schwung herausnehmen (nicht zu weit drehen)
 
 // PIYX
-#define SIGNATURE_BALL 1  // Pixy-Signature des Balls
-#define SIGNATURE_GOAL 2  // Pixy-Signature des Tors
-#define SIGNATURE_CC 28   // Pixy-Signature des Tors
+#define SIGNATURE_BALL 1      // Pixy-Signature des Balls
+#define SIGNATURE_GOAL 2      // Pixy-Signature des Tors
+#define SIGNATURE_CC 28       // Pixy-Signature des Tors
 #define BALL_WIDTH_TRIGGER 50 // Schwellwert eines großen Balles
 #define BALL_ANGLE_TRIGGER 50 // Schwellenwert der Ballrichtung
 
@@ -174,16 +174,16 @@ extern bool wasSelect, wasBack;
 #define BLUETOOTH true            // soll eine Bluetooth-Kommunikation bestehen?
 #define BLUETOOTH_SERIAL Serial1  // Serial des Bluetooth-Moduls
 #define BOTTOM_SERIAL Serial2     // Serial des Bodensensor-Arduinos
-#define ULTRASONIC_SERIAL Serial3         // Serial des Ultraschall-Arduinos
+#define ULTRASONIC_SERIAL Serial3 // Serial des Ultraschall-Arduinos
 #define START_MARKER 254          // Startzeichen einer Bluetooth-Nachricht
 #define END_MARKER 255            // Endzeichen einer Bluetooth-Nachricht
 
 // BATTERY_VOLTAGE
-#define VOLTAGE_MIN 40        // [0 bis 126]~40  Mindestspannung des Akkus
-#define VOLTAGE_MOTOR_CRIT 100 // [0 bis 126]~90  Kritische Akkuspannung beim Fahren
-#define VOLTAGE_MOTOR_LOW 108 // [0 bis 126]~108 Geringe Akkuspannung beim Fahren
-#define VOLTAGE_CRIT 100       // [0 bis 126]~90  Kritische Akkuspannung
-#define VOLTAGE_LOW 110       // [0 bis 126]~110 Geringe Akkuspannung
+#define VOLTAGE_MIN 40          // [0 bis 126]~40  Mindestspannung des Akkus
+#define VOLTAGE_MOTOR_CRIT 100  // [0 bis 126]~90  Kritische Akkuspannung beim Fahren
+#define VOLTAGE_MOTOR_LOW 108   // [0 bis 126]~108 Geringe Akkuspannung beim Fahren
+#define VOLTAGE_CRIT 100        // [0 bis 126]~90  Kritische Akkuspannung
+#define VOLTAGE_LOW 110         // [0 bis 126]~110 Geringe Akkuspannung
 
 // Zeitumwandlung
 #define MILS_PER_SEC  (1000UL)  // Millisekunden pro Sekunde

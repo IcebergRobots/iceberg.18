@@ -55,11 +55,11 @@ void calculateStates() {
   }
   silent = !digitalRead(SWITCH_DEBUG);
 
-  seeBall = !isLifted && millis() - seeBallTimer < 100;
+  seeBall = !isLifted && millis() - seeBallTimer < 250;
   seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
   seeEast = !isLifted && millis() - seeEastTimer < 500;
   seeWest = !isLifted && millis() - seeWestTimer < 500;
-  closeBall = millis() - closeBallTimer < 500;
+  closeBall = seeBall && millis() - closeBallTimer < 500;
   isDrift = millis() - driftTimer < 100;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
   if (pixyResponseTimer > 0 && millis() - pixyResponseTimer < PIXY_RESPONSE_DURATION) {
@@ -257,18 +257,20 @@ void readPixy() {
         blockCountBall++;
         if (area > ballAreaMax) {
           ballAreaMax = area;
-          ball = x;         // merke Ballwinkel
+          ball = x;           // merke Ballwinkel
           ballWidth = width;  // merke Ballbreite
+          ballArea = area;    // merke Ballgröße
           seeBallTimer = millis();
           if (ballWidth > BALL_WIDTH_TRIGGER) closeBallTimer = millis();
         }
         break;
       case SIGNATURE_GOAL:
         blockCountGoal++;
-        if (area > ballAreaMax) {
-          ballAreaMax = area;
-          goal = x;          // merke Torwinkel
+        if (area > goalAreaMax) {
+          goalAreaMax = area;
+          goal = x;           // merke Torwinkel
           goalWidth = width;  // merke Torbreite
+          goalArea = area;    // merke Torgröße
           seeGoalTimer = millis();
         }
         break;

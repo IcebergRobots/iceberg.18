@@ -20,7 +20,8 @@ void Player::changeState() {
     else if (!seeBall) setState(5, "blind"); // wir werden blind
   } else {
     // passiv
-    if (seeBall && (isRusher() || mate.timeout())) setState(6, "active"); // wir werden aktiv
+    if (seeBall && state != 3 && state != 4 && (isRusher() || mate.timeout())) setState(6, "active"); // wir werden aktiv
+    // sehenBall &   keine Pfostendrehung   &  (Stürmer   oder  Singleplayer)
   }
 
   switch (state) {
@@ -87,19 +88,24 @@ void Player::changeState() {
 
     // Aktivspiel
     case 6: // Ballverfolgung
+      if (seeBall && ball > BALL_ANGLE_TRIGGER) stateLeft = RIGHT;
+      else if (seeBall && ball < -BALL_ANGLE_TRIGGER) stateLeft = LEFT;
+
       if (closeBall && seeGoal) setState(7, "closeBall");
-      //if (ball < BALL_ANGLE_TRIGGER)
       break;
 
     case 7: // Torausrichtung
       if (!closeBall) setState(6, "farBall");
       else if (!seeGoal) setState(6, "!goal");
-      else if (goal < -BALL_ANGLE_TRIGGER) setDirection(LEFT, "goal<");
-      else if (goal > BALL_ANGLE_TRIGGER) setDirection(RIGHT, "goal>");
+      else if (goal < -BALL_ANGLE_TRIGGER) stateLeft = LEFT;
+      else if (goal > BALL_ANGLE_TRIGGER) stateLeft = RIGHT;
       else setState(8, "goal|");
       break;
 
     case 8: // Angriff
+      if (seeBall && ball > BALL_ANGLE_TRIGGER) stateLeft = RIGHT;
+      else if (seeBall && ball < -BALL_ANGLE_TRIGGER) stateLeft = LEFT;
+    
       if (!closeBall) setState(6, "!closeBall");
       break;
   }
@@ -228,10 +234,12 @@ void Player::play() {
       // orientiere dich zum Ball
       // bringe Ball und Tor in eine Linie
       drivePower = SPEED_CLOSE;
-      if (stateLeft) {
+      if (!stateLeft) {
+        // Tor ist links
         driveDirection = ANGLE_SIDEWAY;
         driveState = "< close";
       } else {
+        // Tor ist rechts
         driveDirection = -ANGLE_SIDEWAY;
         driveState = "> close";
       }
@@ -242,7 +250,7 @@ void Player::play() {
       drivePower = SPEED_ATTACK;
       if (seeGoal) driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       else driveDirection = 0;
-      driveState = "^ straight";
+      driveState = "^ attack";
       if (hasBall) kick();
       break;
   }

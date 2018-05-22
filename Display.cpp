@@ -36,7 +36,7 @@ void Display::setupMessage(byte pos, String title, String description) {
 // Infos auf dem Bildschirm anzeigen
 void Display::update() {
   if (set() == false) {
-    if(DEBUG_FUNCTIONS) debug("reload");
+    if (DEBUG_FUNCTIONS) debug("reload");
     set();
   }
 
@@ -161,6 +161,12 @@ bool Display::set() {
   line2 = "";
   lineIndex = 0;
 
+  String charBall;
+  String charGoal;
+  String charEast;
+  String charWest;
+  String charSum;
+
   switch (page) {
     case 0:
       if (isTypeA) title = "IcebergRobotsA";
@@ -182,23 +188,23 @@ bool Display::set() {
       break;
     case 1:
       title = "Sensor";
-      addLine("Ball:", ball, true);
+      addLine("B.angl", ball, true);
       if (!us.timeout()) {
         addLine("^" + String(us.front()), String(us.right()) + ">");
         addLine("<" + String(us.left()), String(us.back()) + "v");
       }
-      addLine("Barr:", analogRead(LIGHT_BARRIER));
-      addLine("Volt:", String(batVol / 10) + "." + String(batVol % 10)); // battery voltage
+      addLine("Barr", analogRead(LIGHT_BARRIER));
+      addLine("Volt", String(batVol / 10) + "." + String(batVol % 10)); // battery voltage
       if (onLine) {
         addLine("Line:", lineDir, true);
       } else {
         addLine("Line:");
       }
-      addLine("Head:", heading, true);
-      addLine("Time:", millis() / 1000);
-      addLine("acc.X:", accel_event.acceleration.x, true);
-      addLine("acc.Y:", accel_event.acceleration.y, true);
-      addLine("acc.Z:", accel_event.acceleration.z, true);
+      addLine("Head", heading, true);
+      addLine("Time", millis() / 1000);
+      addLine("acc.X", accel_event.acceleration.x, true);
+      addLine("acc.Y", accel_event.acceleration.y, true);
+      addLine("acc.Z", accel_event.acceleration.z, true);
       addLine("==========");
       break;
     case 2:
@@ -206,23 +212,20 @@ bool Display::set() {
       addLine("==========");
       break;
     case 3:
-      char charBall;
       if (!blockCountBall && seeBall) charBall = '*';
       else charBall = String(blockCountBall).charAt(0);
-      char charGoal;
       if (!blockCountGoal && seeGoal) charGoal = '*';
       else charGoal = String(blockCountGoal).charAt(0);
-      char charEast;
       if (!blockCountEast && seeEast) charEast = '*';
       else charEast = String(blockCountEast).charAt(0);
-      char charWest;
       if (!blockCountWest && seeWest) charWest = '*';
       else charWest = String(blockCountWest).charAt(0);
+      charSum = String(blockCount).charAt(0);
 
-      if (subpage == 0) title = "Pixy " + String(charBall) + "+" + String(charGoal) + "+" + String(charWest) + "+" + String(charEast);
-      else if (subpage == 1) title = "Pixy Ball " + String(charBall);
-      else if (subpage == 2) title = "Pixy Goal   " + String(charGoal);
-      else if (subpage == 3) title = "Pixy CC " + String(charWest) + "+" + String(charEast);
+      if (subpage == 0) title = "Pixy " + charBall + "+" + charGoal + "+" + charWest + "+" + charEast + "=" + charSum;
+      else if (subpage == 1) title = "Ball " + charBall;
+      else if (subpage == 2) title = "Goal   " + charGoal;
+      else if (subpage == 3) title = "CC       " + charWest + "+" + charEast;
       addLine();
       addLine();
       addLine();
@@ -230,31 +233,32 @@ bool Display::set() {
       break;
     case 4:
       title = "Pixy";
-      if (seeBall) addLine("B.ang:", ball, true);
-      else addLine("B.ang:");
-      addLine("B.wid:", ballWidth);
-      addLine("B.siz:", ballArea);
-      addLine("B.tim:", (millis() - seeBallTimer) / 1000);
-      if (seeGoal) addLine("G.ang:", goal, true);
-      else addLine("G.ang:");
-      addLine("G.wid:", goalWidth);
-      addLine("G.siz:", goalArea);
-      addLine("G.tim", (millis() - seeGoalTimer) / 1000);
+      if (seeBall) addLine("B.angl", ball, true);
+      else addLine("B.angl");
+      addLine("B.widt", ballWidth);
+      addLine("B.area", ballArea);
+      addLine("#ball", (millis() - seeBallTimer) / 1000);
+      if (seeGoal) addLine("G.angl", goal, true);
+      else addLine("G.angl");
+      addLine("G.widt", goalWidth);
+      addLine("G.area", goalArea);
+      addLine("#goal", (millis() - seeGoalTimer) / 1000);
       addLine("==========");
       break;
     case 5:
       title = "Driving";
-      addLine("Dir:", driveDirection, true);
-      addLine("Rot:", driveRotation, true);
-      addLine("Pwr:", drivePower, true);
+      addLine("D.dir", driveDirection, true);
+      addLine("D.pwr", drivePower, true);
       addLine(driveState);
-      addLine("Ori:", pidSetpoint, true);
-      addLine("Line:", onLine);
-      addLine("Head:", isHeadstart);
-      addLine("K.tim:", (millis() - lastKeeperToggle) / 1000);
-      addLine("H.tim:", (millis() - headstartTimer) / 1000);
-      addLine("F.tim:", (millis() - flatTimer) / 1000);
-      addLine("R.tim:", p.lastRoleToggle() / 1000);
+      addLine("D.ori", pidSetpoint, true);
+      addLine("rotVa", rotationValue, true);
+      addLine("D.rot", driveRotation, true);
+      addLine("?line", onLine);
+      addLine("?head", isHeadstart);
+      addLine("#head", (millis() - headstartTimer) / 1000);
+      addLine("#flat", (millis() - flatTimer) / 1000);
+      addLine("#role", p.lastRoleToggle() / 1000);
+      addLine("#clos", closeBallTimer / 1000);
       addLine("==========");
       break;
     case 6:
@@ -295,7 +299,7 @@ bool Display::set() {
 }
 
 void Display::addLine(String title, String value) {
-  if(title.length() + value.length() < 10) title += String("          ").substring(0, 10 - title.length() - value.length());
+  if (title.length() + value.length() < 10) title += String("          ").substring(0, 10 - title.length() - value.length());
   title += value;
   title = title.substring(0, 10);
   int line = lineIndex - subpage;

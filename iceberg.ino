@@ -20,13 +20,13 @@ bool isKeeperLeft = false;  // deckten wir zuletzt das Tor mit einer Linksbewegu
 byte role = 0;              // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
 int rotMulti;               // Scalar, um die Rotationswerte zu verstärken
 int drivePower = 0;         // [-255 bis 255] aktuelle maximale Motorstärke
-int driveRotation = 0;       // [-255 bis 255] aktuelle Rotationsstärke
+int driveRotation = 0;      // [-255 bis 255] aktuelle Rotationsstärke
+int rotationValue = 0;      // [-255 bis 255] aktuelle Rotationsstärke
 int driveDirection = 0;     // [-180 bis 180] Ziel-Fahrrichtung
 int driveOrientation = 0;   // [-180 bis 180] Ziel-Orientierungswinkel
 int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;        // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
-unsigned long lastKeeperToggle = 0; // Zeitpunkt des letzten Richtungswechsel beim Tor schützen
 unsigned long flatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
 String driveState = "";             // Zustand des Fahrens
 Pilot m;  // OBJEKTINITIALISIERUNG
@@ -299,7 +299,7 @@ void loop() {
     led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
   }
 
-  if (millis() - pixyTimer > 50) {
+  if (millis() - pixyTimer > 30) {
     if (DEBUG_FUNCTIONS) debug("pixy");
     readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
   }
@@ -393,7 +393,7 @@ void loop() {
   }
 
 
-  int rotationValue = (float)driveRotation / 255 * ausrichten(driveOrientation);
+  rotationValue = (float)driveRotation / 255 * ausrichten(driveOrientation);
   drivePower = max(drivePower - abs(rotationValue), 0);
   if (drivePower > 0) drivePower = max(30, drivePower);
   if (!isLifted && isHeadstart) {
