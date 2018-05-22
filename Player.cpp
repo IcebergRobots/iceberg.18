@@ -99,13 +99,13 @@ void Player::changeState() {
       else if (!seeGoal) setState(6, "!goal");
       else if (goal < -BALL_ANGLE_TRIGGER) stateLeft = LEFT;
       else if (goal > BALL_ANGLE_TRIGGER) stateLeft = RIGHT;
-      else setState(8, "goal|");
+      else if (abs(ball) < BALL_ANGLE_TRIGGER) setState(8, "goal|");
       break;
 
     case 8: // Angriff
       if (seeBall && ball > BALL_ANGLE_TRIGGER) stateLeft = RIGHT;
       else if (seeBall && ball < -BALL_ANGLE_TRIGGER) stateLeft = LEFT;
-    
+
       if (!closeBall) setState(6, "!closeBall");
       break;
   }
@@ -116,7 +116,6 @@ void Player::changeState() {
 void Player::play() {
   changeState();
 
-  driveRotation = 255;
   switch (state) {
     case 0: // Nach hinten
       if (us.back() && us.back() < 80) {
@@ -130,14 +129,16 @@ void Player::play() {
       if (us.left() && us.left() < COURT_BORDER_MIN) driveDirection = -constrain(map(COURT_BORDER_MIN - us.left(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
       else if (us.right() && us.right() < COURT_BORDER_MIN) driveDirection = constrain(map(COURT_BORDER_MIN - us.right(), 0, 30, 180, 180 - ANGLE_PASSIVE_MAX), 180 - ANGLE_PASSIVE_MAX, 180);
       else driveDirection = 180;
-      driveOrientation = 0;
+
+      driveRotation = ausrichten(0);
+      drivePower = max(drivePower - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
       break;
 
     case 1: // Torverteidigung
       // fahre seitlich vor dem Tor
       if (seeBall) drivePower = map(abs(ball), 0, BALL_ANGLE_TRIGGER, SPEED_KEEPER, 0.6 * SPEED_KEEPER);
       else drivePower = SPEED_KEEPER;
-      driveOrientation = 0;
       if (stateLeft) {
         driveDirection = ANGLE_SIDEWAY;
         driveState = "< sideward";
@@ -148,12 +149,13 @@ void Player::play() {
         if (us.right() < COURT_BORDER_MIN) drivePower = SPEED_KEEPER * 0.7; // fahre langsamer am Spielfeldrand
       }
       if (us.back() < COURT_REARWARD_MIN) driveDirection *= map(us.back(), 0, COURT_REARWARD_MIN, 8, 10) / 10.0; // fahre leicht schräg nach vorne
+
+      driveRotation = ausrichten(0);
+      drivePower = max(drivePower - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
       break;
 
     case 2: // Pfostendrehung hin
-      drivePower = 0;
-      driveDirection = 0;
-      driveRotation = 200;
       if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 160;
       if (stateLeft) {
         if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
@@ -164,13 +166,13 @@ void Player::play() {
         else driveOrientation = ANGLE_TURN_MAX;
         driveState = "> turn";
       }
+
+      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 0.6 * ausrichten(driveOrientation);
+      else driveRotation = 0.8 * ausrichten(driveOrientation);
+      m.drive(0, 0, driveRotation);
       break;
 
     case 3: // Pfostendrehung zurück
-      drivePower = 0;
-      driveDirection = 0;
-      driveRotation = 200;
-      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 160;
       if (stateLeft) {
         if (seeBall) driveOrientation = constrain(ball / 3 + heading, -ANGLE_TURN_MAX, 0);
         else driveOrientation = 0;
@@ -180,19 +182,23 @@ void Player::play() {
         else driveOrientation = 0;
         driveState = "> return";
       }
+
+      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 0.6 * ausrichten(driveOrientation);
+      else driveRotation = 0.8 * ausrichten(driveOrientation);
+      m.drive(0, 0, driveRotation);
       break;
 
     case 4: // Befreiung
       // fahre * Sekunden geradeaus, um nicht mehr am Tor hängenzubleiben
-      drivePower = SPEED_FREE;
-      driveDirection = 0;
-      driveOrientation = 0;
       driveState = "^ free";
+
+      driveRotation = ausrichten(0);
+      drivePower = max(SPEED_FREE - abs(driveRotation), 0);
+      m.drive(0, drivePower, driveRotation);
       break;
 
     case 5: // Seitlich verloren
       // fahre * Sekunden zur Seite, um den Ball wiederzufinden
-      drivePower = SPEED_LOST;
       if (stateLeft) {
         driveDirection = ANGLE_SIDEWAY;
         driveState = "< lost";
@@ -202,7 +208,10 @@ void Player::play() {
         driveState = "> lost";
         if (us.right() < 60) drivePower *= 0.7; // fahre langsamer am Spielfeldrand
       }
-      driveOrientation = 0;
+
+      driveRotation = ausrichten(0);
+      drivePower = max(SPEED_LOST - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
       break;
 
     case 6: // Ballverfolgung
@@ -227,31 +236,43 @@ void Player::play() {
       } else {
         driveState = "^ follow";
       }
-      driveOrientation = 0;
+
+      driveRotation = ausrichten(0);
+      drivePower = max(drivePower - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
       break;
 
     case 7: // Torausrichtung
       // orientiere dich zum Ball
       // bringe Ball und Tor in eine Linie
-      drivePower = SPEED_CLOSE;
       if (!stateLeft) {
         // Tor ist links
-        driveDirection = ANGLE_SIDEWAY;
+        driveDirection = ANGLE_GOAL;
         driveState = "< close";
       } else {
         // Tor ist rechts
-        driveDirection = -ANGLE_SIDEWAY;
+        driveDirection = -ANGLE_GOAL;
         driveState = "> close";
       }
       driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
+
+      if (millis() - stateTimer < 100) m.brake(true); // bremse kurz ab
+      else {
+        driveRotation = ausrichten(driveOrientation);
+        drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
+        m.drive(driveDirection, drivePower, driveRotation);
+      }
       break;
 
     case 8: // Angriff
-      drivePower = SPEED_ATTACK;
       if (seeGoal) driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       else driveDirection = 0;
       driveState = "^ attack";
       if (hasBall) kick();
+
+      driveRotation = ausrichten(driveOrientation);           // übernehme den letzten Kompasswinkel
+      drivePower = max(SPEED_ATTACK - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
       break;
   }
 }

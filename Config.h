@@ -28,7 +28,7 @@
 // Implementierung: FAHREN
 extern bool start, onLine, isHeadstart, isKeeperLeft;
 extern byte role;
-extern int rotMulti, drivePower, driveRotation, rotationValue, driveDirection, driveOrientation, lineDir;
+extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
 extern unsigned long lineTimer, headstartTimer, flatTimer;
 extern String driveState;
 
@@ -94,6 +94,7 @@ extern bool wasSelect, wasBack;
 // Fahren
 #define ROLE_COOLDOWN 1000      // [0 bis *]~1000 Zeitspanne, in dem kein Rollenwechsel stattfindet
 #define ANGLE_SIDEWAY 100       // [0 bis 180]~100
+#define ANGLE_GOAL 80           // [0 bis 180]~80 Winkel für Tordrehung
 #define ANGLE_GOAL_MAX 45       // [0 bis 180]~45 maximaler Orientierungswinkel zum Tor
 #define ANGLE_PASSIVE_MAX 35    // [0 bis 180]~45 maximaler Orientierungswinkel beim Zurückfahren
 #define ANGLE_TURN_MAX 90       // [0 bis 180]~90 maximaler Orientierungswinkel zur Ballsuche
@@ -104,17 +105,17 @@ extern bool wasSelect, wasBack;
 #define ROTATION_18CM 50        // [0 bis *]~70
 #define ROTATION_10CM 70        // [0 bis *]~90
 #define ROTATION_TOUCH 40       // [0 bis *]~20
-#define SPEED_BACKWARDS 70      // [0 bis 255]~40  STATUS 0: Nach hinten
-#define SPEED_PENALTY 50        // [0 bis 255]~40  STATUS 0: Nach hinten
-#define SPEED_KEEPER 60         // [0 bis 255]~40  STATUS 1: Torverteidigung
-#define SPEED_FREE 70           // [0 bis 255]~255 STATUS 4: Befreiung
-#define SPEED_LOST 100          // [0 bis 255]~100 STATUS 5: Seitlich verloren
-#define SPEED_SIDEWAY 100       // [0 bis 255]~60  STATUS 6: Ballverfolgung
-#define SPEED_BALL 72           // [0 bis 255]~72  STATUS 6: Ballverfolgung
-#define SPEED_CLOSE 60         // [0 bis 255]~100 STATUS 7: Torausrichtung
-#define SPEED_ATTACK 100        // [0 bis 255]~100 STATUS 8: Angriff
-#define SPEED_DRIFT 140         // [0 bis 255]~140
-#define SPEED_LINE 90           // [0 bis 255]~80
+#define SPEED_BACKWARDS 40      // [0 bis 255]~40  STATUS 0: Nach hinten
+#define SPEED_PENALTY 40        // [0 bis 255]~40  STATUS 0: Nach hinten
+#define SPEED_KEEPER 40         // [0 bis 255]~40  STATUS 1: Torverteidigung
+#define SPEED_FREE 40           // [0 bis 255]~255 STATUS 4: Befreiung
+#define SPEED_LOST 40          // [0 bis 255]~100 STATUS 5: Seitlich verloren
+#define SPEED_SIDEWAY 40       // [0 bis 255]~60  STATUS 6: Ballverfolgung
+#define SPEED_BALL 40           // [0 bis 255]~72  STATUS 6: Ballverfolgung
+#define SPEED_CLOSE 40         // [0 bis 255]~100 STATUS 7: Torausrichtung
+#define SPEED_ATTACK 40        // [0 bis 255]~100 STATUS 8: Angriff
+#define SPEED_DRIFT 40         // [0 bis 255]~140
+#define SPEED_LINE 40           // [0 bis 255]~80
 
 // TIMES
 #define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
@@ -160,7 +161,6 @@ extern bool wasSelect, wasBack;
 #define SIGNATURE_CC 28       // Pixy-Signature des Tors
 #define BALL_WIDTH_TRIGGER 50 // Schwellwert eines großen Balles
 #define BALL_ANGLE_TRIGGER 50 // Schwellenwert der Ballrichtung
-
 
 // DISPLAY
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup

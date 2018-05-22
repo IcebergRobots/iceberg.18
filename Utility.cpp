@@ -179,18 +179,14 @@ void buzzerTone(int duration) {
 // Roboter mittels PID-Regler zum Tor ausrichten
 int ausrichten(int orientation) {
   pidSetpoint = shift(orientation, -179, 180);
-  if (isLifted || onLine) {
-    return 0;
-  } else {
-    // Misst die Kompassabweichung vom Tor [-180 bis 179]
-    if (m.getMotEn()) {
-      pidIn = (double) heading;
+  // Misst die Kompassabweichung vom Tor [-180 bis 179]
+  if (m.getMotEn()) {
+    pidIn = (double) heading;
 
-      double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
-      myPID.Compute();
+    double gap = abs(pidSetpoint - pidIn); //distance away from setpoint
+    myPID.Compute();
 
-      return -pidOut; // [-255 bis 255]
-    }
+    return -pidOut; // [-255 bis 255]
   }
 }
 
@@ -301,7 +297,7 @@ void readPixy() {
 }
 
 String boolToSign(bool b) {
-  if(b) return "+ ";
+  if (b) return "+ ";
   else return "- ";
 }
 

@@ -21,7 +21,6 @@ byte role = 0;              // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
 int rotMulti;               // Scalar, um die Rotationswerte zu verstärken
 int drivePower = 0;         // [-255 bis 255] aktuelle maximale Motorstärke
 int driveRotation = 0;      // [-255 bis 255] aktuelle Rotationsstärke
-int rotationValue = 0;      // [-255 bis 255] aktuelle Rotationsstärke
 int driveDirection = 0;     // [-180 bis 180] Ziel-Fahrrichtung
 int driveOrientation = 0;   // [-180 bis 180] Ziel-Orientierungswinkel
 int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
@@ -365,20 +364,20 @@ void loop() {
   }
 
   // Fahre
-  driveRotation = 255;
   if (isLifted) {
     // hochgehoben
     driveState = "lifted";
-    drivePower = 0; // stoppe
-    driveRotation = 0; // stoppe
+    m.brake(false);
   } else if (onLine) {
     // weiche einer Linie aus
     driveState = "line";
-    drivePower = SPEED_LINE;
+    m.drive(driveDirection, SPEED_LINE, 0);
   } else if (isHeadstart) {
     // führe einen Schnellstart aus
     driveState = "headstart";
-    driveRotation = 0;
+    for (int i = 0; i < 4; i++) {
+      m.steerMotor(i, 255);
+    }
   } else if (isDrift) {
     // steuere gegen
     driveState = "drift";
@@ -391,19 +390,6 @@ void loop() {
   } else {
     p.play();
   }
-
-
-  rotationValue = (float)driveRotation / 255 * ausrichten(driveOrientation);
-  drivePower = max(drivePower - abs(rotationValue), 0);
-  if (drivePower > 0) drivePower = max(30, drivePower);
-  if (!isLifted && isHeadstart) {
-    for (int i = 0; i < 4; i++) {
-      m.steerMotor(i, 255);
-    }
-  } else {
-    m.drive(driveDirection, drivePower, rotationValue);
-  }
-
 
   if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200)) {
     if (DEBUG_FUNCTIONS) debug("display");

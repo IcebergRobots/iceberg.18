@@ -126,6 +126,10 @@ void Pilot::drive(int values[]) {
   @param (optional) rotation [-255 bis 255]: Eigenrotation -> Korrekturdrehung, um wieder zum Gegnertor ausgerichtet zu sein
 *****************************************************/
 void Pilot::calculate(int angle, int power, int rotation) {
+  driveDirection = angle;   // setze die Displaywerte
+  drivePower = power;       // setze die Displaywerte
+  driveRotation = rotation; // setze die Displaywerte
+
   if (power < 0) {      //bei negativen Geschwindigkeiten,
     power = -power;     //positive Geschwindigkeit
     angle += 180;       //bei 180° Drehung verwenden
@@ -164,6 +168,9 @@ void Pilot::calculate(int angle, int power) {
   @param activ: aktives Bremsen?
 *****************************************************/
 void Pilot::brake(bool activ) {
+  drivePower = 0;     // setze die Displaywerte
+  driveRotation = 0;  // setze die Displaywerte
+
   for (byte i = 0; i < 4; i++) {
     digitalWrite(_fwd[i], activ);
     digitalWrite(_bwd[i], activ);

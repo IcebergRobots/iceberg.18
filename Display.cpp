@@ -247,12 +247,11 @@ bool Display::set() {
       break;
     case 5:
       title = "Driving";
-      addLine("D.dir", driveDirection, true);
-      addLine("D.pwr", drivePower, true);
+      addLine("direc", driveDirection, true);
+      addLine("power", drivePower, true);
       addLine(driveState);
-      addLine("D.ori", pidSetpoint, true);
-      addLine("rotVa", rotationValue, true);
-      addLine("D.rot", driveRotation, true);
+      addLine("orien", pidSetpoint, true);
+      addLine("rotat", driveRotation, true);
       addLine("?line", onLine);
       addLine("?head", isHeadstart);
       addLine("#head", (millis() - headstartTimer) / 1000);
