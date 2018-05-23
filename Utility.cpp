@@ -55,8 +55,8 @@ void calculateStates() {
   }
   silent = !digitalRead(SWITCH_DEBUG);
 
-  seeBall = !isLifted && millis() - seeBallTimer < 250;
-  seeGoal = !isLifted && millis() - seeGoalTimer < 1500;
+  seeBall = !isLifted && millis() - seeBallTimer < 100;
+  seeGoal = !isLifted && millis() - seeGoalTimer < 500;
   seeEast = !isLifted && millis() - seeEastTimer < 500;
   seeWest = !isLifted && millis() - seeWestTimer < 500;
   closeBall = seeBall && millis() - closeBallTimer < 500;

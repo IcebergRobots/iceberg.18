@@ -105,17 +105,17 @@ extern bool wasSelect, wasBack;
 #define ROTATION_18CM 50        // [0 bis *]~70
 #define ROTATION_10CM 70        // [0 bis *]~90
 #define ROTATION_TOUCH 40       // [0 bis *]~20
-#define SPEED_BACKWARDS 40      // [0 bis 255]~40  STATUS 0: Nach hinten
-#define SPEED_PENALTY 40        // [0 bis 255]~40  STATUS 0: Nach hinten
-#define SPEED_KEEPER 40         // [0 bis 255]~40  STATUS 1: Torverteidigung
-#define SPEED_FREE 40           // [0 bis 255]~255 STATUS 4: Befreiung
-#define SPEED_LOST 40          // [0 bis 255]~100 STATUS 5: Seitlich verloren
-#define SPEED_SIDEWAY 40       // [0 bis 255]~60  STATUS 6: Ballverfolgung
-#define SPEED_BALL 40           // [0 bis 255]~72  STATUS 6: Ballverfolgung
-#define SPEED_CLOSE 30         // [0 bis 255]~100 STATUS 7: Torausrichtung
-#define SPEED_ATTACK 40        // [0 bis 255]~100 STATUS 8: Angriff
-#define SPEED_DRIFT 40         // [0 bis 255]~140
-#define SPEED_LINE 40           // [0 bis 255]~80
+#define SPEED_BACKWARDS 70      // [0 bis 255]~70  STATUS 0: Nach hinten
+#define SPEED_PENALTY 50        // [0 bis 255]~50  STATUS 0: Nach hinten
+#define SPEED_KEEPER 60         // [0 bis 255]~60  STATUS 1: Torverteidigung
+#define SPEED_FREE 70           // [0 bis 255]~70 STATUS 4: Befreiung
+#define SPEED_LOST 80          // [0 bis 255]~100 STATUS 5: Seitlich verloren
+#define SPEED_SIDEWAY 80       // [0 bis 255]~100  STATUS 6: Ballverfolgung
+#define SPEED_BALL 60           // [0 bis 255]~72  STATUS 6: Ballverfolgung
+#define SPEED_CLOSE 40         // [0 bis 255]~60 STATUS 7: Torausrichtung
+#define SPEED_ATTACK 70        // [0 bis 255]~100 STATUS 8: Angriff
+#define SPEED_DRIFT 80         // [0 bis 255]~140
+#define SPEED_LINE 90           // [0 bis 255]~90
 
 // TIMES
 #define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
@@ -132,7 +132,7 @@ extern bool wasSelect, wasBack;
 #define PIXY_RESPONSE_DURATION 20000  // wie lange soll die Pixy-Led grün nachleuchten?
 
 // Feld
-#define COURT_REARWARD_MAX 50           // optimaler Abstand nach hinten
+#define COURT_REARWARD_MAX 25           // optimaler Abstand nach hinten
 #define COURT_REARWARD_MIN 15           // optimaler Abstand nach hinten
 #define COURT_WIDTH 150         // Summe der Abstände nach rechts und links
 #define COURT_BORDER_MIN 70 // Abstand nach rechts bzw. links am Torpfosten

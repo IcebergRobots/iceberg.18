@@ -256,7 +256,7 @@ void Player::play() {
       }
       driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
 
-      if (millis() - stateTimer < 100) m.brake(true); // bremse kurz ab
+      if (millis() - stateTimer < 200) m.brake(true); // bremse kurz ab
       else {
         driveRotation = ausrichten(driveOrientation);
         drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
