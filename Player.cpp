@@ -241,117 +241,116 @@ void Player::play() {
         } else if (seeWest) ccLeft = LEFT;
         else if (seeEast) ccLeft = RIGHT;
         if (seeWest || seeEast) {
-          void transmitHeartbeat() {
-            byte data[1];
-            if(ccLeft) data[1] = 'w';
-            else data[1] = 'e';
-            mate.send(data, 1); // avoid mate
-          }
+          byte data[1];
+          if (ccLeft) data[1] = 'w';
+          else data[1] = 'e';
+          mate.send(data, 1); // avoid mate
         }
+      }
 
-        driveRotation = ausrichten(0);
-        drivePower = max(drivePower - abs(driveRotation), 0);
+      driveRotation = ausrichten(0);
+      drivePower = max(drivePower - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
+      break;
+
+    case 7: // Torausrichtung
+      // orientiere dich zum Ball
+      // bringe Ball und Tor in eine Linie
+      if (!stateLeft) {
+        // Tor ist links
+        driveDirection = ANGLE_GOAL;
+        driveState = "< close";
+      } else {
+        // Tor ist rechts
+        driveDirection = -ANGLE_GOAL;
+        driveState = "> close";
+      }
+      driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
+
+      if (millis() - stateTimer < 200) m.brake(true); // bremse kurz ab
+      else {
+        driveRotation = ausrichten(driveOrientation);
+        drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
         m.drive(driveDirection, drivePower, driveRotation);
-        break;
-
-      case 7: // Torausrichtung
-        // orientiere dich zum Ball
-        // bringe Ball und Tor in eine Linie
-        if (!stateLeft) {
-          // Tor ist links
-          driveDirection = ANGLE_GOAL;
-          driveState = "< close";
-        } else {
-          // Tor ist rechts
-          driveDirection = -ANGLE_GOAL;
-          driveState = "> close";
-        }
-        driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
-
-        if (millis() - stateTimer < 200) m.brake(true); // bremse kurz ab
-        else {
-          driveRotation = ausrichten(driveOrientation);
-          drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
-          m.drive(driveDirection, drivePower, driveRotation);
-        }
-        break;
-
-      case 8: // Angriff
-        if (seeBall) driveDirection = constrain(map(ball, -X_CENTER, X_CENTER, 50, -50), -50, 50);
-        else driveDirection = 0;
-        driveState = "^ attack";
-        if (hasBall) kick();
-
-        driveRotation = ausrichten(driveOrientation);           // übernehme den letzten Kompasswinkel
-        drivePower = max(SPEED_ATTACK - abs(driveRotation), 0);
-        m.drive(driveDirection, drivePower, driveRotation);
-        break;
       }
-  }
+      break;
 
-  void Player::setState(byte s, String reason) {
-    if (s != state) {
-      if (DEBUG_STATE) debug(String(state) + "->" + String(s) + ":" + reason);
-      state = s;
-      stateTimer = millis();
+    case 8: // Angriff
+      if (seeBall) driveDirection = constrain(map(ball, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+      else driveDirection = 0;
+      driveState = "^ attack";
+      if (hasBall) kick();
+
+      driveRotation = ausrichten(driveOrientation);           // übernehme den letzten Kompasswinkel
+      drivePower = max(SPEED_ATTACK - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
+      break;
+  }
+}
+
+void Player::setState(byte s, String reason) {
+  if (s != state) {
+    if (DEBUG_STATE) debug(String(state) + "->" + String(s) + ":" + reason);
+    state = s;
+    stateTimer = millis();
+  }
+}
+
+void Player::setDirection(byte dir, String reason) {
+  if (dir > 1) dir = !stateLeft;
+  if (dir != stateLeft) {
+    stateLeft = dir;
+    if (DEBUG_STATE && stateLeft)  debug(String(state) + "<:" + reason);
+    if (DEBUG_STATE && !stateLeft) debug(String(state) + ">:" + reason);
+    stateTimer = millis();
+    setState(1, "toggle");
+  }
+}
+
+void Player::setRusher(bool force) {
+  if (isKeeper()) {
+    if (force || millis() - roleTimer > ROLE_COOLDOWN) {
+      role = 1;
+      roleTimer = millis();
+      ledTimer = millis() - 101;
     }
   }
+}
 
-  void Player::setDirection(byte dir, String reason) {
-    if (dir > 1) dir = !stateLeft;
-    if (dir != stateLeft) {
-      stateLeft = dir;
-      if (DEBUG_STATE && stateLeft)  debug(String(state) + "<:" + reason);
-      if (DEBUG_STATE && !stateLeft) debug(String(state) + ">:" + reason);
-      stateTimer = millis();
-      setState(1, "toggle");
+void Player::setKeeper(bool force) {
+  if (isRusher()) {
+    if (force || millis() - roleTimer > ROLE_COOLDOWN) {
+      role = 0;
+      roleTimer = millis();
+      ledTimer = millis() - 101;
     }
   }
+}
 
-  void Player::setRusher(bool force) {
-    if (isKeeper()) {
-      if (force || millis() - roleTimer > ROLE_COOLDOWN) {
-        role = 1;
-        roleTimer = millis();
-        ledTimer = millis() - 101;
-      }
-    }
-  }
+bool Player::isRusher() {
+  return role;
+}
 
-  void Player::setKeeper(bool force) {
-    if (isRusher()) {
-      if (force || millis() - roleTimer > ROLE_COOLDOWN) {
-        role = 0;
-        roleTimer = millis();
-        ledTimer = millis() - 101;
-      }
-    }
-  }
+bool Player::isKeeper() {
+  return !role;
+}
 
-  bool Player::isRusher() {
-    return role;
-  }
+unsigned long Player::lastRoleToggle() {
+  return millis() - roleTimer;
+}
 
-  bool Player::isKeeper() {
-    return !role;
-  }
+byte Player::getState() {
+  return state;
+}
 
-  unsigned long Player::lastRoleToggle() {
-    return millis() - roleTimer;
+bool Player::atGatepost() {
+  if (true || isPenaltyFree) {
+    // benutze Abstand in Bewegungsrichtung
+    if (stateLeft) return us.left() < COURT_BORDER_MIN;
+    else           return us.right() < COURT_BORDER_MIN;
+  } else {
+    // benutze Abstand gegen Bewegungsrichtung
+    if (stateLeft) return us.right() > COURT_POST_TO_BORDER;
+    else           return us.left() > COURT_POST_TO_BORDER;
   }
-
-  byte Player::getState() {
-    return state;
-  }
-
-  bool Player::atGatepost() {
-    if (true || isPenaltyFree) {
-      // benutze Abstand in Bewegungsrichtung
-      if (stateLeft) return us.left() < COURT_BORDER_MIN;
-      else           return us.right() < COURT_BORDER_MIN;
-    } else {
-      // benutze Abstand gegen Bewegungsrichtung
-      if (stateLeft) return us.right() > COURT_POST_TO_BORDER;
-      else           return us.left() > COURT_POST_TO_BORDER;
-    }
-  }
+}

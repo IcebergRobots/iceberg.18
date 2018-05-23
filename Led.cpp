@@ -14,7 +14,8 @@ Led::Led() {}
   Aktualisiere alle Leds bzw. zeige die Animation
 *****************************************************/
 void Led::led() {
-  if (!animationPosition) {
+  debug(micros());
+  if (!timer) {
     // setze Helligkeit zurück
     bottom.setBrightness(BOTTOM_BRIGHTNESS);
     if (p.lastRoleToggle() < ROLE_LED_DURATION) matrix.setBrightness(255);
@@ -22,42 +23,25 @@ void Led::led() {
     info.setBrightness(INFO_BRIGHTNESS);
 
     // setze Boden-Leds
-    if (!digitalRead(SWITCH_BOTTOM) || isLifted) {
-      setBoard(bottom, BOTTOM_LENGTH, bottom.Color(0, 0, 0));
-    } else if (!digitalRead(SWITCH_A)) {
-      setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 0, 0));
-    } else {
-      setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
-    }
-  } else if (animationPosition == 1) {
-    animationTimer = millis();
-    animationPosition++;
+    if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, bottom.Color(0, 0, 0));
+    else if (!digitalRead(SWITCH_A)) setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 0, 0));
+    else setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
+  } else {
+    // maximale Helligkeit
     bottom.setBrightness(255);
     matrix.setBrightness(255);
     info.setBrightness(255);
-    setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
-    setBoard(matrix, BOTTOM_LENGTH, matrix.Color(255, 255, 255));
-    setBoard(info, BOTTOM_LENGTH, info.Color(255, 255, 255));
-  } else if (millis() - animationTimer > ANIMATION_DURATION) {
-    // beende die Animation
-    if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
-    setBoard(matrix, MATRIX_LENGTH, 0);
-    setBoard(info, INFO_LENGTH, 0);
-    animationPosition = 0;
-  } else {
-    // setze den Farbkreis
-    wheelBoard(bottom, BOTTOM_LENGTH, animationPosition);
-    setBoard(matrix, MATRIX_LENGTH, wheelToColor(matrix, animationPosition));
-    setBoard(info, INFO_LENGTH, wheelToColor(info, animationPosition));
-
-    // erhöhe die Position in der Animation
-    animationPosition += 1 + animationPosition * ANIMATION_SPEED;
+    byte angle = (int)((millis() - timer) * 0.2) % 256;
+    wheelBoard(bottom, BOTTOM_LENGTH, angle);
+    setBoard(matrix, MATRIX_LENGTH, wheelToColor(matrix, angle));
+    setBoard(info, INFO_LENGTH, wheelToColor(info, angle));
   }
   // übernehme alle Änderungen
   bottom.show();
   matrix.show();
   info.show();
   ledTimer = millis();
+  debug(micros());
 }
 
 /*****************************************************
@@ -93,15 +77,35 @@ void Led::set() {
 /*****************************************************
   Starte die Animation
 *****************************************************/
-void Led::animation() {
-  if (ANIMATION && !silent) animationPosition = 1;
+void Led::start() {
+  if (ANIMATION && !silent) {
+    timer = millis();
+    /*hymne();
+      if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
+      setBoard(matrix, MATRIX_LENGTH, 0);
+      setBoard(info, INFO_LENGTH, 0);*/
+  }
+}
+
+/*****************************************************
+  Beende die Animation
+*****************************************************/
+void Led::cancel() {
+  timer = 0;
+  if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
+  setBoard(matrix, MATRIX_LENGTH, 0);
+  setBoard(info, INFO_LENGTH, 0);
 }
 
 /*****************************************************
   Läuft die Animation gerade?
 *****************************************************/
 bool Led::isAnimation() {
-  return animationPosition;
+  return timer;
+}
+
+unsigned long Led::lastAnimation() {
+  return millis() - timer;
 }
 
 /*****************************************************
@@ -187,7 +191,6 @@ void Led::setBoard(Adafruit_NeoPixel & board, int boardLength, uint32_t color) {
   255:  rot
 *****************************************************/
 uint32_t Led::wheelToColor(Adafruit_NeoPixel & board, byte pos) {
-  pos = (pos % 256 + 256) % 256; // Eingabekorrektur
   if (pos < 85) {
     // rot bis grün
     return board.Color(255 - pos * 3, pos * 3, 0);
@@ -200,4 +203,88 @@ uint32_t Led::wheelToColor(Adafruit_NeoPixel & board, byte pos) {
     pos -= 170;
     return board.Color(pos * 3, 0, 255 - pos * 3);
   }
+}
+
+void Led::nextTone(unsigned long time) {
+  unsigned long timestamp = micros();
+  setBoard(bottom, BOTTOM_LENGTH, 0);
+  setBoard(matrix, MATRIX_LENGTH, 0);
+  setBoard(info, INFO_LENGTH, 0);
+  bottom.show();
+  matrix.show();
+  info.show();
+  while (micros() - timestamp + 4000 < time) {}
+  setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
+  setBoard(matrix, MATRIX_LENGTH, matrix.Color(255, 255, 255));
+  setBoard(info, INFO_LENGTH, info.Color(255, 255, 255));
+  bottom.show();
+  matrix.show();
+  info.show();
+  while (micros() - timestamp < time) {}
+}
+
+void Led::hymne() {
+  cancel();
+  setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
+  setBoard(matrix, MATRIX_LENGTH, matrix.Color(255, 255, 255));
+  setBoard(info, INFO_LENGTH, info.Color(255, 255, 255));
+  while (!digitalRead(BUTTON_1)) {}
+
+  myTone(391, 586.956375, 652174);
+  myTone(440, 195.652125, 217391);
+  myTone(493, 391.30425, 434783);
+  myTone(440, 391.30425, 434783);
+  myTone(523, 391.30425, 434783);
+  myTone(493, 391.30425, 434783);
+  myTone(440, 195.652125, 217391);
+  myTone(369, 195.652125, 217391);
+  myTone(391, 391.30425, 434783);
+  myTone(659, 391.30425, 434783);
+  myTone(587, 391.30425, 434783);
+  myTone(523, 391.30425, 434783);
+  myTone(493, 391.30425, 434783);
+  myTone(440, 391.30425, 434783);
+  myTone(493, 195.652125, 217391);
+  myTone(391, 195.652125, 217391);
+  myTone(587, 782.6085, 869565);
+  myTone(440, 391.30425, 434783);
+  myTone(493, 391.30425, 434783);
+  myTone(440, 195.652125, 217391);
+  myTone(369, 195.652125, 217391);
+  myTone(293, 391.30425, 434783);
+  myTone(523, 391.30425, 434783);
+  myTone(493, 391.30425, 434783);
+  myTone(440, 195.652125, 217391);
+  myTone(369, 195.652125, 217391);
+  myTone(293, 391.30425, 434783);
+  myTone(587, 391.30425, 434783);
+  myTone(523, 391.30425, 434783);
+  myTone(493, 586.956375, 652174);
+  myTone(493, 195.652125, 217391);
+  myTone(554, 391.30425, 434783);
+  myTone(554, 195.652125, 217391);
+  myTone(587, 195.652125, 217391);
+  myTone(587, 782.6085, 869565);
+  myTone(783, 586.956375, 652174);
+  myTone(739, 195.652125, 217391);
+  myTone(739, 195.652125, 217391);
+  myTone(659, 195.652125, 217391);
+  myTone(587, 391.30425, 434783);
+  myTone(659, 586.956375, 652174);
+  myTone(587, 195.652125, 217391);
+  myTone(587, 195.652125, 217391);
+  myTone(523, 195.652125, 217391);
+  myTone(493, 391.30425, 434783);
+  myTone(440, 586.956375, 652173);
+  myTone(493, 97.8260625, 108696);
+  myTone(523, 97.8260625, 108696);
+  myTone(587, 195.652125, 217391);
+  myTone(659, 195.652125, 217391);
+  myTone(523, 195.652125, 217391);
+  myTone(440, 195.652125, 217391);
+  myTone(391, 391.30425, 434783);
+  myTone(493, 195.652125, 217391);
+  myTone(440, 195.652125, 217391);
+  myTone(391, 782.6085, 869565);
+
 }

@@ -116,7 +116,9 @@ String displayDebug = "";      // unterste Zeile des Bildschirms;
 Display d = Display(PIN_4); // OBJEKTINITIALISIERUNG
 
 // Globale Definition: LEDS, DEBUG
+bool wasLedButton = false;        // war der Animationsknopf gedrückt
 bool hasDebugHead = false;        // wurden bereits die Metadaten gesendet
+bool isSetupAnimantion = true;    // läuft die Setup Animation;
 bool stateFine = true;            // liegt kein Fehler vor?
 unsigned long ledTimer = 0;       // Zeitpunkt der letzten Led-Aktualisierung
 Adafruit_NeoPixel bottom = Adafruit_NeoPixel(BOTTOM_LENGTH, BOTTOM_LED, NEO_GRB + NEO_KHZ800); // OBJEKTINITIALISIERUNG (BODEN-LEDS)
@@ -131,8 +133,7 @@ unsigned long buzzerStopTimer = 0; // Zeitpunkt, wann der Buzzer ausgehen soll
 // Globale Definition: ROTARY-ENCODER
 RotaryEncoder rotaryEncoder = RotaryEncoder(ROTARY_B, ROTARY_A);  // OBJEKTINITIALISIERUNG
 int rotaryPositionLast = 0; // letzter Zustand des Reglers
-bool wasSelect = false;     // war der Auswählen-Knopf gedrückt?
-bool wasBack = false;       // war der Zurück-Knopf gedrückt?
+bool wasMenuButton = false; // war der Menü-Knopf gedrückt?
 
 //###################################################################################################
 
@@ -214,7 +215,7 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  led.animation();
+  led.start();
   d.setupMessage(10, "B: " + String(lightBarrierTriggerLevel), "");
   DEBUG_SERIAL.println();
   DEBUG_SERIAL.println("ICEBERG ROBOTS");
@@ -232,7 +233,7 @@ void setup() {
   DEBUG_SERIAL.println("-=-=-=-=-=-=-=-");
 
   // sorge dafür, dass alle Timer genügend Abstand haben
-  while (millis() < 1000) {}
+  while (millis() < 500) {}
 }
 //###################################################################################################
 
@@ -255,15 +256,13 @@ void loop() {
 
   // Seitenauswahl
   // auswählen
-  if (!digitalRead(ROTARY_BUTTON) && !wasSelect) {
+  if (!digitalRead(ROTARY_BUTTON) && !wasMenuButton) {
     d.toggle();
   }
-  wasSelect = !digitalRead(ROTARY_BUTTON);
+  wasMenuButton = !digitalRead(ROTARY_BUTTON);
   // zurück
-  if (!digitalRead(BUTTON_3) && !wasBack ) {
-    reset;
-  }
-  wasBack = !digitalRead(BUTTON_3);
+  if (!digitalRead(BUTTON_3)) reset();
+
   // drehen
   rotaryEncoder.tick(); // erkenne Reglerdrehungen
   if (rotaryEncoder.getPosition() != rotaryPositionLast) {
@@ -271,7 +270,17 @@ void loop() {
   }
   rotaryPositionLast = rotaryEncoder.getPosition();
 
-  if (!digitalRead(BUTTON_1)) led.animation(); // starte die Animation
+  if (!digitalRead(BUTTON_1) && !wasLedButton) {
+    isSetupAnimantion = false;
+    if (led.isAnimation()) led.cancel(); // beende die Animation
+    else led.start();                   // starte die Animation
+  }
+  else if (!digitalRead(BUTTON_1) && wasLedButton && led.isAnimation() && led.lastAnimation() > 1000) led.hymne();
+  wasLedButton = !digitalRead(BUTTON_1);
+  if (isSetupAnimantion && millis() > 3000) {
+    isSetupAnimantion = false;
+    led.cancel();
+  }
 
   // Torrichtung speichern
   if (!digitalRead(BUTTON_2)) {
