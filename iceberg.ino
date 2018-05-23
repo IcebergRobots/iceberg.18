@@ -137,6 +137,7 @@ bool wasBack = false;       // war der Zurück-Knopf gedrückt?
 //###################################################################################################
 
 void setup() {
+  pinModes();
   // Prüfe, ob die Pixy angeschlossen ist
   SPI.begin();
   pixyResponseTimer = SPI.transfer(0x00) == 255;
@@ -164,7 +165,6 @@ void setup() {
 
   // setzte die PinModes
   d.setupMessage(1, "PIN", "pinModes");
-  pinModes();
   isTypeA = digitalRead(TYPE); // lies den Hardware Jumper aus
 
   // setzte Pins und Winkel des Pilot Objekts
