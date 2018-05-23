@@ -106,11 +106,11 @@ extern bool wasSelect, wasBack;
 #define ROTATION_10CM 70        // [0 bis *]~90
 #define ROTATION_TOUCH 40       // [0 bis *]~20
 #define SPEED_BACKWARDS 70      // [0 bis 255]~70  STATUS 0: Nach hinten
-#define SPEED_PENALTY 50        // [0 bis 255]~50  STATUS 0: Nach hinten
+#define SPEED_PENALTY 40        // [0 bis 255]~50  STATUS 0: Nach hinten
 #define SPEED_KEEPER 60         // [0 bis 255]~60  STATUS 1: Torverteidigung
 #define SPEED_FREE 70           // [0 bis 255]~70 STATUS 4: Befreiung
-#define SPEED_LOST 80          // [0 bis 255]~100 STATUS 5: Seitlich verloren
-#define SPEED_SIDEWAY 80       // [0 bis 255]~100  STATUS 6: Ballverfolgung
+#define SPEED_LOST 70          // [0 bis 255]~100 STATUS 5: Seitlich verloren
+#define SPEED_SIDEWAY 70       // [0 bis 255]~100  STATUS 6: Ballverfolgung
 #define SPEED_BALL 60           // [0 bis 255]~72  STATUS 6: Ballverfolgung
 #define SPEED_CLOSE 40         // [0 bis 255]~60 STATUS 7: Torausrichtung
 #define SPEED_ATTACK 70        // [0 bis 255]~100 STATUS 8: Angriff
@@ -124,7 +124,7 @@ extern bool wasSelect, wasBack;
 #define SIDEWARD_MIN_DURATION 800     // min Zeit für Seitwärtsfahren
 #define TURN_MAX_DURATION 1500        // max Zeit für Drehmodus
 #define RETURN_MAX_DURATION 1500      // max Zeit für Drehmodus zurück
-#define AVOID_MATE_DURATION 1000      // max Zeit für Ausweichmanöver
+#define AVOID_MATE_DURATION 700      // max Zeit für Ausweichmanöver
 #define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
 #define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?
@@ -159,7 +159,7 @@ extern bool wasSelect, wasBack;
 #define SIGNATURE_BALL 1      // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2      // Pixy-Signature des Tors
 #define SIGNATURE_CC 28       // Pixy-Signature des Tors
-#define BALL_WIDTH_TRIGGER 40 // Schwellwert eines großen Balles
+#define BALL_WIDTH_TRIGGER 45 // Schwellwert eines großen Balles
 #define BALL_ANGLE_TRIGGER 50 // Schwellenwert der Ballrichtung
 
 // DISPLAY
@@ -189,7 +189,7 @@ extern bool wasSelect, wasBack;
 #define MILS_PER_SEC  (1000UL)  // Millisekunden pro Sekunde
 #define MILS_PER_MIN  (60000UL) // Millisekunden pro Minute
 #define SECS_PER_MIN  (60UL)    // Sekunden pro Minute
-#define MINS_PER_HOUR  (60UL)   // Minuten pro Stunde
+#define MINS_PER_HOUR (60UL)   // Minuten pro Stunde
 
 // Makro-Methoden
 #define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2)                                  // PIXY: Die Mitte des Bildes der Pixy (in Pixeln)
