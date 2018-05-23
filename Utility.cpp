@@ -56,7 +56,7 @@ void calculateStates() {
   silent = !digitalRead(SWITCH_DEBUG);
 
   seeBall = !isLifted && millis() - seeBallTimer < 250;
-  seeGoal = !isLifted && millis() - seeGoalTimer < 1200;
+  seeGoal = !isLifted && millis() - seeGoalTimer < 1500;
   seeEast = !isLifted && millis() - seeEastTimer < 500;
   seeWest = !isLifted && millis() - seeWestTimer < 500;
   closeBall = seeBall && millis() - closeBallTimer < 500;
@@ -314,6 +314,10 @@ void debug(String str) {
       if (seeBall) {
         if (ball < 0) debug(String("    ").substring(0, 4 - String(ball).length()) + String(ball));
         else debug(String("   ").substring(0, 3 - String(ball).length()) + "+" + String(ball));
+      } else debug("####");
+      if (seeGoal) {
+        if (goal < 0) debug(String("    ").substring(0, 4 - String(goal).length()) + String(goal));
+        else debug(String("   ").substring(0, 3 - String(goal).length()) + "+" + String(goal));
       } else debug("####");
       debug(driveState + String("          ").substring(0, 10 - driveState.length()));
     }

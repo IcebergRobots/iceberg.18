@@ -112,7 +112,7 @@ extern bool wasSelect, wasBack;
 #define SPEED_LOST 40          // [0 bis 255]~100 STATUS 5: Seitlich verloren
 #define SPEED_SIDEWAY 40       // [0 bis 255]~60  STATUS 6: Ballverfolgung
 #define SPEED_BALL 40           // [0 bis 255]~72  STATUS 6: Ballverfolgung
-#define SPEED_CLOSE 40         // [0 bis 255]~100 STATUS 7: Torausrichtung
+#define SPEED_CLOSE 30         // [0 bis 255]~100 STATUS 7: Torausrichtung
 #define SPEED_ATTACK 40        // [0 bis 255]~100 STATUS 8: Angriff
 #define SPEED_DRIFT 40         // [0 bis 255]~140
 #define SPEED_LINE 40           // [0 bis 255]~80
@@ -159,7 +159,7 @@ extern bool wasSelect, wasBack;
 #define SIGNATURE_BALL 1      // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2      // Pixy-Signature des Tors
 #define SIGNATURE_CC 28       // Pixy-Signature des Tors
-#define BALL_WIDTH_TRIGGER 50 // Schwellwert eines großen Balles
+#define BALL_WIDTH_TRIGGER 40 // Schwellwert eines großen Balles
 #define BALL_ANGLE_TRIGGER 50 // Schwellenwert der Ballrichtung
 
 // DISPLAY

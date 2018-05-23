@@ -265,7 +265,7 @@ void Player::play() {
       break;
 
     case 8: // Angriff
-      if (seeGoal) driveDirection = constrain(map(goal, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+      if (seeBall) driveDirection = constrain(map(ball, -X_CENTER, X_CENTER, 50, -50), -50, 50);
       else driveDirection = 0;
       driveState = "^ attack";
       if (hasBall) kick();
