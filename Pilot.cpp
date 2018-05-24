@@ -35,7 +35,7 @@ Pilot::Pilot(byte angle) {
   @param bwd: Pin für Rückwärtsdrehung
   @param pwm: Pin für Geschwindigkeit
 *****************************************************/
-void Pilot::setPins(byte id, byte fwd, byte bwd, byte pwm) {
+void Pilot::setPins(byte id, byte fwd, byte bwd, byte pwm, int curSens) {
   if (id < 0 || id > 3) { // ungueltige Eingabe
     return;
   }
@@ -43,6 +43,8 @@ void Pilot::setPins(byte id, byte fwd, byte bwd, byte pwm) {
   _fwd[id] = fwd;         // speichere Pins
   _bwd[id] = bwd;
   _pwm[id] = pwm;
+
+  _curSens[id] = curSens;
 
   pinMode(fwd, OUTPUT);   // definiere Pins als Output
   pinMode(bwd, OUTPUT);
@@ -156,6 +158,32 @@ void Pilot::calculate(int angle, int power, int rotation) {
   _values[1] = axis13 - rotation;
   _values[2] = axis02 + rotation;
   _values[3] = axis13 + rotation;
+
+  int totalCurr = 0;
+  int totalPwr = 0;
+
+  for(int i = 0; i<4; i++){
+    int value = analogRead(_curSens[i])-512;
+    totalCurr += abs(value);
+    totalPwr += abs(_values[i]);
+  }
+  if(_halfSpeed){
+    totalPwr /= 2;
+  }
+  if(totalPwr != 0){
+    _curr = (totalCurr/(float)totalPwr)*255;
+  }
+
+  _halfSpeed = !onLine && (power > 30 && _curr < 15) || _halfSpeed&&(power > 15 && _curr < 50);
+  
+  if(_halfSpeed){
+    for(int i = 0; i<4; i++){
+      _values[i] /= 2;
+    }
+    if(_motEn)tone(BUZZER,700);
+  }else{
+    noTone(BUZZER);
+  }
 }
 void Pilot::calculate(int angle, int power) {
   calculate(angle, power, 0);

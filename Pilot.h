@@ -9,7 +9,7 @@ class Pilot
     Pilot();
     Pilot(byte angle);
 
-    void setPins(byte id, byte fwd, byte bwd, byte pwm);
+    void setPins(byte id, byte fwd, byte bwd, byte pwm, int curSens);
     void setAngle(byte angle);
 
     void steerMotor(byte id, int power);
@@ -33,10 +33,15 @@ class Pilot
     byte _bwd[4];    // digitaler PIN fuer Rueckwaertsrotation
     byte _pwm[4];    // analoger PIN fuer Geschwindigkeit
 
+    byte _curSens[4];
+
     int _values[4];  // Zwischenspeicher für Outputsignale
 
     byte _angle;
     bool _motEn;    // gibt an, ob die Motoren an sind
+    bool _halfSpeed = false;
+
+    int _curr;
 };
 
 #endif
