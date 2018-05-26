@@ -26,10 +26,9 @@
 #include <Adafruit_L3GD20_U.h>
 
 // Implementierung: FAHREN
-extern bool start, onLine, isHeadstart, isKeeperLeft;
-extern byte role;
+extern bool start, onLine, isHeadstart, isAvoidMate, isKeeperLeft, wasMotor, wasStart;
 extern int rotMulti, drivePower, driveRotation, driveDirection, driveOrientation, lineDir;
-extern unsigned long lineTimer, headstartTimer, flatTimer;
+extern unsigned long lineTimer, headstartTimer, avoidMateTimer, flatTimer;
 extern String driveState;
 
 // Implementierung: KOMPASS
@@ -42,7 +41,7 @@ extern sensors_vec_t orientation;
 
 // Implementierung: BLUETOOTH, MATE
 extern bool wasStartButton;
-extern unsigned long startTimer, bluetoothTimer;
+extern unsigned long startTimer, sendAvoidTimer, bluetoothTimer;
 
 // Implementierung: WICHTUNG DER PID-REGLER
 extern double pidSetpoint, pidIn, pidOut;
@@ -114,6 +113,7 @@ extern bool wasMenuButton;
 #define SPEED_BALL 60           // [0 bis 255]~72  STATUS 6: Ballverfolgung
 #define SPEED_CLOSE 40         // [0 bis 255]~60 STATUS 7: Torausrichtung
 #define SPEED_ATTACK 70        // [0 bis 255]~100 STATUS 8: Angriff
+#define SPEED_AVOID_MATE 100   // [0 bis 255]~100 STATUS 9: Ausweichen
 #define SPEED_DRIFT 80         // [0 bis 255]~140
 #define SPEED_LINE 90           // [0 bis 255]~90
 
@@ -124,10 +124,11 @@ extern bool wasMenuButton;
 #define SIDEWARD_MIN_DURATION 800     // min Zeit für Seitwärtsfahren
 #define TURN_MAX_DURATION 1500        // max Zeit für Drehmodus
 #define RETURN_MAX_DURATION 1500      // max Zeit für Drehmodus zurück
-#define AVOID_MATE_DURATION 700      // max Zeit für Ausweichmanöver
+#define LOST_DURATION 700      // max Zeit für Ausweichmanöver
 #define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
 #define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?
+#define AVOID_MATE_DURATION 500       // wie lange weichen wir aus
 #define DRIFT_DURATION 200            // wie lange steuern wir einem Drift entgegen?
 #define PIXY_RESPONSE_DURATION 20000  // wie lange soll die Pixy-Led grün nachleuchten?
 

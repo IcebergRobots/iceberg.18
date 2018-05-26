@@ -34,6 +34,7 @@ void calculateStates() {
   isLifted = millis() - flatTimer > 600;
   onLine = millis() - lineTimer < LINE_DURATION;
   isHeadstart = millis() - headstartTimer < HEADSTART_DURATION;
+  isAvoidMate = millis() - avoidMateTimer < AVOID_MATE_DURATION;
   batVol = analogRead(BATT_VOLTAGE) * 0.1220703;  // SPANNUNG MAL 10!
   if (batVol > VOLTAGE_MIN) {
     batState = 1; // ok

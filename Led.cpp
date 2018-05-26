@@ -26,6 +26,8 @@ void Led::led() {
     if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, bottom.Color(0, 0, 0));
     else if (!digitalRead(SWITCH_A)) setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 0, 0));
     else setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
+    matrix.show();
+    info.show();
   } else {
     // maximale Helligkeit
     bottom.setBrightness(255);
@@ -81,10 +83,10 @@ void Led::start() {
   Beende die Animation
 *****************************************************/
 void Led::cancel() {
-  timer = 0;
-  setBoard(bottom, BOTTOM_LENGTH, 0);
-  setBoard(matrix, MATRIX_LENGTH, 0);
-  setBoard(info, INFO_LENGTH, 0);
+  if (timer) {
+    timer = 0;
+    led();
+  }
 }
 
 /*****************************************************

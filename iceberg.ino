@@ -16,7 +16,10 @@
 bool start = false;         // ist der funkstart aktiviert
 bool onLine = false;        // befinden wir uns auf einer Linie?
 bool isHeadstart = false;   // fahren wir mit voller Geschwindigkeit?
+bool isAvoidMate = false;   // sollen wir dem Partner ausweichen?
 bool isKeeperLeft = false;  // deckten wir zuletzt das Tor mit einer Linksbewegung?
+bool wasMotor = false;      // war motor aktiv?
+bool wasStart = false;      // war start aktiv?
 byte role = 0;              // Spielrolle: Stürmer(2) / Torwart(1) / Aus(0)
 int rotMulti;               // Scalar, um die Rotationswerte zu verstärken
 int drivePower = 0;         // [-255 bis 255] aktuelle maximale Motorstärke
@@ -26,6 +29,7 @@ int driveOrientation = 0;   // [-180 bis 180] Ziel-Orientierungswinkel
 int lineDir = -1;           // Richtung, in der ein Bodensensor ausschlug
 unsigned long lineTimer = 0;        // Zeitpunkt des Interrupts durch einen Bodensensor
 unsigned long headstartTimer = 0;   // Zeitpunkt des Betätigen des Headstarts
+unsigned long avoidMateTimer = 0;   // Zeitpunkt des letzten Ausweich-Signals
 unsigned long flatTimer = 0;    // Zeitpunktm zu dem der Roboter das letzte mal flach auf dem Boden stand
 String driveState = "";             // Zustand des Fahrens
 Pilot m;  // OBJEKTINITIALISIERUNG
@@ -43,8 +47,9 @@ sensors_event_t mag_event;
 sensors_vec_t   orientation;
 
 // Globale Definition: BLUETOOTH, MATE
-bool wasStartButton = false; // war zuletzt der Funktstart aktiviert
-unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
+bool wasStartButton = false;      // war zuletzt der Funktstart aktiviert
+unsigned long startTimer = 0;     // Zeitpunkt des letzten Start Drückens
+unsigned long sendAvoidTimer = 0; // Zeitpunkt des letzten Ausweichsendens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
 Mate mate;  // OBJEKTINITIALISIERUNG
 
@@ -315,12 +320,14 @@ void loop() {
   if (millis() - usTimer > 100) us.receive(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
 
   // remote start
+  wasStart = start;
+  wasMotor = m.getMotEn();
   if (!digitalRead(BIG_BUTTON)) {
     if (!wasStartButton) startTimer = millis();
     if (millis() - startTimer < 100) {
       start = true;
       led.cancel();
-      if (digitalRead(SWITCH_B)) headstartTimer = millis();
+      if (!wasStart && !digitalRead(SWITCH_MOTOR) && digitalRead(SWITCH_B)) headstartTimer = millis();
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
       mate.send(data, 1);
@@ -328,7 +335,6 @@ void loop() {
       start = false;
     }
   }
-  bool tempMotor = m.getMotEn();
   // starte über Funk wenn Schalter Keeper aktiviert
   if (!digitalRead(SWITCH_MOTOR)) {
     m.setMotEn(start);
@@ -336,7 +342,7 @@ void loop() {
     m.setMotEn(false);
     start = false;
   }
-  if (millis() - bluetoothTimer > 100 || (!tempMotor && m.getMotEn()))  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
+  if (millis() - bluetoothTimer > 100 || (!wasMotor && m.getMotEn()))  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
   wasStartButton = !digitalRead(BIG_BUTTON);
 
 
@@ -350,9 +356,22 @@ void loop() {
         if (!wasStartButton && digitalRead(SWITCH_B) && !m.getMotEn()) headstartTimer = millis();
       }
       break;
+
     case 'b': // brake
       start = false;
       m.brake(true);
+      break;
+
+    case 'e': // avoid mate to east
+      avoidMateTimer = millis();
+      driveDirection = 100;
+      driveState = "> mate";
+      break;
+
+    case 'w': // avoid mate to west
+      avoidMateTimer = millis();
+      driveDirection = -100;
+      driveState = "< mate";
       break;
   }
 
@@ -393,11 +412,15 @@ void loop() {
     } else {
       driveDirection = -90;
     }
+  } else if (isAvoidMate) {
+    driveRotation = ausrichten(0);
+    drivePower = max(SPEED_AVOID_MATE - abs(driveRotation), 0);
+    m.drive(driveDirection, drivePower, driveRotation);
   } else {
     p.play();
   }
 
-  if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200) || (!tempMotor && m.getMotEn())) {
+  if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200) || wasMotor != m.getMotEn()) {
     if (DEBUG_FUNCTIONS) debug("display");
     d.update();   // aktualisiere Bildschirm und LEDs
   }

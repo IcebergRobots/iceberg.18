@@ -80,7 +80,7 @@ void Player::changeState() {
       break;
 
     case 5: // Seitlich verloren
-      if (millis() - stateTimer > AVOID_MATE_DURATION) setState(0, "time>");
+      if (millis() - stateTimer > LOST_DURATION) setState(0, "time>");
       else if (seeBall && stateLeft && ball > BALL_ANGLE_TRIGGER) setDirection(RIGHT, "ball>");
       else if (seeBall && !stateLeft && ball < -BALL_ANGLE_TRIGGER) setDirection(LEFT, "ball<");
       break;
@@ -235,12 +235,15 @@ void Player::play() {
         drivePower = SPEED_SIDEWAY;
       } else {
         driveState = "^ follow";
+
         if (seeWest && seeEast) {
           if (west + east > BALL_ANGLE_TRIGGER) ccLeft = RIGHT;
           else if (west + east < -BALL_ANGLE_TRIGGER) ccLeft = LEFT;
         } else if (seeWest) ccLeft = LEFT;
         else if (seeEast) ccLeft = RIGHT;
-        if (seeWest || seeEast) {
+
+        if (millis() - sendAvoidTimer > 100 &&  (seeWest || seeEast)) {
+          sendAvoidTimer = millis();
           byte data[1];
           if (ccLeft) data[1] = 'w';
           else data[1] = 'e';
