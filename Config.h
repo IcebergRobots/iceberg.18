@@ -39,6 +39,9 @@ extern Adafruit_LSM303_Mag_Unified mag;
 extern sensors_event_t accel_event, mag_event;
 extern sensors_vec_t orientation;
 
+// Implementierung: BEWERTUNG 
+extern byte scoreBallWidth, scoreBall, scoreRearward, scoreGoal, score;
+
 // Implementierung: BLUETOOTH, MATE
 extern bool wasStartButton;
 extern unsigned long startTimer, sendAvoidTimer, bluetoothTimer;
@@ -186,6 +189,12 @@ extern bool wasMenuButton;
 #define VOLTAGE_MOTOR_LOW 108   // [0 bis 126]~108 Geringe Akkuspannung beim Fahren
 #define VOLTAGE_CRIT 100        // [0 bis 126]~90  Kritische Akkuspannung
 #define VOLTAGE_LOW 110         // [0 bis 126]~110 Geringe Akkuspannung
+
+// BEWERTUNG 
+#define WEIGHTING_BALL 60
+#define WEIGHTING_BALL_WIDTH 100
+#define WEIGHTING_REARWARD 30 
+#define WEIGHTING_SEE_GOAL 15
 
 // Zeitumwandlung
 #define MILS_PER_SEC  (1000UL)  // Millisekunden pro Sekunde

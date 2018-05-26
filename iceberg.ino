@@ -46,6 +46,13 @@ sensors_event_t accel_event;
 sensors_event_t mag_event;
 sensors_vec_t   orientation;
 
+// Gloabale Definition: BEWERTUNG
+byte scoreBallWidth = 0;
+byte scoreBall = 0;
+byte scoreRearward = 0;
+byte scoreGoal = 0;
+byte score = 0;
+
 // Globale Definition: BLUETOOTH, MATE
 bool wasStartButton = false;      // war zuletzt der Funktstart aktiviert
 unsigned long startTimer = 0;     // Zeitpunkt des letzten Start Drückens
@@ -320,6 +327,8 @@ void loop() {
 
   if (millis() - usTimer > 100) us.receive(); // lese die Ultraschall Sensoren aus (max. alle 100ms)
 
+  rating();
+
   // remote start
   wasStart = start;
   wasMotor = m.getMotEn();
@@ -379,11 +388,11 @@ void loop() {
 
   if (mate.timeout() || !mate.getMotEn()) p.setKeeper(true);
   else if (isTypeA) {
-    if (seeBall && !mate.seeBall) p.setRusher(false);
-    if (!seeBall && mate.seeBall) p.setKeeper(false);
-    if (seeBall && mate.seeBall && abs(ballWidth - mate.ballWidth) >= 5) {
-      if (ballWidth > mate.ballWidth) p.setRusher(false);
-      if (ballWidth < mate.ballWidth) p.setKeeper(false);
+    if (seeBall && !mate.getScore()) p.setRusher(false);
+    if (!seeBall && mate.getScore()) p.setKeeper(false);
+    if (seeBall && mate.getScore() && abs(score - mate.getScore()) >= 20) {
+      if (score > mate.getScore()) p.setRusher(false);
+      if (score < mate.getScore()) p.setKeeper(false);
     }
   } else {
     if (mate.isKeeper()) p.setRusher(true);

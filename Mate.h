@@ -11,26 +11,19 @@ class Mate
     Mate();
 
     byte receive();
-    byte right();
-    byte front();
-    byte left();
-    byte back();
     unsigned long timeout();
     void send(byte * data, byte numberOfElements);
     bool getMotEn();
     bool isKeeper();
     bool isRusher();
     byte getState();
-
-    bool seeBall = false;
-    int ball = 0;
-    unsigned int ballWidth = 0;
-
+    byte getScore();
   private:
     byte fetch();
 
     byte role = 0;
     byte state = 0;
+    byte score = 0;
     byte cache[CACHE_SIZE]; // Zwischenspeicher für eingehende Bluetooth Nachrichten
     byte cacheIndex = 255;  // aktuelle Schreibposition im Zwischenspeicher
     byte distanceRight = 0;

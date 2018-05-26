@@ -72,26 +72,19 @@ byte Mate::fetch() {
 *****************************************************/
 byte Mate::receive() {
   byte messageLength = fetch(); // aktualisiere den Cache
-  if (messageLength == 10 && cache[0] == 'h') {
-    /*Byte    Information   mögliche Zustände
-      -----------------------------------------------------
-      0       Pakettyps     Heartbeat(104)
-      1       Rolle         Stürmer(2) / Torwart(1) / Aus(0)
-      2       Ballzustand   blind(2) / links(1) / rechts(0)
-      3       Ballwinkel    (0 bis 253)
-      4,5     Ballbreite    je (0 bis 253)
-      6,7,8,9 Ultraschall   je (0 bis 253)
-    */
+  if (messageLength == 3 && cache[0] == 'h') {
+/***************************************************** 
+  Sende einen Herzschlag mit Statusinformationen an den Partner 
+ 
+  Byte    Information   mögliche Zustände 
+  ----------------------------------------------------- 
+  0       Pakettyps     Heartbeat(104) 
+  1       Status+Rolle  Aus(0+Status) / Torwart(1+Status) / Stürmer(2+Status) 
+  2       Score         Blind(0) / Bewertung(...) 
+*****************************************************/ 
     role = cache[1] / 10;
     state = cache[1] % 10;
-    seeBall = cache[2] < 2;
-    if (cache[2] == 1) ball = -cache[3];
-    else ball = cache[3];
-    ballWidth = cache[4] + 254 * cache[5];  // speichere die Ballbreite
-    distanceRight = cache[6];
-    distanceFront = cache[7];
-    distanceLeft = cache[8];
-    distanceBack = cache[9];
+    score = cache[2];
     responseTimer = millis();
   }
   if (messageLength > 0) {
@@ -117,20 +110,8 @@ byte Mate::getState() {
   return state;
 }
 
-byte Mate::right() {
-  return distanceRight;
-}
-
-byte Mate::front() {
-  return distanceFront;
-}
-
-byte Mate::left() {
-  return distanceLeft;
-}
-
-byte Mate::back() {
-  return distanceBack;
+byte Mate::getScore() { 
+  return score; 
 }
 
 unsigned long Mate::timeout() {

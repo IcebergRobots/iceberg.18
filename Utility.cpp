@@ -85,32 +85,23 @@ void calculateStates() {
 
 /*****************************************************
   Sende einen Herzschlag mit Statusinformationen an den Partner
-
+ 
   Byte    Information   mögliche Zustände
   -----------------------------------------------------
   0       Pakettyps     Heartbeat(104)
-  1       Rolle         Stürmer(2) / Torwart(1) / Aus(0)
-  2       Ballzustand   blind(2) / links(1) / rechts(0)
-  3       Ballwinkel    (0 bis 253)
-  4,5     Ballbreite    je (0 bis 253)
-  6,7,8,9 Ultraschall   je (0 bis 253)
+  1       Status+Rolle  Aus(0+Status) / Torwart(1+Status) / Stürmer(2+Status)
+  2       Score         Blind(0) / Bewertung(...)
 *****************************************************/
 void transmitHeartbeat() {
-  byte data[10];
+  rating();
+  
+  byte data[3];
   data[0] = 'h';
   if (!m.getMotEn()) data[1] = p.getState();
   else if (p.isKeeper()) data[1] = p.getState() + 10;
   else if (p.isRusher()) data[1] = p.getState() + 20;
-  if (!m.getMotEn() || !seeBall) data[2] = 2;
-  else data[2] = ball < 0;
-  data[3] = abs(ball);
-  data[4] = ballWidth % 254;
-  data[5] = ballWidth / 254;
-  data[6] = us.right();
-  data[7] = us.front();
-  data[8] = us.left();
-  data[9] = us.back();
-  mate.send(data, 10); // heartbeat
+  data[2] = score;
+  mate.send(data, 3); // heartbeat
   bluetoothTimer = millis();
 }
 
@@ -296,6 +287,15 @@ void readPixy() {
 
   pixyTimer = millis(); // merke Zeitpunkt
 }
+
+void rating() { 
+  scoreBallWidth = seeBall * map(constrain(ballWidth, 0, 130), 0, 130, 0, WEIGHTING_BALL_WIDTH); 
+  scoreBall = seeBall * map(constrain(abs(ball), 0, X_CENTER), 0, X_CENTER, WEIGHTING_REARWARD, 0); 
+  scoreRearward = (us.back() > 0) * map(constrain(us.back(), 0, 70), 0, 140, 0, WEIGHTING_REARWARD); 
+  scoreGoal = map(seeGoal, 0, 1, 0, WEIGHTING_SEE_GOAL); 
+ 
+  score = seeBall * (scoreBallWidth + scoreBall + scoreRearward + scoreGoal); 
+} 
 
 String boolToSign(bool b) {
   if (b) return "+ ";

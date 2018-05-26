@@ -208,7 +208,12 @@ bool Display::set() {
       addLine("==========");
       break;
     case 2:
-      title = "Debug";
+      title = "Weighting";
+      addLine("Scr", score);
+      addLine("B.widt", scoreBallWidth);
+      addLine("B.cent", scoreBall);
+      addLine("Back", scoreRearward);
+      addLine("Goal", scoreGoal);
       addLine("==========");
       break;
     case 3:
@@ -256,7 +261,7 @@ bool Display::set() {
         else angle += west + 30;
 
         angle /= 2;
-        if(ccLeft) addLine("CC <", angle, true);
+        if (ccLeft) addLine("CC <", angle, true);
         else addLine("CC >", angle, true);
       } else addLine("CC");
       addLine("==========");
@@ -280,20 +285,12 @@ bool Display::set() {
       title = "Mate";
       if (mate.timeout()) addLine("Tout:", mate.timeout() / 1000);
       else {
-        addLine("^" + String(mate.front()), String(mate.right()) + ">");
-        addLine("<" + String(mate.left()), String(mate.back()) + "v");
         if (!mate.getMotEn()) addLine("Role:", "off");
         else if (mate.isKeeper()) addLine("Role:", "keeper");
         else if (mate.isRusher()) addLine("Role:", "rusher");
         else addLine("Role:", "?");
-        if (mate.seeBall) {
-          addLine("B.dif:", ball - mate.ball, true);
-          addLine("B.ang:", mate.ball, true);
-        } else {
-          addLine("B.dif:");
-          addLine("B.ang:");
-        }
-        addLine("B.wid:", mate.ballWidth);
+        addLine("State", mate.getState());
+        addLine("Score", mate.getScore());
       }
       addLine("==========");
       break;
