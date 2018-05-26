@@ -41,7 +41,7 @@ extern sensors_event_t accel_event, mag_event;
 extern sensors_vec_t orientation;
 
 // Implementierung: BLUETOOTH, MATE
-extern bool startLast;
+extern bool wasStartButton;
 extern unsigned long startTimer, bluetoothTimer;
 
 // Implementierung: WICHTUNG DER PID-REGLER
@@ -195,7 +195,6 @@ extern bool wasMenuButton;
 #define X_CENTER ((PIXY_MAX_X-PIXY_MIN_X)/2)                                  // PIXY: Die Mitte des Bildes der Pixy (in Pixeln)
 #define numberOfSeconds(_millis_) ((_millis_ / MILS_PER_SEC) % SECS_PER_MIN)  // TIME: wandle Zeit in Sekundenanzeige um
 #define numberOfMinutes(_time_) (_time_ / MILS_PER_MIN) % MINS_PER_HOUR       // TIME: wandle Zeit in Minutenanzeige um
-#define myTone(_frequency_,_duration_,_pause_) tone(BUZZER,_frequency_,_duration_);if(!digitalRead(BUTTON_1))return;nextTone(_pause_);if(!digitalRead(BUTTON_1))return;
 
 void pinModes();
 

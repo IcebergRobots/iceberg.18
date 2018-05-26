@@ -43,7 +43,7 @@ sensors_event_t mag_event;
 sensors_vec_t   orientation;
 
 // Globale Definition: BLUETOOTH, MATE
-bool startLast = false; // war zuletzt der Funktstart aktiviert
+bool wasStartButton = false; // war zuletzt der Funktstart aktiviert
 unsigned long startTimer = 0; // Zeitpunkt des letzten Start Drückens
 unsigned long bluetoothTimer = 0; // Zeitpunkt des letzten Sendens
 Mate mate;  // OBJEKTINITIALISIERUNG
@@ -215,7 +215,7 @@ void setup() {
   bottom.begin();   // BODEN-LEDS initialisieren
   matrix.begin();   // MATRIX-LEDS initialisieren
   info.begin();     // STATUS-LEDS initialisieren
-  led.start();
+  if (!silent) led.start();
   d.setupMessage(10, "B: " + String(lightBarrierTriggerLevel), "");
   DEBUG_SERIAL.println();
   DEBUG_SERIAL.println("ICEBERG ROBOTS");
@@ -316,21 +316,19 @@ void loop() {
 
   // remote start
   if (!digitalRead(BIG_BUTTON)) {
-    if (!startLast && digitalRead(SWITCH_B) && !m.getMotEn()) headstartTimer = millis();
-    if (!startLast || millis() - startTimer < 100) {
+    if (!wasStartButton) startTimer = millis();
+    if (millis() - startTimer < 100) {
       start = true;
+      led.cancel();
+      if (digitalRead(SWITCH_B)) headstartTimer = millis();
     } else if (millis() - startTimer > 1000) {
       byte data[1] = {'b'};
       mate.send(data, 1);
       m.brake(true);
       start = false;
     }
-    startLast = true;
-  } else {
-    startLast = false;
-    startTimer = millis();
   }
-
+  bool tempMotor = m.getMotEn();
   // starte über Funk wenn Schalter Keeper aktiviert
   if (!digitalRead(SWITCH_MOTOR)) {
     m.setMotEn(start);
@@ -338,8 +336,9 @@ void loop() {
     m.setMotEn(false);
     start = false;
   }
+  if (millis() - bluetoothTimer > 100 || (!tempMotor && m.getMotEn()))  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
+  wasStartButton = !digitalRead(BIG_BUTTON);
 
-  if (millis() - bluetoothTimer > 100 || start != startLast)  transmitHeartbeat(); // Sende einen Herzschlag mit Statusinformationen an den Partner
 
   // bluetooth auslesen
   byte command = mate.receive();
@@ -347,11 +346,9 @@ void loop() {
     case 'h': // heartbeat
       if (mate.getMotEn()) {
         start = true;
-        if (!startLast && digitalRead(SWITCH_B) && !m.getMotEn()) headstartTimer = millis();
+        led.cancel();
+        if (!wasStartButton && digitalRead(SWITCH_B) && !m.getMotEn()) headstartTimer = millis();
       }
-      break;
-    case 's': // start
-      start = true;
       break;
     case 'b': // brake
       start = false;
@@ -400,7 +397,7 @@ void loop() {
     p.play();
   }
 
-  if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200)) {
+  if (millis() - lastDisplay > 1000 || (d.getPage() == 3  && millis() - lastDisplay > 200) || (!tempMotor && m.getMotEn())) {
     if (DEBUG_FUNCTIONS) debug("display");
     d.update();   // aktualisiere Bildschirm und LEDs
   }

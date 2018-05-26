@@ -24,7 +24,7 @@ class Led
     void wheelBoard(Adafruit_NeoPixel & board, int boardLength, int offset);
     void setBoard(Adafruit_NeoPixel & board, int boardLength, uint32_t color);
     uint32_t wheelToColor(Adafruit_NeoPixel & board, byte pos);
-    void nextTone(unsigned long time);
+    void myTone(unsigned int frequency, unsigned long duration, unsigned long pause);
 
     unsigned long timer = 0; // Position in der Animation
 };

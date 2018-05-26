@@ -36,10 +36,6 @@ void Led::led() {
     setBoard(matrix, MATRIX_LENGTH, wheelToColor(matrix, angle));
     setBoard(info, INFO_LENGTH, wheelToColor(info, angle));
   }
-  // übernehme alle Änderungen
-  bottom.show();
-  matrix.show();
-  info.show();
   ledTimer = millis();
   debug(micros());
 }
@@ -78,13 +74,7 @@ void Led::set() {
   Starte die Animation
 *****************************************************/
 void Led::start() {
-  if (ANIMATION && !silent) {
-    timer = millis();
-    /*hymne();
-      if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
-      setBoard(matrix, MATRIX_LENGTH, 0);
-      setBoard(info, INFO_LENGTH, 0);*/
-  }
+  if (ANIMATION) timer = millis();
 }
 
 /*****************************************************
@@ -92,7 +82,7 @@ void Led::start() {
 *****************************************************/
 void Led::cancel() {
   timer = 0;
-  if (!digitalRead(SWITCH_BOTTOM) || isLifted) setBoard(bottom, BOTTOM_LENGTH, 0);
+  setBoard(bottom, BOTTOM_LENGTH, 0);
   setBoard(matrix, MATRIX_LENGTH, 0);
   setBoard(info, INFO_LENGTH, 0);
 }
@@ -205,30 +195,18 @@ uint32_t Led::wheelToColor(Adafruit_NeoPixel & board, byte pos) {
   }
 }
 
-void Led::nextTone(unsigned long time) {
-  unsigned long timestamp = micros();
-  setBoard(bottom, BOTTOM_LENGTH, 0);
-  setBoard(matrix, MATRIX_LENGTH, 0);
-  setBoard(info, INFO_LENGTH, 0);
-  bottom.show();
-  matrix.show();
-  info.show();
-  while (micros() - timestamp + 4000 < time) {}
-  setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
-  setBoard(matrix, MATRIX_LENGTH, matrix.Color(255, 255, 255));
-  setBoard(info, INFO_LENGTH, info.Color(255, 255, 255));
-  bottom.show();
-  matrix.show();
-  info.show();
-  while (micros() - timestamp < time) {}
-}
-
 void Led::hymne() {
-  cancel();
+  // maximale Helligkeit
+  bottom.setBrightness(255);
+  matrix.setBrightness(255);
+  info.setBrightness(255);
   setBoard(bottom, BOTTOM_LENGTH, bottom.Color(255, 255, 255));
   setBoard(matrix, MATRIX_LENGTH, matrix.Color(255, 255, 255));
   setBoard(info, INFO_LENGTH, info.Color(255, 255, 255));
   while (!digitalRead(BUTTON_1)) {}
+  setBoard(bottom, BOTTOM_LENGTH, 0);
+  setBoard(matrix, MATRIX_LENGTH, 0);
+  setBoard(info, INFO_LENGTH, 0);
 
   myTone(391, 586.956375, 652174);
   myTone(440, 195.652125, 217391);
@@ -288,3 +266,22 @@ void Led::hymne() {
   myTone(391, 782.6085, 869565);
 
 }
+
+void Led::myTone(unsigned int frequency, unsigned long duration, unsigned long pause) {
+  if (timer) {
+    if (!digitalRead(BUTTON_1) || !digitalRead(BUTTON_2) || !digitalRead(BUTTON_3) || !digitalRead(BIG_BUTTON) || !digitalRead(SWITCH_DEBUG)) {
+      cancel();
+      return;
+    }
+
+    tone(BUZZER, frequency, duration);
+    unsigned long timestamp = micros();
+    while (micros() - timestamp < pause) {
+      if (!digitalRead(BUTTON_1) || !digitalRead(BUTTON_2) || !digitalRead(BUTTON_3) || !digitalRead(BIG_BUTTON) || !digitalRead(SWITCH_DEBUG)) {
+        cancel();
+        return;
+      }
+    }
+  }
+}
+
