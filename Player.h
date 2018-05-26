@@ -35,8 +35,6 @@ class Player
     byte state = 0;               // Verteidigerrolle: Nach hinten(0) / Torverteidigung(1) / Pfostendrehung hin(2) / Pfostendrehung zurück(3) / Befreiung(4) / Seitlich verloren(5)
     // Angriffsrolle: Ballverfolgung(6) / Torausrichtung(7) / Angriff(8) / Ausweichen(9)
     unsigned long stateTimer = 0; // Zeitpunkt des letzten Statuswechsels
-
-    bool ccLeft = false;        // Richtung des Ausweichens
 };
 
 #endif

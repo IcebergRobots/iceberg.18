@@ -52,7 +52,7 @@ extern byte batState;
 extern int batVol;
 
 // Implementierung: PIXY
-extern bool seeBall, seeGoal, seeEast, seeWest, closeBall, isDrift, driftLeft;
+extern bool seeBall, seeGoal, seeEast, seeWest, closeBall, isDrift, driftLeft, ccLeft;
 extern byte pixyState, blockCount, blockCountBall, blockCountGoal, blockCountEast, blockCountWest;
 extern int ball, ballWidth, ballArea, goal, goalWidth, goalArea, east, eastHeight, west, westHeight;
 extern unsigned long seeBallTimer, seeGoalTimer, seeEastTimer, seeWestTimer, closeBallTimer, driftTimer, ballLeftTimer, ballRightTimer, pixyResponseTimer, pixyTimer;
@@ -128,7 +128,7 @@ extern bool wasMenuButton;
 #define ROLE_LED_DURATION 350         // wie lange soll die Spielrolle angezeigt werden?
 #define LINE_DURATION 300             // wie lange steuern wir der Linie entgegen?
 #define HEADSTART_DURATION 350        // wie lange fahren wir volle Geschwindigkeit?
-#define AVOID_MATE_DURATION 500       // wie lange weichen wir aus
+#define AVOID_MATE_DURATION 200       // wie lange weichen wir aus
 #define DRIFT_DURATION 200            // wie lange steuern wir einem Drift entgegen?
 #define PIXY_RESPONSE_DURATION 20000  // wie lange soll die Pixy-Led grün nachleuchten?
 
@@ -171,6 +171,7 @@ extern bool wasMenuButton;
 #define DEBUG_STATE true          // soll der Statuswechsel gezeigt werden?
 #define DEBUG_FUNCTIONS false     // sollen Methoden gezeigt werden?
 #define DEBUG_LOOP false          // soll jeder Schleifendurchlauf gezeigt werden?
+#define DEBUG_BLUETOOTH true      // sollen bluetooth nachrichten gezeigt werden?
 #define DEBUG_SERIAL Serial       // Serial der Usb-Schnittstelle
 #define BLUETOOTH true            // soll eine Bluetooth-Kommunikation bestehen?
 #define BLUETOOTH_SERIAL Serial1  // Serial des Bluetooth-Moduls

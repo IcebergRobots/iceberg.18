@@ -243,6 +243,22 @@ bool Display::set() {
       addLine("G.widt", goalWidth);
       addLine("G.area", goalArea);
       addLine("#goal", (millis() - seeGoalTimer) / 1000);
+      if (seeEast) addLine("E.angl", east, true);
+      else addLine("E.angl");
+      if (seeWest) addLine("W.angl", west, true);
+      else addLine("W.angl");
+
+      if (seeWest || seeEast) {
+        int angle = 0;
+        if (seeWest) angle += west;
+        else angle += east - 30;
+        if (seeEast) angle += east;
+        else angle += west + 30;
+
+        angle /= 2;
+        if(ccLeft) addLine("CC <", angle, true);
+        else addLine("CC >", angle, true);
+      } else addLine("CC");
       addLine("==========");
       break;
     case 5:

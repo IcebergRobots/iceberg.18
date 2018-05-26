@@ -111,6 +111,31 @@ void Player::changeState() {
   }
   if (tempState == 0 && state == 1) stateTimer = max(0, millis() - SIDEWARD_MIN_DURATION / 2);
   else if (tempState != state) stateTimer = millis();
+
+  if (seeWest || seeEast) {
+    int angle = 0;
+    if (seeWest) angle += west;
+    else angle += east - 30;
+    if (seeEast) angle += east;
+    else angle += west + 30;
+
+    angle /= 2;
+    if (sendAvoidTimer > 200)  ccLeft = angle < 0;
+    else {
+      if (angle > BALL_ANGLE_TRIGGER) ccLeft = RIGHT;
+      else if (angle < -BALL_ANGLE_TRIGGER) ccLeft = LEFT;
+    }
+
+    if (state >= 6) {
+      if (millis() - sendAvoidTimer > 100) {
+        sendAvoidTimer = millis();
+        byte data[1];
+        if (ccLeft) data[0] = 'w';
+        else data[0] = 'e';
+        mate.send(data, 1); // avoid mate
+      }
+    }
+  }
 }
 
 void Player::play() {
@@ -236,58 +261,44 @@ void Player::play() {
       } else {
         driveState = "^ follow";
 
-        if (seeWest && seeEast) {
-          if (west + east > BALL_ANGLE_TRIGGER) ccLeft = RIGHT;
-          else if (west + east < -BALL_ANGLE_TRIGGER) ccLeft = LEFT;
-        } else if (seeWest) ccLeft = LEFT;
-        else if (seeEast) ccLeft = RIGHT;
-
-        if (millis() - sendAvoidTimer > 100 &&  (seeWest || seeEast)) {
-          sendAvoidTimer = millis();
-          byte data[1];
-          if (ccLeft) data[1] = 'w';
-          else data[1] = 'e';
-          mate.send(data, 1); // avoid mate
-        }
-      }
-
-      driveRotation = ausrichten(0);
-      drivePower = max(drivePower - abs(driveRotation), 0);
-      m.drive(driveDirection, drivePower, driveRotation);
-      break;
-
-    case 7: // Torausrichtung
-      // orientiere dich zum Ball
-      // bringe Ball und Tor in eine Linie
-      if (!stateLeft) {
-        // Tor ist links
-        driveDirection = ANGLE_GOAL;
-        driveState = "< close";
-      } else {
-        // Tor ist rechts
-        driveDirection = -ANGLE_GOAL;
-        driveState = "> close";
-      }
-      driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
-
-      if (millis() - stateTimer < 200) m.brake(true); // bremse kurz ab
-      else {
-        driveRotation = ausrichten(driveOrientation);
-        drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
+        driveRotation = ausrichten(0);
+        drivePower = max(drivePower - abs(driveRotation), 0);
         m.drive(driveDirection, drivePower, driveRotation);
+        break;
+
+      case 7: // Torausrichtung
+        // orientiere dich zum Ball
+        // bringe Ball und Tor in eine Linie
+        if (!stateLeft) {
+          // Tor ist links
+          driveDirection = ANGLE_GOAL;
+          driveState = "< close";
+        } else {
+          // Tor ist rechts
+          driveDirection = -ANGLE_GOAL;
+          driveState = "> close";
+        }
+        driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
+
+        if (millis() - stateTimer < 200) m.brake(true); // bremse kurz ab
+        else {
+          driveRotation = ausrichten(driveOrientation);
+          drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
+          m.drive(driveDirection, drivePower, driveRotation);
+        }
+        break;
+
+      case 8: // Angriff
+        if (seeBall) driveDirection = constrain(map(ball, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+        else driveDirection = 0;
+        driveState = "^ attack";
+        if (hasBall) kick();
+
+        driveRotation = ausrichten(driveOrientation);           // übernehme den letzten Kompasswinkel
+        drivePower = max(SPEED_ATTACK - abs(driveRotation), 0);
+        m.drive(driveDirection, drivePower, driveRotation);
+        break;
       }
-      break;
-
-    case 8: // Angriff
-      if (seeBall) driveDirection = constrain(map(ball, -X_CENTER, X_CENTER, 50, -50), -50, 50);
-      else driveDirection = 0;
-      driveState = "^ attack";
-      if (hasBall) kick();
-
-      driveRotation = ausrichten(driveOrientation);           // übernehme den letzten Kompasswinkel
-      drivePower = max(SPEED_ATTACK - abs(driveRotation), 0);
-      m.drive(driveDirection, drivePower, driveRotation);
-      break;
   }
 }
 

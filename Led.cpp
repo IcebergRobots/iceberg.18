@@ -14,7 +14,6 @@ Led::Led() {}
   Aktualisiere alle Leds bzw. zeige die Animation
 *****************************************************/
 void Led::led() {
-  debug(micros());
   if (!timer) {
     // setze Helligkeit zurück
     bottom.setBrightness(BOTTOM_BRIGHTNESS);
@@ -39,7 +38,6 @@ void Led::led() {
     setBoard(info, INFO_LENGTH, wheelToColor(info, angle));
   }
   ledTimer = millis();
-  debug(micros());
 }
 
 /*****************************************************

@@ -71,6 +71,7 @@ bool seeWest = false;   // sehen wir eine Farbmarkierung nach links
 bool closeBall = false; // ist der Ball groß
 bool isDrift = false;   // driften wir
 bool driftLeft = false; // steuern wir nach links gegen
+bool ccLeft = false;        // Richtung des Ausweichens
 byte pixyState = 0;     // Verbindungsstatus per Pixy
 byte blockCount = 0;    // Anzahl der gesehenen Blöcke
 byte blockCountBall = 0;// Anzahl der Ball Blöcke
@@ -348,6 +349,7 @@ void loop() {
 
   // bluetooth auslesen
   byte command = mate.receive();
+  if (DEBUG_BLUETOOTH && command != 255 && command != 'h') debug(String((char)command));
   switch (command) {
     case 'h': // heartbeat
       if (mate.getMotEn()) {
