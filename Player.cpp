@@ -264,41 +264,41 @@ void Player::play() {
         driveRotation = ausrichten(0);
         drivePower = max(drivePower - abs(driveRotation), 0);
         m.drive(driveDirection, drivePower, driveRotation);
-        break;
-
-      case 7: // Torausrichtung
-        // orientiere dich zum Ball
-        // bringe Ball und Tor in eine Linie
-        if (!stateLeft) {
-          // Tor ist links
-          driveDirection = ANGLE_GOAL;
-          driveState = "< close";
-        } else {
-          // Tor ist rechts
-          driveDirection = -ANGLE_GOAL;
-          driveState = "> close";
-        }
-        driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
-
-        if (millis() - stateTimer < 200) m.brake(true); // bremse kurz ab
-        else {
-          driveRotation = ausrichten(driveOrientation);
-          drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
-          m.drive(driveDirection, drivePower, driveRotation);
-        }
-        break;
-
-      case 8: // Angriff
-        if (seeBall) driveDirection = constrain(map(ball, -X_CENTER, X_CENTER, 50, -50), -50, 50);
-        else driveDirection = 0;
-        driveState = "^ attack";
-        if (hasBall) kick();
-
-        driveRotation = ausrichten(driveOrientation);           // übernehme den letzten Kompasswinkel
-        drivePower = max(SPEED_ATTACK - abs(driveRotation), 0);
-        m.drive(driveDirection, drivePower, driveRotation);
-        break;
       }
+      break;
+
+    case 7: // Torausrichtung
+      // orientiere dich zum Ball
+      // bringe Ball und Tor in eine Linie
+      if (!stateLeft) {
+        // Tor ist links
+        driveDirection = ANGLE_GOAL;
+        driveState = "< close";
+      } else {
+        // Tor ist rechts
+        driveDirection = -ANGLE_GOAL;
+        driveState = "> close";
+      }
+      driveOrientation = constrain(ball / 3 + heading, -ANGLE_GOAL_MAX, ANGLE_GOAL_MAX);
+
+      if (millis() - stateTimer < 200) m.brake(true); // bremse kurz ab
+      else {
+        driveRotation = ausrichten(driveOrientation);
+        drivePower = max(SPEED_CLOSE - abs(driveRotation), 0);
+        m.drive(driveDirection, drivePower, driveRotation);
+      }
+      break;
+
+    case 8: // Angriff
+      if (seeBall) driveDirection = constrain(map(ball, -X_CENTER, X_CENTER, 50, -50), -50, 50);
+      else driveDirection = 0;
+      driveState = "^ attack";
+      if (hasBall) kick();
+
+      driveRotation = ausrichten(driveOrientation);           // übernehme den letzten Kompasswinkel
+      drivePower = max(SPEED_ATTACK - abs(driveRotation), 0);
+      m.drive(driveDirection, drivePower, driveRotation);
+      break;
   }
 }
 
