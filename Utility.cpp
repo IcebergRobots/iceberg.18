@@ -85,7 +85,7 @@ void calculateStates() {
 
 /*****************************************************
   Sende einen Herzschlag mit Statusinformationen an den Partner
- 
+
   Byte    Information   mögliche Zustände
   -----------------------------------------------------
   0       Pakettyps     Heartbeat(104)
@@ -94,7 +94,7 @@ void calculateStates() {
 *****************************************************/
 void transmitHeartbeat() {
   rating();
-  
+
   byte data[3];
   data[0] = 'h';
   if (!m.getMotEn()) data[1] = p.getState();
@@ -288,14 +288,14 @@ void readPixy() {
   pixyTimer = millis(); // merke Zeitpunkt
 }
 
-void rating() { 
-  scoreBallWidth = seeBall * map(constrain(ballWidth, 0, 130), 0, 130, 0, WEIGHTING_BALL_WIDTH); 
-  scoreBall = seeBall * map(constrain(abs(ball), 0, X_CENTER), 0, X_CENTER, WEIGHTING_REARWARD, 0); 
-  scoreRearward = (us.back() > 0) * map(constrain(us.back(), 0, 70), 0, 140, 0, WEIGHTING_REARWARD); 
-  scoreGoal = map(seeGoal, 0, 1, 0, WEIGHTING_SEE_GOAL); 
- 
-  score = seeBall * (scoreBallWidth + scoreBall + scoreRearward + scoreGoal); 
-} 
+void rating() {
+  scoreBallWidth = seeBall * map(constrain(ballWidth, 0, 130), 0, 130, 0, WEIGHTING_BALL_WIDTH);
+  scoreBall = seeBall * map(constrain(abs(ball), 0, X_CENTER), 0, X_CENTER, WEIGHTING_REARWARD, 0);
+  scoreRearward = (us.back() > 0) * map(constrain(us.back(), 0, 70), 0, 140, 0, WEIGHTING_REARWARD);
+  scoreGoal = map(seeGoal, 0, 1, 0, WEIGHTING_SEE_GOAL);
+
+  score = seeBall * (scoreBallWidth + scoreBall + scoreRearward + scoreGoal);
+}
 
 String boolToSign(bool b) {
   if (b) return "+ ";

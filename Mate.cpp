@@ -73,15 +73,15 @@ byte Mate::fetch() {
 byte Mate::receive() {
   byte messageLength = fetch(); // aktualisiere den Cache
   if (messageLength == 3 && cache[0] == 'h') {
-/***************************************************** 
-  Sende einen Herzschlag mit Statusinformationen an den Partner 
- 
-  Byte    Information   mögliche Zustände 
-  ----------------------------------------------------- 
-  0       Pakettyps     Heartbeat(104) 
-  1       Status+Rolle  Aus(0+Status) / Torwart(1+Status) / Stürmer(2+Status) 
-  2       Score         Blind(0) / Bewertung(...) 
-*****************************************************/ 
+    /*****************************************************
+      Sende einen Herzschlag mit Statusinformationen an den Partner
+
+      Byte    Information   mögliche Zustände
+      -----------------------------------------------------
+      0       Pakettyps     Heartbeat(104)
+      1       Status+Rolle  Aus(0+Status) / Torwart(1+Status) / Stürmer(2+Status)
+      2       Score         Blind(0) / Bewertung(...)
+    *****************************************************/
     role = cache[1] / 10;
     state = cache[1] % 10;
     score = cache[2];
@@ -110,8 +110,8 @@ byte Mate::getState() {
   return state;
 }
 
-byte Mate::getScore() { 
-  return score; 
+byte Mate::getScore() {
+  return score;
 }
 
 unsigned long Mate::timeout() {

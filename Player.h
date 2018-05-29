@@ -5,10 +5,10 @@
 
 class Player
 {
-  #define TOGGLE 2
-  #define LEFT 1
-  #define RIGHT 0
-  
+#define TOGGLE 2
+#define LEFT 1
+#define RIGHT 0
+
   public:
     Player();
 

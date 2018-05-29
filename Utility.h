@@ -15,7 +15,7 @@ void readCompass();
 void buzzerTone(int duration);
 int ausrichten(int orientation);
 void readPixy();
-void rating(); 
+void rating();
 String boolToSign(bool b);
 void debug(String str);
 void debug(long num);

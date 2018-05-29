@@ -162,26 +162,26 @@ void Pilot::calculate(int angle, int power, int rotation) {
   int totalCurr = 0;
   int totalPwr = 0;
 
-  for(int i = 0; i<4; i++){
-    int value = analogRead(_curSens[i])-512;
+  for (int i = 0; i < 4; i++) {
+    int value = analogRead(_curSens[i]) - 512;
     totalCurr += abs(value);
     totalPwr += abs(_values[i]);
   }
-  if(_halfSpeed){
+  if (_halfSpeed) {
     totalPwr /= 2;
   }
-  if(totalPwr != 0){
-    _curr = (totalCurr/(float)totalPwr)*255;
+  if (totalPwr != 0) {
+    _curr = (totalCurr / (float)totalPwr) * 255;
   }
 
-  _halfSpeed = !onLine && (power > 30 && _curr < 15) || _halfSpeed&&(power > 15 && _curr < 50);
-  
-  if(_halfSpeed){
-    for(int i = 0; i<4; i++){
+  _halfSpeed = !onLine && (power > 30 && _curr < 15) || _halfSpeed && (power > 15 && _curr < 50);
+
+  if (_halfSpeed) {
+    for (int i = 0; i < 4; i++) {
       _values[i] /= 2;
     }
-    if(_motEn)tone(BUZZER,700);
-  }else{
+    if (_motEn)tone(BUZZER, 700);
+  } else {
     noTone(BUZZER);
   }
 }
