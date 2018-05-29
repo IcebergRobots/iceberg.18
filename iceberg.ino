@@ -320,7 +320,7 @@ void loop() {
     led.led();  // Aktualisiere alle Leds bzw. zeige die Animation
   }
 
-  if (millis() - pixyTimer > 30) {
+  if (millis() - pixyTimer > 20) {
     if (DEBUG_FUNCTIONS) debug("pixy");
     readPixy(); // aktualisiere Pixywerte (max. alle 50ms)
   }
