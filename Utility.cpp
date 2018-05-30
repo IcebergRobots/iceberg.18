@@ -294,7 +294,9 @@ void rating() {
   scoreRearward = (us.back() > 0) * map(constrain(us.back(), 0, 70), 0, 140, 0, WEIGHTING_REARWARD);
   scoreGoal = map(seeGoal, 0, 1, 0, WEIGHTING_SEE_GOAL);
 
-  score = seeBall * (scoreBallWidth + scoreBall + scoreRearward + scoreGoal);
+  if (!seeBall) score = 0;
+  else if (p.getState() == 7) score = 255;
+  else score = scoreBallWidth + scoreBall + scoreRearward + scoreGoal;
 }
 
 String boolToSign(bool b) {

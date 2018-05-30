@@ -192,10 +192,10 @@ extern bool wasMenuButton;
 #define VOLTAGE_LOW 110         // [0 bis 126]~110 Geringe Akkuspannung
 
 // BEWERTUNG
-#define WEIGHTING_BALL 60
+#define WEIGHTING_BALL 50
 #define WEIGHTING_BALL_WIDTH 100
 #define WEIGHTING_REARWARD 30
-#define WEIGHTING_SEE_GOAL 15
+#define WEIGHTING_SEE_GOAL 10
 
 // Zeitumwandlung
 #define MILS_PER_SEC  (1000UL)  // Millisekunden pro Sekunde
