@@ -114,7 +114,7 @@ extern bool wasMenuButton;
 #define SPEED_LOST 60          // [0 bis 255]~100 STATUS 5: Seitlich verloren
 #define SPEED_SIDEWAY 60       // [0 bis 255]~100  STATUS 6: Ballverfolgung
 #define SPEED_BALL 45          // [0 bis 255]~72  STATUS 6: Ballverfolgung
-#define SPEED_BALL_FAR 55      // [0 bis 255]~72  STATUS 6: Ballverfolgung
+#define SPEED_BALL_FAR 50      // [0 bis 255]~72  STATUS 6: Ballverfolgung
 #define SPEED_CLOSE 40         // [0 bis 255]~60 STATUS 7: Torausrichtung
 #define SPEED_ATTACK 60        // [0 bis 255]~100 STATUS 8: Angriff
 #define SPEED_AVOID_MATE 100   // [0 bis 255]~100 STATUS 9: Ausweichen

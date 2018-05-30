@@ -246,7 +246,7 @@ void Player::play() {
       else if (ballWidth > 20) rotMulti = ROTATION_18CM;
       else rotMulti = ROTATION_AWAY;
 
-      drivePower = map(constrain(ballWidth, 0, 35), 0, 35, SPEED_BALL_FAR, SPEED_BALL);
+      drivePower = map(constrain(ballWidth, 5, 35), 5, 35, SPEED_BALL_FAR, SPEED_BALL);
       driveDirection = map(ball, -X_CENTER, X_CENTER, (float)rotMulti, -(float)rotMulti);
       if (driveDirection > 60) {
         // seitwärts bewegen, um Torsusrichtung aufrecht zu erhalten

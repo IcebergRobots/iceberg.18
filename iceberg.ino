@@ -390,7 +390,7 @@ void loop() {
   else if (isTypeA) {
     if (seeBall && !mate.getScore()) p.setRusher(false);
     if (!seeBall && mate.getScore()) p.setKeeper(false);
-    if (seeBall && mate.getScore() && abs(score - mate.getScore()) >= 20) {
+    if (seeBall && mate.getScore() && abs(score - mate.getScore()) >= 40) {
       if (score > mate.getScore()) p.setRusher(false);
       if (score < mate.getScore()) p.setKeeper(false);
     }
