@@ -109,7 +109,7 @@ extern bool wasMenuButton;
 #define ROTATION_TOUCH 40       // [0 bis *]~20
 #define SPEED_BACKWARDS 70      // [0 bis 255]~70  STATUS 0: Nach hinten
 #define SPEED_PENALTY 40        // [0 bis 255]~50  STATUS 0: Nach hinten
-#define SPEED_KEEPER 70         // [0 bis 255]~60  STATUS 1: Torverteidigung
+#define SPEED_KEEPER 60         // [0 bis 255]~60  STATUS 1: Torverteidigung
 #define SPEED_FREE 70           // [0 bis 255]~70 STATUS 4: Befreiung
 #define SPEED_LOST 70          // [0 bis 255]~100 STATUS 5: Seitlich verloren
 #define SPEED_SIDEWAY 70       // [0 bis 255]~100  STATUS 6: Ballverfolgung
@@ -164,7 +164,7 @@ extern bool wasMenuButton;
 #define SIGNATURE_GOAL 2      // Pixy-Signature des Tors
 #define SIGNATURE_CC 28       // Pixy-Signature des Tors
 #define BALL_WIDTH_TRIGGER 45 // Schwellwert eines großen Balles
-#define BALL_ANGLE_TRIGGER 50 // Schwellenwert der Ballrichtung
+#define BALL_ANGLE_TRIGGER 40 // Schwellenwert der Ballrichtung
 
 // DISPLAY
 #define SETUP_MESSAGE_RANGE 10 // [0 bis *] Anzahl von Schritten im Setup
