@@ -109,13 +109,13 @@ extern bool wasMenuButton;
 #define ROTATION_TOUCH 40       // [0 bis *]~20
 #define SPEED_BACKWARDS 60      // [0 bis 255]~70  STATUS 0: Nach hinten
 #define SPEED_PENALTY 40        // [0 bis 255]~50  STATUS 0: Nach hinten
-#define SPEED_KEEPER 55         // [0 bis 255]~60  STATUS 1: Torverteidigung
+#define SPEED_KEEPER 65         // [0 bis 255]~60  STATUS 1: Torverteidigung
 #define SPEED_FREE 70           // [0 bis 255]~70 STATUS 4: Befreiung
 #define SPEED_LOST 60          // [0 bis 255]~100 STATUS 5: Seitlich verloren
 #define SPEED_SIDEWAY 60       // [0 bis 255]~100  STATUS 6: Ballverfolgung
 #define SPEED_BALL 45          // [0 bis 255]~72  STATUS 6: Ballverfolgung
 #define SPEED_BALL_FAR 50      // [0 bis 255]~72  STATUS 6: Ballverfolgung
-#define SPEED_CLOSE 40         // [0 bis 255]~60 STATUS 7: Torausrichtung
+#define SPEED_CLOSE 45         // [0 bis 255]~60 STATUS 7: Torausrichtung
 #define SPEED_ATTACK 60        // [0 bis 255]~100 STATUS 8: Angriff
 #define SPEED_AVOID_MATE 100   // [0 bis 255]~100 STATUS 9: Ausweichen
 #define SPEED_DRIFT 80         // [0 bis 255]~140
@@ -124,8 +124,8 @@ extern bool wasMenuButton;
 // TIMES
 #define BACKWARD_MAX_DURATION 4000    // wann darf frühestens eingegriffen werden
 #define GOAL_STUCK_DURATION 500       // wie lange soll nach vorne gefahren werden?
-#define SIDEWARD_MAX_DURATION 2000    // max Zeit für Seitwärtsfahren
-#define SIDEWARD_MIN_DURATION 1000     // min Zeit für Seitwärtsfahren
+#define SIDEWARD_MAX_DURATION 1500    // max Zeit für Seitwärtsfahren
+#define SIDEWARD_MIN_DURATION 700     // min Zeit für Seitwärtsfahren
 #define TURN_MAX_DURATION 1500        // max Zeit für Drehmodus
 #define RETURN_MAX_DURATION 1500      // max Zeit für Drehmodus zurück
 #define LOST_DURATION 700      // max Zeit für Ausweichmanöver
@@ -140,7 +140,7 @@ extern bool wasMenuButton;
 #define COURT_REARWARD_MAX 35           // optimaler Abstand nach hinten
 #define COURT_REARWARD_MIN 25           // optimaler Abstand nach hinten
 #define COURT_WIDTH 150         // Summe der Abstände nach rechts und links
-#define COURT_BORDER_MIN 70 // Abstand nach rechts bzw. links am Torpfosten
+#define COURT_BORDER_MIN 80     // Abstand nach rechts bzw. links am Torpfosten
 #define COURT_WIDTH_FREE 140
 #define COURT_POST_TO_BORDER 110 // Abstand nach rechts bzw. links am Torpfosten
 
@@ -164,7 +164,7 @@ extern bool wasMenuButton;
 #define SIGNATURE_BALL 1      // Pixy-Signature des Balls
 #define SIGNATURE_GOAL 2      // Pixy-Signature des Tors
 #define SIGNATURE_CC 28       // Pixy-Signature des Tors
-#define BALL_WIDTH_TRIGGER 45 // Schwellwert eines großen Balles
+#define BALL_WIDTH_TRIGGER 40 // Schwellwert eines großen Balles
 #define BALL_ANGLE_TRIGGER 40 // Schwellenwert der Ballrichtung
 
 // DISPLAY

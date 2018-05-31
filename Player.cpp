@@ -265,6 +265,8 @@ void Player::play() {
         drivePower = max(drivePower - abs(driveRotation), 0);
         m.drive(driveDirection, drivePower, driveRotation);
       }
+
+      if (hasBall && !seeGoal) kick();
       break;
 
     case 7: // Torausrichtung
@@ -358,13 +360,13 @@ byte Player::getState() {
 }
 
 bool Player::atGatepost() {
-  if (true || isPenaltyFree) {
-    // benutze Abstand in Bewegungsrichtung
-    if (stateLeft) return us.left() < COURT_BORDER_MIN;
-    else           return us.right() < COURT_BORDER_MIN;
-  } else {
+  //if (true || isPenaltyFree) {
+  // benutze Abstand in Bewegungsrichtung
+  if (stateLeft) return us.left() < COURT_BORDER_MIN;
+  else           return us.right() < COURT_BORDER_MIN;
+  /*} else {
     // benutze Abstand gegen Bewegungsrichtung
     if (stateLeft) return us.right() > COURT_POST_TO_BORDER;
     else           return us.left() > COURT_POST_TO_BORDER;
-  }
+    }*/
 }

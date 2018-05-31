@@ -56,7 +56,9 @@ void calculateStates() {
   }
   silent = !digitalRead(SWITCH_DEBUG);
 
-  seeBall = !isLifted && millis() - seeBallTimer < 100;
+  hasBall = analogRead(LIGHT_BARRIER) > lightBarrierTriggerLevel;
+  seeBall = !isLifted && (hasBall || millis() - seeBallTimer < 100);
+  if(hasBall && !seeBall) ball = 0;
   seeGoal = !isLifted && millis() - seeGoalTimer < 500;
   seeEast = !isLifted && millis() - seeEastTimer < 500;
   seeWest = !isLifted && millis() - seeWestTimer < 500;
@@ -73,7 +75,6 @@ void calculateStates() {
     // Kamera nicht angeschlossen
     pixyState = 3;
   }
-  hasBall = analogRead(LIGHT_BARRIER) > lightBarrierTriggerLevel;
 
   if (us.right() + us.left() >= COURT_WIDTH_FREE) penaltyFreeTimer = millis();
   isPenaltyFree = us.right() + us.left() >= COURT_WIDTH_FREE;
