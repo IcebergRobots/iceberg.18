@@ -57,8 +57,7 @@ void calculateStates() {
   silent = !digitalRead(SWITCH_DEBUG);
 
   hasBall = analogRead(LIGHT_BARRIER) > lightBarrierTriggerLevel;
-  seeBall = !isLifted && (hasBall || millis() - seeBallTimer < 100);
-  if(hasBall && !seeBall) ball = 0;
+  seeBall = !isLifted && millis() - seeBallTimer < 100;
   seeGoal = !isLifted && millis() - seeGoalTimer < 500;
   seeEast = !isLifted && millis() - seeEastTimer < 500;
   seeWest = !isLifted && millis() - seeWestTimer < 500;

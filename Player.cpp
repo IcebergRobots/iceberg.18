@@ -192,8 +192,8 @@ void Player::play() {
         driveState = "> turn";
       }
 
-      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 0.6 * ausrichten(driveOrientation);
-      else driveRotation = 0.8 * ausrichten(driveOrientation);
+      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 0.9 * ausrichten(driveOrientation);
+      else driveRotation = ausrichten(driveOrientation);
       m.drive(0, 0, driveRotation);
       break;
 
@@ -208,8 +208,8 @@ void Player::play() {
         driveState = "> return";
       }
 
-      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 0.6 * ausrichten(driveOrientation);
-      else driveRotation = 0.8 * ausrichten(driveOrientation);
+      if (seeBall && ball < BALL_ANGLE_TRIGGER) driveRotation = 0.9 * ausrichten(driveOrientation);
+      else driveRotation = ausrichten(driveOrientation);
       m.drive(0, 0, driveRotation);
       break;
 
